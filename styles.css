@@ -86,6 +86,12 @@ h1, h2, h3, h4, .brand-text { font-family: "Sora", sans-serif; line-height: 1.1;
 .nav-links { display: flex; align-items: center; gap: 28px; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
 .nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--text); }
+.nav-links a.active::after {
+  content: ""; display: block; height: 2px; margin-top: 4px; border-radius: 2px;
+  background: var(--grad);
+}
+.nav-cta.active::after { display: none; }
 .nav-cta {
   padding: 10px 18px; border-radius: 999px;
   background: var(--grad); color: #0a0a14 !important; font-weight: 700 !important;
@@ -130,6 +136,60 @@ h1, h2, h3, h4, .brand-text { font-family: "Sora", sans-serif; line-height: 1.1;
   width: 900px; height: 600px; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(124,92,255,.30), transparent 70%);
   pointer-events: none;
+}
+
+/* ===== Logo / trust band ===== */
+.logos { padding: 16px 0 24px; }
+.logos-label { text-align: center; color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 18px; }
+.logos-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 36px; }
+.logos-row span {
+  font-family: "Sora"; font-weight: 700; font-size: 1.15rem; color: var(--muted);
+  opacity: .65; transition: opacity .25s, color .25s, transform .25s;
+}
+.logos-row span:hover { opacity: 1; color: var(--text); transform: translateY(-2px); }
+
+/* ===== Process ===== */
+.process { padding: 90px 0; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.step {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+  padding: 30px 24px; transition: transform .3s, border-color .3s; position: relative;
+}
+.step:hover { transform: translateY(-6px); border-color: rgba(255,255,255,.22); }
+.step-num {
+  display: inline-block; font-family: "Sora"; font-weight: 800; font-size: 1.6rem;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: 14px;
+}
+.step h3 { font-size: 1.12rem; margin-bottom: 8px; }
+.step p { color: var(--muted); font-size: 14.5px; }
+
+/* ===== FAQ ===== */
+.faq { padding: 80px 0; }
+.faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.faq-item {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 4px 24px; transition: border-color .3s, background .3s;
+}
+.faq-item[open] { border-color: rgba(124,92,255,.45); background: var(--surface-2); }
+.faq-item summary {
+  list-style: none; cursor: pointer; padding: 18px 0; font-family: "Sora"; font-weight: 600;
+  font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+"; font-size: 1.5rem; color: var(--cyan); transition: transform .3s; line-height: 1;
+}
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { color: var(--muted); padding: 0 0 20px; font-size: 15px; }
+
+/* ===== Sticky mobile CTA ===== */
+.sticky-cta {
+  display: none; position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 60;
+  text-align: center; padding: 16px; border-radius: 999px; text-decoration: none;
+  font-family: "Sora"; font-weight: 700; color: #0a0a14; background: var(--grad);
+  box-shadow: 0 12px 30px -8px rgba(255,77,217,.6);
+  transition: opacity .3s ease;
 }
 
 /* ===== Stats ===== */
@@ -273,7 +333,7 @@ h1, h2, h3, h4, .brand-text { font-family: "Sora", sans-serif; line-height: 1.1;
 
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
-  .cards, .price-grid, .quotes { grid-template-columns: 1fr 1fr; }
+  .cards, .price-grid, .quotes, .steps { grid-template-columns: 1fr 1fr; }
   .about-inner { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
   .footer-inner { grid-template-columns: 1fr 1fr; }
@@ -290,8 +350,11 @@ h1, h2, h3, h4, .brand-text { font-family: "Sora", sans-serif; line-height: 1.1;
   .nav-cta { margin: 8px 24px; text-align: center; }
   .nav-toggle { display: flex; }
 }
+@media (max-width: 720px) {
+  .sticky-cta { display: block; }
+}
 @media (max-width: 560px) {
-  .cards, .price-grid, .quotes, .loc-grid, .about-points, .stats-grid, .footer-inner, .contact-form .row { grid-template-columns: 1fr; }
+  .cards, .price-grid, .quotes, .loc-grid, .about-points, .stats-grid, .footer-inner, .contact-form .row, .steps { grid-template-columns: 1fr; }
   .contact-card { padding: 40px 24px; }
 }
 

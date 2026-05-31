@@ -78,6 +78,43 @@ const statObserver = new IntersectionObserver(
 );
 document.querySelectorAll(".stat-num").forEach((el) => statObserver.observe(el));
 
+// ===== FAQ: only one open at a time =====
+const faqItems = document.querySelectorAll(".faq-item");
+faqItems.forEach((item) =>
+  item.addEventListener("toggle", () => {
+    if (item.open) faqItems.forEach((o) => o !== item && (o.open = false));
+  })
+);
+
+// ===== Active nav link on scroll (scroll-spy) =====
+const sections = ["services", "process", "packages", "about", "faq", "locations"]
+  .map((id) => document.getElementById(id))
+  .filter(Boolean);
+const navAnchors = Array.from(navLinks.querySelectorAll('a[href^="#"]'));
+const spy = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        navAnchors.forEach((a) =>
+          a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id)
+        );
+      }
+    });
+  },
+  { rootMargin: "-45% 0px -50% 0px" }
+);
+sections.forEach((s) => spy.observe(s));
+
+// ===== Hide sticky CTA when the contact section is in view =====
+const stickyCta = document.querySelector(".sticky-cta");
+const contactSection = document.getElementById("contact");
+if (stickyCta && contactSection) {
+  new IntersectionObserver(
+    ([entry]) => (stickyCta.style.opacity = entry.isIntersecting ? "0" : "1"),
+    { threshold: 0.15 }
+  ).observe(contactSection);
+}
+
 // ===== Contact form (front-end only) =====
 const form = document.getElementById("contactForm");
 const note = document.getElementById("formNote");
