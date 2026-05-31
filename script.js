@@ -7,32 +7,45 @@ const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 20);
 onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
-// ===== Mobile menu =====
+// ===== Mobile menu open/close =====
 const navToggle = document.getElementById("navToggle");
+const navClose = document.getElementById("navClose");
 const navLinks = document.getElementById("navLinks");
-navToggle.addEventListener("click", () => {
-  const open = navLinks.classList.toggle("open");
+
+const setMenu = (open) => {
+  navLinks.classList.toggle("open", open);
   navToggle.classList.toggle("open", open);
   navToggle.setAttribute("aria-expanded", String(open));
-});
+  document.body.style.overflow = open ? "hidden" : "";
+};
+navToggle.addEventListener("click", () => setMenu(!navLinks.classList.contains("open")));
+navClose.addEventListener("click", () => setMenu(false));
+
+// Close on nav link click (but not on a dropdown trigger)
 navLinks.querySelectorAll("a").forEach((a) =>
-  a.addEventListener("click", () => {
-    navLinks.classList.remove("open");
-    navToggle.classList.remove("open");
-    navToggle.setAttribute("aria-expanded", "false");
-  })
+  a.addEventListener("click", () => setMenu(false))
 );
 
+// ===== Mobile accordion for mega menus =====
+const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
+document.querySelectorAll("[data-menu] .menu-trigger").forEach((trigger) => {
+  trigger.addEventListener("click", (e) => {
+    if (!isMobile()) return; // desktop uses hover
+    e.preventDefault();
+    const parent = trigger.closest("[data-menu]");
+    const open = parent.classList.toggle("open");
+    trigger.setAttribute("aria-expanded", String(open));
+  });
+});
+
 // ===== Scroll reveal =====
-const revealEls = document.querySelectorAll(".reveal");
 const revealObserver = new IntersectionObserver(
   (entries) => {
-    entries.forEach((entry, i) => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         const el = entry.target;
-        // gentle stagger for grouped siblings
         const delay = el.parentElement
-          ? Array.from(el.parentElement.children).indexOf(el) * 80
+          ? Array.from(el.parentElement.children).indexOf(el) * 70
           : 0;
         setTimeout(() => el.classList.add("in"), Math.min(delay, 320));
         revealObserver.unobserve(el);
@@ -41,7 +54,7 @@ const revealObserver = new IntersectionObserver(
   },
   { threshold: 0.12 }
 );
-revealEls.forEach((el) => revealObserver.observe(el));
+document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
 
 // ===== Animated stat counters =====
 const formatNum = (n) => n.toLocaleString("en-US");
@@ -49,22 +62,19 @@ const animateCount = (el) => {
   const target = parseFloat(el.dataset.target);
   const prefix = el.dataset.prefix || "";
   const suffix = el.dataset.suffix || "";
-  const isDecimal = !Number.isInteger(target) || target < 10;
-  const duration = 1600;
+  const decimals = (el.dataset.target.split(".")[1] || "").length;
+  const duration = 1700;
   const start = performance.now();
-
   const tick = (now) => {
     const p = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+    const eased = 1 - Math.pow(1 - p, 3);
     const val = target * eased;
-    const shown = isDecimal && target < 10 ? Math.round(val) : Math.round(val);
-    el.textContent = prefix + formatNum(shown) + suffix;
+    el.textContent = prefix + formatNum(Number(val.toFixed(decimals))) + suffix;
     if (p < 1) requestAnimationFrame(tick);
     else el.textContent = prefix + formatNum(target) + suffix;
   };
   requestAnimationFrame(tick);
 };
-
 const statObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
@@ -78,59 +88,45 @@ const statObserver = new IntersectionObserver(
 );
 document.querySelectorAll(".stat-num").forEach((el) => statObserver.observe(el));
 
-// ===== FAQ: only one open at a time =====
-const faqItems = document.querySelectorAll(".faq-item");
-faqItems.forEach((item) =>
-  item.addEventListener("toggle", () => {
-    if (item.open) faqItems.forEach((o) => o !== item && (o.open = false));
-  })
-);
-
-// ===== Active nav link on scroll (scroll-spy) =====
-const sections = ["services", "process", "packages", "about", "faq", "locations"]
-  .map((id) => document.getElementById(id))
-  .filter(Boolean);
-const navAnchors = Array.from(navLinks.querySelectorAll('a[href^="#"]'));
-const spy = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        navAnchors.forEach((a) =>
-          a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id)
-        );
-      }
-    });
-  },
-  { rootMargin: "-45% 0px -50% 0px" }
-);
-sections.forEach((s) => spy.observe(s));
-
-// ===== Hide sticky CTA when the contact section is in view =====
-const stickyCta = document.querySelector(".sticky-cta");
-const contactSection = document.getElementById("contact");
-if (stickyCta && contactSection) {
-  new IntersectionObserver(
-    ([entry]) => (stickyCta.style.opacity = entry.isIntersecting ? "0" : "1"),
-    { threshold: 0.15 }
-  ).observe(contactSection);
+// ===== Testimonials carousel =====
+const track = document.getElementById("carTrack");
+const prev = document.getElementById("carPrev");
+const next = document.getElementById("carNext");
+if (track) {
+  const step = () => {
+    const card = track.querySelector(".testi-card");
+    return card ? card.offsetWidth + 20 : 320;
+  };
+  prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: "smooth" }));
+  next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: "smooth" }));
 }
 
 // ===== Contact form (front-end only) =====
 const form = document.getElementById("contactForm");
 const note = document.getElementById("formNote");
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const data = new FormData(form);
-  const name = (data.get("name") || "").toString().trim();
-  const email = (data.get("email") || "").toString().trim();
-  const msg = (data.get("message") || "").toString().trim();
+if (form) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const name = (data.get("name") || "").toString().trim();
+    const email = (data.get("email") || "").toString().trim();
+    const msg = (data.get("message") || "").toString().trim();
+    if (!name || !email || !msg) {
+      note.style.color = "#ff6b6b";
+      note.textContent = "Please fill in your name, email, and message.";
+      return;
+    }
+    note.style.color = "";
+    note.textContent = `Thanks, ${name.split(" ")[0]}! We'll reach out to ${email} shortly. 🚀`;
+    form.reset();
+  });
+}
 
-  if (!name || !email || !msg) {
-    note.style.color = "#ff7a90";
-    note.textContent = "Please fill in your name, email, and message.";
-    return;
-  }
-  note.style.color = "";
-  note.textContent = `Thanks, ${name.split(" ")[0]}! We'll reach out to ${email} shortly. 🚀`;
-  form.reset();
-});
+// ===== Login form (front-end only) =====
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    alert("Login is a demo on this build — connect it to your backend to enable accounts.");
+  });
+}
