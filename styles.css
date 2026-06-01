@@ -257,11 +257,11 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .partner { padding: 90px 0; }
 .partner-sub { text-align: center; color: var(--muted); max-width: 560px; margin: 16px auto 26px; }
 .partner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 50px; max-width: 860px; margin-left: auto; margin-right: auto; }
-.perk { text-align: center; padding: 34px 26px; border-radius: 18px; background: linear-gradient(160deg, rgba(240,160,32,.06), rgba(255,255,255,.02)); border: 1px solid var(--border); transition: transform .3s, box-shadow .3s; }
-.perk:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(240,160,32,.4); }
-.perk-icon { font-size: 34px; width: 70px; height: 70px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 16px; background: rgba(240,160,32,.1); border: 1px solid var(--border); }
-.perk h3 { font-size: 1.15rem; margin-bottom: 10px; }
-.perk p { color: var(--muted); font-size: 14px; }
+.perk { text-align: center; padding: 38px 28px; border-radius: 22px; background: linear-gradient(160deg, rgba(58,22,0,.9), rgba(20,8,0,.95)); border: 1.5px solid var(--gold); transition: transform .3s, box-shadow .3s; }
+.perk:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -20px rgba(240,160,32,.5); }
+.perk-icon { font-size: 48px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; }
+.perk h3 { font-size: 1.35rem; margin-bottom: 12px; }
+.perk p { color: rgba(255,255,255,.75); font-size: 15px; line-height: 1.6; }
 
 /* ===== Packages ===== */
 .packages { padding: 70px 0 90px; }
@@ -406,7 +406,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .cases-cols { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .stat-strip, .partner-grid, .footer-cols, .contact-form .row { grid-template-columns: 1fr; }
+  .stat-strip, .partner-grid, .contact-form .row { grid-template-columns: 1fr; }
   /* Result cards: horizontal scroll-snap carousel */
   .result-grid {
     display: flex; flex-wrap: nowrap;
@@ -428,6 +428,9 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .hero-sub { margin: 20px auto 0; max-width: 100%; }
   .hero-actions { flex-direction: column; width: 100%; }
   .hero-actions .btn { width: 100%; padding: 18px 24px; font-size: 16px; }
+  .growth-cta .container { width: 100%; }
+  .growth-cta .btn { width: 100%; text-align: center; }
+  .partner .center .btn { width: 100%; }
 }
 
 /* ===== Cart ===== */
