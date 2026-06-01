@@ -107,17 +107,24 @@ const statObserver = new IntersectionObserver(
 );
 document.querySelectorAll(".stat-num").forEach((el) => statObserver.observe(el));
 
-// ===== Testimonials carousel =====
-const track = document.getElementById("carTrack");
-const prev = document.getElementById("carPrev");
-const next = document.getElementById("carNext");
-if (track) {
-  const step = () => {
-    const card = track.querySelector(".testi-card");
-    return card ? card.offsetWidth + 20 : 320;
-  };
-  prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: "smooth" }));
-  next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: "smooth" }));
+// ===== Testimonials slider (single-video carousel) =====
+const testiSlides = document.querySelectorAll('.testi-slide');
+let testiIdx = 0;
+const testiPrevBtn = document.querySelector('.testi-prev');
+const testiNextBtn = document.querySelector('.testi-next');
+function showTestiSlide(i) {
+  testiSlides.forEach(s => s.classList.remove('active'));
+  testiSlides[i].classList.add('active');
+}
+if (testiPrevBtn && testiNextBtn && testiSlides.length) {
+  testiPrevBtn.addEventListener('click', () => {
+    testiIdx = (testiIdx - 1 + testiSlides.length) % testiSlides.length;
+    showTestiSlide(testiIdx);
+  });
+  testiNextBtn.addEventListener('click', () => {
+    testiIdx = (testiIdx + 1) % testiSlides.length;
+    showTestiSlide(testiIdx);
+  });
 }
 
 // ===== Contact form (front-end only) =====
