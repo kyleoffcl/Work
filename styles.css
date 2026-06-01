@@ -129,15 +129,15 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .hero { position: relative; padding: 110px 0 120px; text-align: center; overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .hero-bg span {
-  position: absolute; border-radius: 50%; filter: blur(110px); opacity: .12;
+  position: absolute; border-radius: 50%; filter: blur(130px);
   background: radial-gradient(circle, var(--gold), transparent 70%); animation: float 16s ease-in-out infinite;
 }
-.hero-bg span:nth-child(1) { width: 500px; height: 500px; bottom: 0; left: 50%; transform: translateX(-50%); opacity: .10; }
-.hero-bg span:nth-child(2) { width: 300px; height: 300px; bottom: -100px; right: -60px; opacity: .07; animation-delay: -6s; }
-.hero-bg span:nth-child(3) { width: 200px; height: 200px; bottom: 20%; left: 50%; opacity: .05; animation-delay: -11s; }
+.hero-bg span:nth-child(1) { width: 600px; height: 600px; bottom: -100px; left: 50%; transform: translateX(-50%); opacity: .08; }
+.hero-bg span:nth-child(2) { width: 300px; height: 300px; bottom: -150px; right: -60px; opacity: .05; animation-delay: -6s; }
+.hero-bg span:nth-child(3) { width: 200px; height: 200px; bottom: 10%; left: 40%; opacity: .04; animation-delay: -11s; }
 @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.08)} 66%{transform:translate(-30px,24px) scale(.95)} }
 .hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
-.hero-title { font-size: clamp(3rem, 6.2vw, 4.4rem); font-weight: 900; letter-spacing: -1px; color: #f5c090; }
+.hero-title { font-size: clamp(3rem, 6.2vw, 4.4rem); font-weight: 900; letter-spacing: -0.5px; color: #f5c090; }
 .hero-sub { max-width: 620px; color: var(--text); font-size: clamp(1.1rem, 2.2vw, 1.2rem); font-weight: 500; margin: 24px auto 0; }
 .hero-actions { display: flex; gap: 16px; margin-top: 38px; flex-wrap: wrap; justify-content: center; }
 
@@ -390,7 +390,10 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .car-btn { display: none; }
   .testi-card { flex-basis: 82vw; }
   .contact-card { padding: 38px 22px; }
-  .hero-actions { flex-direction: column; width: 100%; max-width: 420px; }
+  .hero { text-align: left; padding: 70px 0 100px; }
+  .hero-inner { align-items: flex-start; }
+  .hero-sub { margin: 20px 0 0; text-align: left; max-width: 100%; }
+  .hero-actions { flex-direction: column; width: 100%; justify-content: flex-start; }
   .hero-actions .btn { width: 100%; padding: 18px 24px; font-size: 16px; }
 }
 
