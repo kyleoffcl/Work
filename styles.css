@@ -119,7 +119,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .cases-cols a:hover { color: var(--gold); }
 
 .nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: 0; cursor: pointer; padding: 8px; }
-.nav-toggle span { width: 26px; height: 2px; background: var(--gold); border-radius: 2px; transition: .3s; }
+.nav-toggle span { width: 26px; height: 3px; background: var(--gold); border-radius: 2px; transition: .3s; }
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
@@ -344,6 +344,10 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .has-menu.open .mega { display: grid; }
   .has-menu:hover .mega { transform: none; }
   .mega-cases { width: 100%; }
+  /* Mobile caret: orange outlined pill */
+  .caret { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; height: 28px; border-radius: 999px; border: 1.5px solid var(--gold-2); color: var(--gold); font-size: 13px; flex-shrink: 0; }
+  .has-menu.open .menu-trigger { color: var(--gold); }
+  .cases-cols { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
   .result-grid, .stat-strip, .partner-grid, .footer-cols, .contact-form .row { grid-template-columns: 1fr; }
