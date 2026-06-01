@@ -108,6 +108,16 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .mega-cases { grid-template-columns: 1fr; width: min(720px, 92vw); }
 .chips-wide span { font-size: 13px; }
 
+/* plain list for social growth column */
+.mega-plain-list { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.mega-plain-list li { font-size: 13px; color: var(--muted); padding: 4px 0; transition: color .2s; cursor: default; }
+.mega-plain-list li:hover { color: var(--gold); }
+
+/* case studies multi-column grid */
+.cases-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 16px; width: 100%; }
+.cases-cols a { color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 0; display: block; transition: color .2s; }
+.cases-cols a:hover { color: var(--gold); }
+
 .nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: 0; cursor: pointer; padding: 8px; }
 .nav-toggle span { width: 26px; height: 2px; background: var(--gold); border-radius: 2px; transition: .3s; }
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -309,10 +319,10 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   /* mobile slide-in nav */
   .nav-toggle { display: flex; }
   .nav-links {
-    position: fixed; inset: 0 0 0 auto; width: min(86vw, 380px); height: 100vh;
+    position: fixed; inset: 0 auto 0 0; width: min(86vw, 380px); height: 100vh;
     flex-direction: column; align-items: stretch; gap: 0; padding: 80px 22px 30px;
-    background: #060608; border-left: 1px solid var(--border); overflow-y: auto;
-    transform: translateX(100%); transition: transform .35s ease; z-index: 130;
+    background: #060608; border-right: 1px solid var(--border); overflow-y: auto;
+    transform: translateX(-100%); transition: transform .35s ease; z-index: 130;
   }
   .nav-links.open { transform: translateX(0); }
   .nav-close { display: block; position: absolute; top: 20px; right: 20px; background: none; border: 0; color: var(--gold); font-size: 22px; cursor: pointer; }
