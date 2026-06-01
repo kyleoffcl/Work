@@ -55,8 +55,8 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .ph-icon { display: inline-block; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }
 .btn-gold { background: var(--grad); color: #fff !important; box-shadow: var(--glow); }
 .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
-.btn-outline { background: #000; color: var(--gold-2); border-color: var(--gold-2); border-width: 1px; font-weight: 400; box-shadow: none; }
-.btn-outline:hover { transform: translateY(-3px); background: rgba(240,160,32,.08); box-shadow: 0 0 20px rgba(240,160,32,.45), 0 0 45px rgba(240,160,32,.25); }
+.btn-outline { background: var(--grad); color: #fff !important; border-color: transparent; box-shadow: var(--glow); }
+.btn-outline:hover { transform: translateY(-3px); box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
 .btn.full { width: 100%; }
 .btn.lg { padding: 17px 38px; font-size: 16px; }
 
@@ -390,10 +390,9 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .car-btn { display: none; }
   .testi-card { flex-basis: 82vw; }
   .contact-card { padding: 38px 22px; }
-  .hero { text-align: left; padding: 70px 0 100px; }
-  .hero-inner { align-items: flex-start; }
-  .hero-sub { margin: 20px 0 0; text-align: left; max-width: 100%; }
-  .hero-actions { flex-direction: column; width: 100%; justify-content: flex-start; }
+  .hero { padding: 90px 0 100px; }
+  .hero-sub { margin: 20px auto 0; max-width: 100%; }
+  .hero-actions { flex-direction: column; width: 100%; }
   .hero-actions .btn { width: 100%; padding: 18px 24px; font-size: 16px; }
 }
 
