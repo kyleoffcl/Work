@@ -27,15 +27,18 @@ window.addEventListener("scroll", onScroll, { passive: true });
 const navToggle = document.getElementById("navToggle");
 const navClose = document.getElementById("navClose");
 const navLinks = document.getElementById("navLinks");
+const navBackdrop = document.getElementById("navBackdrop");
 
 const setMenu = (open) => {
   navLinks.classList.toggle("open", open);
   navToggle.classList.toggle("open", open);
   navToggle.setAttribute("aria-expanded", String(open));
+  navBackdrop.classList.toggle("visible", open);
   document.body.style.overflow = open ? "hidden" : "";
 };
 navToggle.addEventListener("click", () => setMenu(!navLinks.classList.contains("open")));
 navClose.addEventListener("click", () => setMenu(false));
+navBackdrop.addEventListener("click", () => setMenu(false));
 
 // Close on nav link click (but not on a dropdown trigger)
 navLinks.querySelectorAll("a").forEach((a) =>
