@@ -332,10 +332,10 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .footer-bottom { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-soft); text-align: center; color: var(--muted); font-size: 13px; }
 
 /* ===== Floating CTA ===== */
-.float-cta { position: fixed; right: 18px; bottom: 18px; z-index: 90; text-align: center; font-family: "Poppins"; font-weight: 700; font-size: 15px; line-height: 1.25; color: #fff !important; background: var(--grad); padding: 16px 28px; border-radius: 999px; text-decoration: none; box-shadow: var(--glow); animation: pulse 2.6s ease-in-out infinite; white-space: nowrap; }
+.float-cta { position: fixed; right: 18px; bottom: 18px; z-index: 90; text-align: center; font-family: "Poppins"; font-weight: 700; font-size: 16px; line-height: 1.25; color: #fff !important; background: var(--grad); padding: 17px 38px; border-radius: 999px; text-decoration: none; box-shadow: var(--glow); animation: pulse 2.6s ease-in-out infinite; white-space: nowrap; }
 @keyframes pulse { 0%,100%{ box-shadow: 0 0 22px rgba(245,168,40,.85), 0 0 50px rgba(245,168,40,.6), 0 0 90px rgba(245,168,40,.3);} 50%{ box-shadow: 0 0 30px rgba(245,168,40,1), 0 0 70px rgba(245,168,40,.75), 0 0 120px rgba(245,168,40,.45);} }
 @media (max-width: 700px) {
-  .float-cta { left: 14px; right: 14px; bottom: 14px; border-radius: 999px; font-size: 16px; padding: 18px 24px; font-weight: 700; }
+  .float-cta { left: 22px; right: 22px; bottom: 14px; border-radius: 999px; font-size: 16px; padding: 18px 24px; font-weight: 700; }
 }
 
 /* ===== Reveal ===== */
