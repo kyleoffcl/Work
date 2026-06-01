@@ -146,3 +146,12 @@ if (loginForm) {
     alert("Login is a demo on this build — connect it to your backend to enable accounts.");
   });
 }
+
+// ===== Social Growth Packages tab switcher =====
+const sgpTabs = document.querySelectorAll(".sgp-tab");
+sgpTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    sgpTabs.forEach((t) => t.classList.remove("sgp-tab--active"));
+    tab.classList.add("sgp-tab--active");
+  });
+});
