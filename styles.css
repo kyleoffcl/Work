@@ -389,7 +389,19 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .cases-cols { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .result-grid, .stat-strip, .partner-grid, .footer-cols, .contact-form .row { grid-template-columns: 1fr; }
+  .stat-strip, .partner-grid, .footer-cols, .contact-form .row { grid-template-columns: 1fr; }
+  /* Result cards: horizontal scroll-snap carousel */
+  .result-grid {
+    display: flex; flex-wrap: nowrap;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    margin: 44px -20px 0;
+    padding: 0 20px 16px;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .result-grid::-webkit-scrollbar { display: none; }
+  .result-card { flex: 0 0 88%; min-width: 0; scroll-snap-align: start; }
   .carousel { padding: 0 8px; }
   .car-btn { display: none; }
   .testi-card { flex-basis: 82vw; }
