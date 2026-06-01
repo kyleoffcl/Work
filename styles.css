@@ -154,6 +154,37 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .growth-cta .container { display: flex; flex-direction: column; align-items: center; }
 .growth-cta .btn { margin-top: 26px; }
 
+/* ===== Services ===== */
+.services { padding: 90px 0; }
+.section-sub { text-align: center; color: var(--muted); max-width: 600px; margin: 14px auto 0; font-size: 15.5px; }
+.services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 50px; }
+.svc-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 20px; padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; transition: transform .3s, border-color .3s, box-shadow .3s; }
+.svc-card:hover { transform: translateY(-6px); border-color: var(--gold-2); box-shadow: 0 24px 50px -20px rgba(242,196,90,.35); }
+.svc-card--wide { grid-column: span 2; }
+.svc-icon { font-size: 30px; width: 58px; height: 58px; border-radius: 14px; display: grid; place-items: center; background: rgba(242,196,90,.1); border: 1px solid var(--border); flex-shrink: 0; }
+.svc-card h3 { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+.svc-card > p { color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+.svc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.svc-list li { position: relative; padding-left: 22px; color: var(--muted); font-size: 13px; }
+.svc-list li::before { content: "✓"; position: absolute; left: 0; color: var(--gold); font-weight: 800; font-size: 12px; }
+.svc-list--inline { flex-direction: row; flex-wrap: wrap; column-gap: 24px; row-gap: 8px; }
+.svc-platforms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.svc-platforms span { font-size: 11.5px; color: var(--muted); padding: 5px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border-soft); }
+
+@media (max-width: 1080px) {
+  .services-grid { grid-template-columns: repeat(3, 1fr); }
+  .svc-card--wide { grid-column: span 3; }
+  .svc-list--inline { flex-direction: column; }
+}
+@media (max-width: 740px) {
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .svc-card--wide { grid-column: span 2; }
+}
+@media (max-width: 480px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .svc-card--wide { grid-column: span 1; }
+}
+
 /* ===== Testimonials ===== */
 .testi { padding: 60px 0 90px; }
 .carousel { position: relative; margin-top: 44px; padding: 0 56px; }

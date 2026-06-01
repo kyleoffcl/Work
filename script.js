@@ -1,9 +1,25 @@
 // ===== Year =====
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// ===== Navbar scroll state =====
+// ===== Navbar scroll state + scroll-spy =====
 const nav = document.getElementById("nav");
-const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 20);
+const spySections = ["home", "services", "testimonials", "partner", "packages", "contact", "login"];
+const spyLinks = document.querySelectorAll(".nav-links > a[href^='#']");
+
+const onScroll = () => {
+  nav.classList.toggle("scrolled", window.scrollY > 20);
+
+  // scroll-spy: mark the nav link whose section is nearest the top
+  let currentId = "";
+  for (const id of spySections) {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 100) currentId = id;
+  }
+  spyLinks.forEach((a) => {
+    const href = a.getAttribute("href").replace("#", "");
+    a.classList.toggle("active", href === currentId || (currentId === "" && href === "home"));
+  });
+};
 onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
