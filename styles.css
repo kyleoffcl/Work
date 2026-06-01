@@ -16,7 +16,7 @@
   --gold-deep: #C87020;
   --grad: linear-gradient(160deg, #FBAA50 0%, #FA9E3B 60%, #E88E28 100%);
   --grad-text: linear-gradient(120deg, #FBAA50, #E88E28);
-  --glow: 0 0 20px rgba(250,158,59,.10), 0 0 48px rgba(250,158,59,.07), 0 0 85px rgba(250,158,59,.04);
+  --glow: 0 0 20px rgba(250,158,59,.35), 0 0 48px rgba(250,158,59,.22), 0 0 85px rgba(250,158,59,.10);
 
   --radius: 18px;
   --maxw: 1180px;
@@ -54,9 +54,9 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .btn .ph { font-size: 14px; }
 .ph-icon { display: inline-block; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }
 .btn-gold { background: var(--grad); color: #fff !important; animation: pulse 2.6s ease-in-out infinite; }
-.btn-gold:hover { transform: translateY(-3px); animation: none; box-shadow: 0 0 22px rgba(250,158,59,.10), 0 0 55px rgba(250,158,59,.07), 0 0 90px rgba(250,158,59,.04); }
+.btn-gold:hover { transform: translateY(-3px); animation: none; box-shadow: 0 0 22px rgba(250,158,59,.45), 0 0 55px rgba(250,158,59,.28), 0 0 90px rgba(250,158,59,.12); }
 .btn-outline { background: transparent; color: var(--gold) !important; border-color: var(--gold); }
-.btn-outline:hover { transform: translateY(-3px); box-shadow: 0 0 18px rgba(250,158,59,.10), 0 0 40px rgba(250,158,59,.07); }
+.btn-outline:hover { transform: translateY(-3px); box-shadow: 0 0 18px rgba(250,158,59,.35), 0 0 40px rgba(250,158,59,.20); }
 .btn.full { width: 100%; }
 .btn.lg { padding: 17px 38px; font-size: 16px; }
 
@@ -348,7 +348,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 
 /* ===== Floating CTA ===== */
 .float-cta { position: fixed; right: 18px; bottom: 18px; z-index: 90; text-align: center; font-family: "Poppins"; font-weight: 700; font-size: 16px; line-height: 1.6; color: #fff !important; background: var(--grad); padding: 17px 38px; border-radius: 999px; text-decoration: none; box-shadow: var(--glow); animation: pulse 2.6s ease-in-out infinite; white-space: nowrap; }
-@keyframes pulse { 0%,100%{ box-shadow: 0 0 22px rgba(250,158,59,.10), 0 0 50px rgba(250,158,59,.07), 0 0 90px rgba(250,158,59,.04);} 50%{ box-shadow: 0 0 30px rgba(250,158,59,.12), 0 0 70px rgba(250,158,59,.09), 0 0 120px rgba(250,158,59,.05);} }
+@keyframes pulse { 0%,100%{ box-shadow: 0 0 22px rgba(250,158,59,.32), 0 0 50px rgba(250,158,59,.20), 0 0 90px rgba(250,158,59,.08);} 50%{ box-shadow: 0 0 30px rgba(250,158,59,.50), 0 0 70px rgba(250,158,59,.30), 0 0 120px rgba(250,158,59,.12);} }
 @media (max-width: 700px) {
   .float-cta { left: 22px; right: 22px; bottom: 14px; border-radius: 999px; font-size: 16px; padding: 18px 24px; font-weight: 700; }
 }
