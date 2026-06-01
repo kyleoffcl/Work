@@ -53,10 +53,10 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 }
 .btn .ph { font-size: 14px; }
 .ph-icon { display: inline-block; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }
-.btn-gold { background: var(--grad); color: #fff !important; box-shadow: var(--glow); }
-.btn-gold:hover { transform: translateY(-3px); box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
-.btn-outline { background: var(--grad); color: #fff !important; border-color: transparent; box-shadow: var(--glow); }
-.btn-outline:hover { transform: translateY(-3px); box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
+.btn-gold { background: var(--grad); color: #fff !important; animation: pulse 2.6s ease-in-out infinite; }
+.btn-gold:hover { transform: translateY(-3px); animation: none; box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
+.btn-outline { background: var(--grad); color: #fff !important; border-color: transparent; animation: pulse 2.6s ease-in-out infinite; }
+.btn-outline:hover { transform: translateY(-3px); animation: none; box-shadow: 0 0 22px rgba(240,160,32,.9), 0 0 55px rgba(240,160,32,.6), 0 0 90px rgba(240,160,32,.35); }
 .btn.full { width: 100%; }
 .btn.lg { padding: 17px 38px; font-size: 16px; }
 
