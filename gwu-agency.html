@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GWU Agency - Full Service Done For You Agency</title>
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent: #00ff88; /* Neon green accent common in growth agencies */
+            --accent-hover: #00cc6a;
+            --border-color: #222222;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* --- Header & Navigation --- */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover { color: var(--text-primary); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #00ff88 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .video-wrapper {
+            margin-top: 4rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+        }
+
+        /* --- Case Studies / Social Proof --- */
+        .case-studies {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .card h3 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .card .role {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .card .package {
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- Services Section --- */
+        .services {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #080808;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .service-category h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .service-category h3::before {
+            content: "▹";
+            font-size: 1.2rem;
+        }
+
+        .service-category li {
+            padding: 0.8rem 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .service-category li:hover {
+            color: var(--text-primary);
+        }
+
+        /* --- CTA Footer --- */
+        .cta {
+            text-align: center;
+            padding: 8rem 2rem;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+        }
+
+        .cta h2 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .cta p {
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            font-size: 1.25rem;
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8rem; }
+            nav ul { display: none; } /* Hide nav on mobile for simplicity */
+            header { padding: 1rem; }
+            .cta h2 { font-size: 2.2rem; }
+            .section-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">GWU</a>
+        <nav>
+            <ul>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#results">Case Studies</a></li>
+                <li><a href="#">Partner</a></li>
+                <li><a href="#">Login</a></li>
+            </ul>
+        </nav>
+        <a href="#" class="btn-primary">Book a Call</a>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Your Full Service<br>Done For You Agency</h1>
+        <p>Built for businesses & personal brands that want lower-cost leads, stronger branding, and real social growth.</p>
+        <a href="#" class="btn-primary">Schedule a Call!</a>
+
+        <div class="video-wrapper">
+            <span>▶ Video Player Placeholder</span>
+        </div>
+    </section>
+
+    <!-- Case Studies / Results -->
+    <section class="case-studies" id="results">
+        <h2 class="section-title">Thousands of Brands Transformed</h2>
+        <p class="section-subtitle">Here's a few of the results we've achieved for our clients.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h3>1.2M+</h3>
+                <div class="role">Mobile App</div>
+                <div class="package">Royalty Package</div>
+            </div>
+            <div class="card">
+                <h3>1M+</h3>
+                <div class="role">Real Estate Broker</div>
+                <div class="package">Legendary Package</div>
+            </div>
+            <div class="card">
+                <h3>100k+</h3>
+                <div class="role">Influencer</div>
+                <div class="package">Top Tier Package</div>
+            </div>
+            <div class="card">
+                <h3>1.9M+</h3>
+                <div class="role">Real Estate Entrepreneur</div>
+                <div class="package">Top Tier Package</div>
+            </div>
+            <div class="card">
+                <h3>275k+</h3>
+                <div class="role">Lawyer</div>
+                <div class="package">High Status Package</div>
+            </div>
+            <div class="card">
+                <h3>550k+</h3>
+                <div class="role">Sales Coach</div>
+                <div class="package">High Status Package</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <h2 class="section-title">Your Full Service Agency</h2>
+        <p class="section-subtitle">We handle everything from lead generation to content creation.</p>
+
+        <div class="services-grid">
+            <div class="service-category">
+                <h3>Advertising & Outreach</h3>
+                <ul>
+                    <li>Targeted Mass DM (Up to 2M/day)</li>
+                    <li>Digital Ads (All Platforms)</li>
+                    <li>IG, X, FB Account Outreach</li>
+                    <li>Cold Email Outreach</li>
+                    <li>Email & SMS Marketing Flows</li>
+                    <li>Full Scope SEO Services</li>
+                </ul>
+            </div>
+            <div class="service-category">
+                <h3>Social Growth</h3>
+                <ul>
+                    <li>Instagram, TikTok, YouTube</li>
+                    <li>LinkedIn, Twitter (X), Facebook</li>
+                    <li>Discord, Spotify, Telegram</li>
+                    <li>Reddit, Threads, Twitch</li>
+                    <li>Truth Social, Pinterest, Quora</li>
+                    <li>Clubhouse & More</li>
+                </ul>
+            </div>
+            <div class="service-category">
+                <h3>Development & Design</h3>
+                <ul>
+                    <li>Custom Web/App Development</li>
+                    <li>Graphic Design & 3D Animations</li>
+                    <li>Content Creation & Video Editing</li>
+                    <li>Community DFY Buildout</li>
+                    <li>Targeted Data Scraping</li>
+                    <li>AI Services (Chatbots, Art, Voice)</li>
+                </ul>
+            </div>
+            <div class="service-category">
+                <h3>Packages & Consulting</h3>
+                <ul>
+                    <li>Bundle Packages (Structure for Success)</li>
+                    <li>CRO Packages for Brands</li>
+                    <li>IG Premium Growth Packages</li>
+                    <li>Monthly Elite Scaling</li>
+                    <li>DFY White Label Agency</li>
+                    <li>GWU Agency Full Course (140+ Videos)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Ready to Scale?</h2>
+        <p>Let's Build Your Growth Plan Today.</p>
+        <a href="#" class="btn-primary">Schedule a Call!</a>
+    </section>
+
+</body>
+</html>
