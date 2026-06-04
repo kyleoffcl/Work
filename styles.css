@@ -126,7 +126,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ===== Hero ===== */
-.hero { position: relative; padding: 110px 0 120px; text-align: center; overflow: hidden; }
+.hero { position: relative; padding: 76px 0 110px; text-align: center; overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .hero-bg span {
   position: absolute; border-radius: 50%; filter: blur(130px); will-change: transform;
@@ -142,8 +142,8 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 }
 .hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .hero-title { font-size: clamp(2.6rem, 6.2vw, 4.4rem); line-height: 1.24; font-weight: 900; letter-spacing: -1px; color: #FA9E3B; animation: hero-glow 3s ease-in-out infinite; }
-.hero-sub { max-width: 620px; color: var(--text); font-size: clamp(1.1rem, 2.2vw, 1.2rem); font-weight: 500; margin: 38px auto 0; line-height: 2.0; }
-.hero-actions { display: flex; gap: 16px; margin-top: 38px; flex-wrap: wrap; justify-content: center; }
+.hero-sub { max-width: 620px; color: var(--text); font-size: clamp(1.1rem, 2.2vw, 1.2rem); font-weight: 500; margin: 28px auto 0; line-height: 1.65; }
+.hero-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; justify-content: center; }
 
 /* ===== Section helpers ===== */
 .section-title { font-size: clamp(1.7rem, 4.2vw, 2.7rem); text-align: left; }
@@ -431,7 +431,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   .testi-card { flex-basis: 82vw; }
   .testi-yt-grid { grid-template-columns: 1fr; }
   .contact-card { padding: 38px 22px; }
-  .hero { padding: 110px 0 100px; }
+  .hero { padding: 76px 0 100px; }
   .hero-sub { margin: 38px auto 0; max-width: 100%; }
   .hero-actions { flex-direction: column; width: 100%; gap: 12px; }
   .hero-actions .btn { width: 100%; padding: 18px 24px; font-size: 16px; }
