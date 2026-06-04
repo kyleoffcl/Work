@@ -94,7 +94,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 }
 .has-menu:hover .mega { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 .has-menu:hover .caret { transform: rotate(180deg); }
-.mega-col h4 { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin: 0 0 12px; }
+.mega-col h4 { font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--gold); font-weight: 700; margin: 0 0 10px; }
 .mega-col h4:not(:first-child) { margin-top: 18px; }
 .mega-col a { display: block; text-decoration: none; padding: 7px 0; border-radius: 8px; }
 .mega-col a strong { display: block; color: var(--text); font-size: 14px; font-weight: 600; }
