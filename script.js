@@ -103,7 +103,7 @@ const statObserver = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.5 }
+  { threshold: 0.12 }
 );
 document.querySelectorAll(".stat-num").forEach((el) => statObserver.observe(el));
 
@@ -235,6 +235,12 @@ document.querySelectorAll(".btn-cart").forEach((btn) => {
     renderCart();
     openCart();
   });
+});
+
+document.querySelector('.cart-checkout')?.addEventListener('click', () => {
+  if (cart.length === 0) return;
+  closeCart();
+  setTimeout(() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' }), 300);
 });
 
 renderCart();
