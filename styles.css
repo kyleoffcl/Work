@@ -52,7 +52,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
   white-space: nowrap;
 }
 .btn .ph { font-size: 14px; }
-.ph-icon { display: inline-block; vertical-align: middle; margin-left: 4px; flex-shrink: 0; filter: brightness(0); }
+.ph-icon { display: inline-block; vertical-align: middle; margin-left: 4px; flex-shrink: 0; filter: brightness(0) invert(1); }
 .btn-gold { background: var(--grad); color: #fff !important; }
 .btn-gold:hover { transform: translateY(-3px); animation: none; box-shadow: 0 0 22px rgba(250,158,59,.45), 0 0 55px rgba(250,158,59,.28), 0 0 90px rgba(250,158,59,.12); }
 .btn-outline { background: transparent; color: var(--gold) !important; border-color: var(--gold); }
@@ -137,11 +137,12 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .hero-bg span:nth-child(3) { width: 200px; height: 200px; bottom: -20%; left: 40%; opacity: .015; animation-delay: -11s; }
 @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.08)} 66%{transform:translate(-30px,24px) scale(.95)} }
 @keyframes hero-glow {
-  0%, 100% { text-shadow: 0 0 18px rgba(250,158,59,.55), 0 0 40px rgba(250,158,59,.25); }
-  50%       { text-shadow: 0 0 22px rgba(241,218,192,.45), 0 0 50px rgba(241,218,192,.18); }
+  0%, 100% { color: #FA9E3B; text-shadow: 0 0 18px rgba(250,158,59,.6), 0 0 40px rgba(250,158,59,.3); }
+  33%       { color: #FBAA50; text-shadow: 0 0 22px rgba(251,170,80,.5), 0 0 50px rgba(251,170,80,.2); }
+  66%       { color: #E08830; text-shadow: 0 0 16px rgba(224,136,48,.5), 0 0 36px rgba(224,136,48,.2); }
 }
 .hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
-.hero-title { font-size: clamp(2.6rem, 6.2vw, 4.4rem); line-height: 1.24; font-weight: 900; letter-spacing: -1px; color: var(--gold); }
+.hero-title { font-size: clamp(2.6rem, 6.2vw, 4.4rem); line-height: 1.24; font-weight: 900; letter-spacing: -1px; color: var(--gold); animation: hero-glow 3s ease-in-out infinite; }
 .hero-sub { max-width: 620px; color: var(--text); font-size: clamp(1.1rem, 2.2vw, 1.2rem); font-weight: 500; margin: 28px auto 0; line-height: 1.65; }
 .hero-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; justify-content: center; }
 
