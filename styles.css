@@ -182,7 +182,9 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 .services { padding: 60px 0; background: var(--bg); }
 .section-sub { text-align: center; color: var(--muted); max-width: 600px; margin: 14px auto 0; font-size: 15.5px; }
 .services .section-title { color: var(--gold); }
-.services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px; }
+.svc-category { margin-top: 48px; }
+.svc-cat-title { font-size: 1rem; font-weight: 700; font-family: "Poppins", sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: 1.5px; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+.services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px; }
 .svc-card { background: #1E1E1E; border: 1px solid var(--border-soft); border-radius: 20px; padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; transition: transform .3s, border-color .3s, box-shadow .3s; }
 .svc-card:hover { transform: translateY(-6px); border-color: var(--gold-2); box-shadow: 0 24px 50px -20px rgba(250,158,59,.35); }
 .svc-card--wide { grid-column: span 2; }
