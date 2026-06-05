@@ -138,8 +138,7 @@ h1, h2, h3, h4 { font-family: "Poppins", sans-serif; line-height: 1.12; font-wei
 @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.08)} 66%{transform:translate(-30px,24px) scale(.95)} }
 @keyframes hero-glow {
   0%, 100% { color: #FA9E3B; text-shadow: 0 0 18px rgba(250,158,59,.6), 0 0 40px rgba(250,158,59,.3); }
-  33%       { color: #FBAA50; text-shadow: 0 0 22px rgba(251,170,80,.5), 0 0 50px rgba(251,170,80,.2); }
-  66%       { color: #E08830; text-shadow: 0 0 16px rgba(224,136,48,.5), 0 0 36px rgba(224,136,48,.2); }
+  50%       { color: #ffffff; text-shadow: 0 0 22px rgba(255,255,255,.4), 0 0 50px rgba(255,255,255,.15); }
 }
 .hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .hero-title { font-size: clamp(2.6rem, 6.2vw, 4.4rem); line-height: 1.24; font-weight: 900; letter-spacing: -1px; color: var(--gold); animation: hero-glow 3s ease-in-out infinite; }
