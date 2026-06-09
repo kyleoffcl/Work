@@ -3,7 +3,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 
 // ===== Navbar scroll state + scroll-spy =====
 const nav = document.getElementById("nav");
-const spySections = ["home", "services", "testimonials", "partner", "packages", "contact", "login"];
+const spySections = ["home", "results", "testimonials", "partner", "packages", "contact", "login"];
 const spyLinks = document.querySelectorAll(".nav-links > a[href^='#']");
 
 const onScroll = () => {
