@@ -13,7 +13,7 @@
   <meta name="twitter:title"       content="Grow With Us Agency" />
   <meta name="twitter:description" content="Full-service done-for-you digital marketing agency." />
   <meta name="twitter:image"       content="https://growwithusagency.me/assets/logo.png" />
-  <meta name="theme-color"         content="#0E0E0E" />
+  <meta name="theme-color"         content="#04040a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="canonical"            href="https://growwithusagency.me/" />
   <title>Grow With Us Agency — Your Full Service Done For You Agency</title>
@@ -21,10 +21,20 @@
   <link rel="apple-touch-icon" href="assets/logo-small.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- ===== Ambient background ===== -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ===== Scroll progress + custom cursor ===== -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+
   <!-- ===== Navbar ===== -->
   <header class="nav" id="nav">
     <div class="container nav-inner">
@@ -117,8 +127,9 @@
   <section class="hero" id="home">
     <div class="hero-bg" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="container hero-inner">
+      <div class="hero-badge reveal"><span class="badge-dot"></span> 7,500+ brands transformed</div>
       <h1 class="hero-title reveal">
-        Your Full Service<br />Done&nbsp;For&nbsp;You<br />Agency
+        Your Full Service<br /><span class="grad-text" id="heroWord">Done For You</span><span class="type-caret" aria-hidden="true"></span><br />Agency
       </h1>
       <p class="hero-sub reveal">
         Built for businesses &amp; personal brands that want lower-cost leads,
@@ -129,7 +140,16 @@
         <a href="#packages" class="btn btn-outline">Popular Packages</a>
       </div>
     </div>
+    <div class="hero-scroll" aria-hidden="true">Scroll</div>
   </section>
+
+  <!-- ===== Platform marquee ===== -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span><i>◆</i> Instagram <i>◆</i> TikTok <i>◆</i> YouTube <i>◆</i> LinkedIn <i>◆</i> Twitter (X) <i>◆</i> Facebook <i>◆</i> Discord <i>◆</i> Spotify <i>◆</i> Telegram <i>◆</i> Reddit <i>◆</i> Threads <i>◆</i> Twitch <i>◆</i> Pinterest <i>◆</i> Quora</span>
+      <span><i>◆</i> Instagram <i>◆</i> TikTok <i>◆</i> YouTube <i>◆</i> LinkedIn <i>◆</i> Twitter (X) <i>◆</i> Facebook <i>◆</i> Discord <i>◆</i> Spotify <i>◆</i> Telegram <i>◆</i> Reddit <i>◆</i> Threads <i>◆</i> Twitch <i>◆</i> Pinterest <i>◆</i> Quora</span>
+    </div>
+  </div>
 
   <!-- ===== Transformed / Case results ===== -->
   <section class="transformed" id="results">
