@@ -3,17 +3,15 @@ document.getElementById("year").textContent = new Date().getFullYear();
 
 // ===== Navbar scroll state + scroll-spy =====
 const nav = document.getElementById("nav");
-const spySections = ["home", "results", "testimonials", "partner", "packages", "contact", "login"];
+const spySections = ["home", "programs", "schedule", "pricing", "coaches", "reviews", "faq"];
 const spyLinks = document.querySelectorAll(".nav-links > a[href^='#']");
 
 const onScroll = () => {
   nav.classList.toggle("scrolled", window.scrollY > 20);
-
-  // scroll-spy: mark the nav link whose section is nearest the top
   let currentId = "";
   for (const id of spySections) {
     const el = document.getElementById(id);
-    if (el && el.getBoundingClientRect().top <= 100) currentId = id;
+    if (el && el.getBoundingClientRect().top <= 120) currentId = id;
   }
   spyLinks.forEach((a) => {
     const href = a.getAttribute("href").replace("#", "");
@@ -39,23 +37,7 @@ const setMenu = (open) => {
 navToggle.addEventListener("click", () => setMenu(!navLinks.classList.contains("open")));
 navClose.addEventListener("click", () => setMenu(false));
 navBackdrop.addEventListener("click", () => setMenu(false));
-
-// Close on nav link click (but not on a dropdown trigger)
-navLinks.querySelectorAll("a").forEach((a) =>
-  a.addEventListener("click", () => setMenu(false))
-);
-
-// ===== Mobile accordion for mega menus =====
-const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
-document.querySelectorAll("[data-menu] .menu-trigger").forEach((trigger) => {
-  trigger.addEventListener("click", (e) => {
-    if (!isMobile()) return; // desktop uses hover
-    e.preventDefault();
-    const parent = trigger.closest("[data-menu]");
-    const open = parent.classList.toggle("open");
-    trigger.setAttribute("aria-expanded", String(open));
-  });
-});
+navLinks.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
 
 // ===== Scroll reveal =====
 const revealObserver = new IntersectionObserver(
@@ -103,144 +85,41 @@ const statObserver = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.12 }
+  { threshold: 0.4 }
 );
 document.querySelectorAll(".stat-num").forEach((el) => statObserver.observe(el));
 
-// ===== Testimonials slider (single-video carousel) =====
-const testiSlides = document.querySelectorAll('.testi-slide');
-let testiIdx = 0;
-const testiPrevBtn = document.querySelector('.testi-prev');
-const testiNextBtn = document.querySelector('.testi-next');
-function showTestiSlide(i) {
-  testiSlides.forEach(s => s.classList.remove('active'));
-  testiSlides[i].classList.add('active');
-}
-if (testiPrevBtn && testiNextBtn && testiSlides.length) {
-  testiPrevBtn.addEventListener('click', () => {
-    testiIdx = (testiIdx - 1 + testiSlides.length) % testiSlides.length;
-    showTestiSlide(testiIdx);
+// ===== Schedule tabs =====
+const schedTabs = document.querySelectorAll(".sched-tab");
+const schedPanels = document.querySelectorAll(".sched-panel");
+schedTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const day = tab.dataset.day;
+    schedTabs.forEach((t) => t.classList.toggle("sched-tab--active", t === tab));
+    schedPanels.forEach((p) =>
+      p.classList.toggle("sched-panel--active", p.dataset.day === day)
+    );
   });
-  testiNextBtn.addEventListener('click', () => {
-    testiIdx = (testiIdx + 1) % testiSlides.length;
-    showTestiSlide(testiIdx);
-  });
-}
+});
 
-// ===== Contact form (front-end only) =====
-const form = document.getElementById("contactForm");
-const note = document.getElementById("formNote");
-if (form) {
-  form.addEventListener("submit", (e) => {
+// ===== Trial / lead form (front-end only) =====
+const trialForm = document.getElementById("trialForm");
+const trialNote = document.getElementById("trialNote");
+if (trialForm) {
+  trialForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const data = new FormData(form);
+    const data = new FormData(trialForm);
     const name = (data.get("name") || "").toString().trim();
     const email = (data.get("email") || "").toString().trim();
-    const msg = (data.get("message") || "").toString().trim();
-    if (!name || !email || !msg) {
-      note.style.color = "#ff6b6b";
-      note.textContent = "Please fill in your name, email, and message.";
+    const phone = (data.get("phone") || "").toString().trim();
+    const program = (data.get("program") || "").toString().trim();
+    if (!name || !email || !phone || !program) {
+      trialNote.style.color = "#ff6b6b";
+      trialNote.textContent = "Please complete every field so we can hold your spot.";
       return;
     }
-    note.style.color = "";
-    note.textContent = `Thanks, ${name.split(" ")[0]}! We'll reach out to ${email} shortly. 🚀`;
-    form.reset();
+    trialNote.style.color = "";
+    trialNote.textContent = `🥋 You're in, ${name.split(" ")[0]}! We'll text ${phone} to schedule your first ${program} class.`;
+    trialForm.reset();
   });
 }
-
-// ===== Login form (front-end only) =====
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("Login is a demo on this build — connect it to your backend to enable accounts.");
-  });
-}
-
-// ===== Social Growth Packages tab switcher =====
-const sgpTabs = document.querySelectorAll(".sgp-tab");
-sgpTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    sgpTabs.forEach((t) => t.classList.remove("sgp-tab--active"));
-    tab.classList.add("sgp-tab--active");
-  });
-});
-
-// ===== Shopping Cart =====
-const cartSidebar = document.getElementById("cartSidebar");
-const cartOverlay = document.getElementById("cartOverlay");
-const cartCloseBtn = document.getElementById("cartClose");
-const cartItemsEl = document.getElementById("cartItems");
-const cartFoot = document.getElementById("cartFoot");
-const cartSubtotalEl = document.getElementById("cartSubtotal");
-const cartFab = document.getElementById("cartFab");
-const cartBadge = document.getElementById("cartBadge");
-const cartCountEl = document.getElementById("cartCount");
-
-let cart = [];
-
-const openCart = () => {
-  cartSidebar.classList.add("open");
-  cartOverlay.classList.add("open");
-  document.body.style.overflow = "hidden";
-};
-const closeCart = () => {
-  cartSidebar.classList.remove("open");
-  cartOverlay.classList.remove("open");
-  document.body.style.overflow = "";
-};
-
-cartCloseBtn.addEventListener("click", closeCart);
-cartOverlay.addEventListener("click", closeCart);
-cartFab.addEventListener("click", openCart);
-
-const formatPrice = (n) => "$" + Number(n).toLocaleString("en-US");
-
-const renderCart = () => {
-  const total = cart.reduce((s, i) => s + i.price, 0);
-  const count = cart.length;
-  cartBadge.textContent = count;
-  cartCountEl.textContent = count;
-  cartFab.style.display = count ? "flex" : "none";
-  cartFoot.style.display = count ? "block" : "none";
-  cartSubtotalEl.textContent = formatPrice(total);
-  if (!count) {
-    cartItemsEl.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
-    return;
-  }
-  cartItemsEl.innerHTML = cart.map((item, i) => `
-    <div class="cart-item">
-      <div class="cart-item-info">
-        <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-price">1 × ${formatPrice(item.price)} = ${formatPrice(item.price)}</div>
-      </div>
-      <button class="cart-item-remove" data-index="${i}" aria-label="Remove">🗑</button>
-    </div>`).join("");
-  cartItemsEl.querySelectorAll(".cart-item-remove").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      cart.splice(Number(btn.dataset.index), 1);
-      renderCart();
-    });
-  });
-};
-
-document.querySelectorAll(".btn-cart").forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    const name = btn.dataset.name;
-    const price = Number(btn.dataset.price);
-    if (!name || !price) return;
-    if (cart.some((i) => i.name === name)) { openCart(); return; }
-    cart.push({ name, price });
-    renderCart();
-    openCart();
-  });
-});
-
-document.querySelector('.cart-checkout')?.addEventListener('click', () => {
-  if (cart.length === 0) return;
-  closeCart();
-  setTimeout(() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' }), 300);
-});
-
-renderCart();
