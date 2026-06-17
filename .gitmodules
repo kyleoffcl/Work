@@ -1,0 +1,6 @@
+[submodule ".claude/skills/gstack"]
+	path = .claude/skills/gstack
+	url = https://github.com/garrytan/gstack.git
+[submodule ".claude/skills/awesome-design-md"]
+	path = .claude/skills/awesome-design-md
+	url = https://github.com/VoltAgent/awesome-design-md.git
