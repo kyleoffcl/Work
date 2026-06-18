@@ -157,7 +157,7 @@ const modalTour = document.getElementById("modalTour");
 const modalForm = document.getElementById("modalForm");
 const modalNote = document.getElementById("modalNote");
 const modalWhatsApp = document.getElementById("modalWhatsApp");
-const WA_NUMBER = "971501234567";
+const WA_NUMBER = "97455484718";
 let activeTour = "";
 
 const openModal = (name, price) => {
