@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "aoe": {
+      "source": "agent-of-empires/agent-of-empires",
+      "sourceType": "github",
+      "skillPath": "contrib/hermes-skill/SKILL.md",
+      "computedHash": "b946c24a4c5ccb27076a2a03927658303c6e06f573a1712ec4b0a685f2a7c5f3"
+    },
     "gstack": {
       "source": "garrytan/gstack",
       "sourceType": "github",
