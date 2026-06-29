@@ -51,6 +51,13 @@
       "skillPath": "higgsfield-soul-id/SKILL.md",
       "computedHash": "7cfc9540f5890dac0035f430c820a7db13c14796b2a8d42edb75f373e9e418c1"
     },
+    "theme-factory": {
+      "source": "anthropics/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/theme-factory/SKILL.md",
+      "computedHash": "598ddfa9784ae2a8c55be5dbb047b98564d875dea6f4669168a87ae1ea1a4ed3"
+    },
     "video-use": {
       "source": "browser-use/video-use",
       "sourceType": "github",
