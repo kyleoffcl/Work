@@ -1205,6 +1205,12 @@
       "skillPath": "skills/trello/SKILL.md",
       "computedHash": "9331cb76894d53b1ea532968df385126a7f23f73e9afd0eedda04d59168aad45"
     },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "c0e71f1ea9d80c74f710960c2b4d9ab0f8a6d14c331f8d361df2c28d1879846e"
+    },
     "update-chrome-binaries-test-region": {
       "source": "remotion-dev/remotion",
       "sourceType": "github",
