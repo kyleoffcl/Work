@@ -1120,6 +1120,12 @@
       "skillPath": "skills/spotify-player/SKILL.md",
       "computedHash": "34ea45ee106ab5baf8339e4229b647e44495b6b7d0364c3057c004c33259a61b"
     },
+    "stealth-browser-mcp": {
+      "source": "vibheksoni/stealth-browser-mcp",
+      "sourceType": "github",
+      "skillPath": "skills/stealth-browser-mcp/SKILL.md",
+      "computedHash": "f321f96d511d40a9cc2447ba4bb04d183fcc15844fb66e5b79ceedf0f24a0fbb"
+    },
     "subagent-driven-development": {
       "source": "obra/superpowers",
       "sourceType": "github",
