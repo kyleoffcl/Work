@@ -1,422 +1,209 @@
 ---
-name: "API Development"
-description: "Build REST APIs with proper error handling, status codes, request validation, response formatting, and rate limiting. Apply when creating API routes, handling errors, validating input, or designing API responses."
-allowed-tools: Read, Write, Edit, Bash
-version: 1.1.0
-compatibility: Claude Opus 4.5, Claude Code v2.x
-updated: 2026-01-24
+name: api-development
+description: Use when creating new API endpoints, working with async operations, implementing long-running tasks with progress tracking, adding Pydantic models, or designing request/response schemas.
 ---
 
 # API Development
 
-Systematic REST API development with error handling, validation, and consistent response formats.
+Load this skill when:
+- Creating new API endpoints
+- Working with async operations
+- Implementing long-running tasks with progress tracking
+- Adding Pydantic models or request/response schemas
 
-## Overview
-
-This Skill enforces:
-- HTTP status codes (appropriate, not overused)
-- RFC 7807 Problem Details for errors
-- Input validation and sanitization
-- Consistent response formatting
-- Request correlation IDs
-- Rate limiting
-- Security-first error messages
-- Centralized error handling
-
-Apply when building API routes, handling errors, or designing responses.
-
-## HTTP Status Codes
-
-### Status Code Categories
-
-| Range | Purpose | Common Examples |
-|-------|---------|-----------------|
-| 200-299 | Success | 200 OK, 201 Created, 204 No Content |
-| 300-399 | Redirection | 301 Moved Permanently, 302 Found |
-| 400-499 | Client Errors | 400 Bad Request, 401 Unauthorized, 404 Not Found |
-| 500-599 | Server Errors | 500 Internal Error, 503 Service Unavailable |
-
-### Correct Status Codes
-
-```ts
-// ✅ GOOD: Specific status codes
-200  // GET: Resource retrieved
-201  // POST: Resource created
-204  // DELETE: Resource deleted (no content)
-400  // Bad Request: Validation failed
-401  // Unauthorized: Not authenticated
-403  // Forbidden: Authenticated but no permission
-404  // Not Found: Resource doesn't exist
-409  // Conflict: Duplicate email
-422  // Unprocessable Entity: Semantic error
-429  // Too Many Requests: Rate limited
-500  // Internal Server Error: Server bug
-
-// ❌ BAD: Vague status codes
-200  // Success response for everything
-500  // Error response for everything
-200  // Returned even when validation failed
-```
-
-## Error Response Format (RFC 7807)
-
-### Problem Details Structure
-
-```ts
-// RFC 7807 Problem Details
-type ProblemDetails = {
-  type: string;        // URL to error type documentation
-  title: string;       // Short error title
-  status: number;      // HTTP status code
-  detail: string;      // Specific error details
-  instance?: string;   // Request ID for tracking
-  errors?: Record<string, string[]>;  // Field-level errors
-};
-```
-
-### Implementation
-
-```ts
-// lib/errors.ts
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    public title: string,
-    public detail: string,
-    public type: string = 'about:blank',
-    public errors?: Record<string, string[]>
-  ) {
-    super(detail);
-    this.name = 'ApiError';
-  }
-
-  toJSON() {
-    return {
-      type: this.type,
-      title: this.title,
-      status: this.status,
-      detail: this.detail,
-      instance: this.instance,
-      ...(this.errors && { errors: this.errors })
-    };
-  }
-}
-```
-
-### Error Responses
-
-```ts
-// ✅ GOOD: RFC 7807 format
-{
-  "type": "https://api.example.com/errors/validation-failed",
-  "title": "Validation Failed",
-  "status": 400,
-  "detail": "The request body contains invalid data",
-  "instance": "req-12345",
-  "errors": {
-    "email": ["Invalid email format"],
-    "age": ["Must be >= 18"]
-  }
-}
-
-// ✅ GOOD: Unauthorized (no sensitive details)
-{
-  "type": "https://api.example.com/errors/unauthorized",
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "Authentication required",
-  "instance": "req-12346"
-}
-
-// ❌ BAD: Leaks internal details
-{
-  "error": "User not found in database",
-  "stack": "Error: query failed at line 42..."
-}
-
-// ❌ BAD: Not structured
-{
-  "message": "Something went wrong"
-}
-```
-
-## Centralized Error Handler
-
-```ts
-// middleware/error-handler.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { ApiError } from '@/lib/errors';
-
-export function errorHandler(error: unknown) {
-  const requestId = crypto.randomUUID();
-
-  // Log error (internal, never exposed)
-  console.error(`[${requestId}] Error:`, error);
-
-  // ApiError (predictable)
-  if (error instanceof ApiError) {
-    return NextResponse.json(
-      {
-        type: error.type,
-        title: error.title,
-        status: error.status,
-        detail: error.detail,
-        instance: requestId,
-        ...(error.errors && { errors: error.errors })
-      },
-      { status: error.status }
-    );
-  }
-
-  // Validation error
-  if (error instanceof ZodError) {
-    return NextResponse.json(
-      {
-        type: 'https://api.example.com/errors/validation-failed',
-        title: 'Validation Failed',
-        status: 400,
-        detail: 'The request body contains invalid data',
-        instance: requestId,
-        errors: error.flatten().fieldErrors
-      },
-      { status: 400 }
-    );
-  }
-
-  // Unknown error (generic message)
-  return NextResponse.json(
-    {
-      type: 'https://api.example.com/errors/internal-server-error',
-      title: 'Internal Server Error',
-      status: 500,
-      detail: 'An unexpected error occurred',
-      instance: requestId
-    },
-    { status: 500 }
-  );
-}
-```
-
-### Using Error Handler
-
-```ts
-// app/api/users/route.ts
-import { errorHandler } from '@/middleware/error-handler';
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-
-    // Validate
-    const validated = CreateUserSchema.parse(body);
-
-    // Check duplicate
-    const existing = await db.user.findUnique({
-      where: { email: validated.email }
-    });
-
-    if (existing) {
-      throw new ApiError(
-        409,
-        'Conflict',
-        'A user with this email already exists',
-        'https://api.example.com/errors/duplicate-email'
-      );
-    }
-
-    // Create
-    const user = await db.user.create({ data: validated });
-
-    return new Response(JSON.stringify(user), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    return errorHandler(error);
-  }
-}
-```
-
-## Input Validation
-
-### Schema Validation
-
-```ts
-import { z } from 'zod';
-
-const CreateUserSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  name: z.string().min(1, 'Name required').max(255),
-  age: z.number().int().min(0).max(150),
-  role: z.enum(['admin', 'user', 'guest']).default('user')
-});
-
-// Validate request
-const validated = CreateUserSchema.parse(body);
-```
-
-### Sanitization
-
-```ts
-import DOMPurify from 'isomorphic-dompurify';
-
-const sanitized = {
-  ...validated,
-  name: DOMPurify.sanitize(validated.name)
-};
-```
-
-## Rate Limiting
-
-```ts
-import rateLimit from 'express-rate-limit';
-
-// General rate limiter
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 100,                   // 100 requests per window
-  message: 'Too many requests, please try again later',
-  standardHeaders: true,      // Return rate limit info in headers
-  legacyHeaders: false
-});
-
-// Auth rate limiter (stricter)
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,                      // 5 attempts
-  skipSuccessfulRequests: true // Don't count successful logins
-});
-
-app.post('/login', authLimiter, loginHandler);
-app.use('/api/', limiter);
-```
-
-## Response Formatting
-
-### Success Response
-
-```ts
-// ✅ GOOD: Consistent response
-export async function GET(request: Request) {
-  const users = await db.user.findMany();
-
-  return NextResponse.json({
-    status: 'success',
-    data: users,
-    meta: {
-      count: users.length,
-      timestamp: new Date().toISOString()
-    }
-  });
-}
-
-// ✅ GOOD: Paginated response
-export async function GET(request: Request) {
-  const page = parseInt(request.nextUrl.searchParams.get('page') || '1');
-  const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20');
-  const offset = (page - 1) * limit;
-
-  const [users, total] = await Promise.all([
-    db.user.findMany({ skip: offset, take: limit }),
-    db.user.count()
-  ]);
-
-  return NextResponse.json({
-    status: 'success',
-    data: users,
-    meta: {
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    }
-  });
-}
-```
-
-## Request Correlation
-
-```ts
-// middleware/correlation-id.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  const correlationId = 
-    request.headers.get('x-correlation-id') || 
-    crypto.randomUUID();
-
-  const response = NextResponse.next();
-  response.headers.set('x-correlation-id', correlationId);
-
-  return response;
-}
-
-// Include in logs
-console.log(`[${correlationId}] User created:`, user);
-
-// Client can track requests
-fetch('/api/users', {
-  headers: { 'x-correlation-id': myRequestId }
-});
-```
-
-## Anti-Patterns
-
-```ts
-// ❌ BAD: Leaking stack traces
-{
-  "error": "Cannot read property 'id' of undefined at getUserData (line 42)",
-  "stack": "Error: ...\nat app.js:42..."
-}
-
-// ❌ BAD: Generic error message
-{
-  "error": "Something went wrong"
-}
-
-// ❌ BAD: No rate limiting
-// Anyone can hammer API endpoint
-
-// ❌ BAD: Overusing 500
-// Always return 500 for any error
-
-// ❌ BAD: No validation
-const user = await db.user.create(request.body);
-// Raw user input!
-```
-
-## Verification Before Production
-
-- [ ] HTTP status codes specific and appropriate
-- [ ] Error responses RFC 7807 compliant
-- [ ] No stack traces or sensitive data exposed
-- [ ] Input validated on server side
-- [ ] Input sanitized before storage
-- [ ] Rate limiting configured
-- [ ] Correlation IDs for request tracking
-- [ ] Error messages user-friendly (not technical)
-- [ ] Centralized error handler
-- [ ] Response format consistent
-
-## Integration with Project Standards
-
-Enforces security and usability:
-- S-1: No sensitive data in errors
-- C-10: Input validated
-- AP-8: Validation on server side
-
-## Resources
-
-- RFC 7807 Problem Details: https://tools.ietf.org/html/rfc7807
-- HTTP Status Codes: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-- Express Rate Limiting: https://github.com/nfriedly/express-rate-limit
 ---
 
-**Last Updated:** January 24, 2026
-**Compatibility:** Claude Opus 4.5, Claude Code v2.x
-**Status:** Production Ready
+## API Structure
 
-> **January 2026 Update:** This skill is compatible with Claude Opus 4.5 and Claude Code v2.x. For complex tasks, use the `effort: high` parameter for thorough analysis.
+```
+ktrdr/api/
+├── endpoints/      # Route handlers
+├── models/         # Pydantic request/response models
+├── services/       # Business logic
+└── main.py         # Router registration
+```
+
+## Adding New Endpoints
+
+1. **Create endpoint** in `ktrdr/api/endpoints/`
+2. **Define Pydantic models** in `ktrdr/api/models/`
+3. **Implement business logic** in `ktrdr/api/services/`
+4. **Register router** in `ktrdr/api/main.py`
+5. **Add tests** in `tests/api/`
+
+---
+
+## Async Operation Pattern
+
+For long-running tasks (training, backtesting, data downloads):
+
+```python
+from ktrdr.api.services.operations_service import OperationsService
+
+@router.post("/long-operation")
+async def start_operation(
+    background_tasks: BackgroundTasks,
+    operations_service: OperationsService = Depends(get_operations_service)
+):
+    # Register operation
+    operation_id = await operations_service.register_operation(
+        operation_type=OperationType.TRAINING,
+        description="Training model..."
+    )
+
+    # Start background task
+    background_tasks.add_task(
+        run_operation,
+        operation_id,
+        operations_service
+    )
+
+    return {"operation_id": operation_id}
+```
+
+### Key Components
+
+- **OperationsService**: Tracks all operations, progress, and status
+- **BackgroundTasks**: FastAPI's mechanism for fire-and-forget tasks
+- **operation_id**: Returned immediately so client can poll for status
+
+---
+
+## Progress Tracking
+
+Operations should report progress for long-running tasks:
+
+```python
+async def run_operation(operation_id: str, ops_service: OperationsService):
+    try:
+        await ops_service.update_status(operation_id, OperationStatus.RUNNING)
+        
+        for i, step in enumerate(steps):
+            # Do work
+            await process_step(step)
+            
+            # Update progress
+            await ops_service.update_progress(
+                operation_id,
+                percentage=(i + 1) / len(steps) * 100,
+                phase=f"Processing step {i + 1}"
+            )
+        
+        await ops_service.update_status(operation_id, OperationStatus.COMPLETED)
+    except Exception as e:
+        await ops_service.update_status(
+            operation_id, 
+            OperationStatus.FAILED,
+            error=str(e)
+        )
+        raise
+```
+
+---
+
+## Operation Status Endpoints
+
+Standard endpoints for operation management:
+
+```python
+@router.get("/operations/{operation_id}")
+async def get_operation_status(operation_id: str):
+    """Get current status of an operation."""
+    
+@router.get("/operations/{operation_id}/metrics")
+async def get_operation_metrics(operation_id: str):
+    """Get detailed metrics for an operation."""
+
+@router.delete("/operations/{operation_id}/cancel")
+async def cancel_operation(operation_id: str):
+    """Request cancellation of a running operation."""
+```
+
+---
+
+## Pydantic Models
+
+### Request Models
+
+```python
+from pydantic import BaseModel, Field
+
+class TrainingRequest(BaseModel):
+    strategy_path: str = Field(..., description="Path to strategy YAML")
+    symbol: str = Field(..., description="Trading symbol")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "strategy_path": "config/strategies/example.yaml",
+                "symbol": "AAPL"
+            }
+        }
+```
+
+### Response Models
+
+```python
+class OperationResponse(BaseModel):
+    operation_id: str
+    status: OperationStatus
+    progress: float = 0.0
+    phase: str | None = None
+    error: str | None = None
+    created_at: datetime
+    updated_at: datetime
+```
+
+---
+
+## Error Handling
+
+Use HTTPException for API errors:
+
+```python
+from fastapi import HTTPException
+
+@router.get("/resource/{id}")
+async def get_resource(id: str):
+    resource = await fetch_resource(id)
+    if not resource:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Resource {id} not found"
+        )
+    return resource
+```
+
+---
+
+## Documentation
+
+Once server is running:
+- **Swagger UI**: http://localhost:8000/api/v1/docs
+- **ReDoc**: http://localhost:8000/api/v1/redoc
+
+---
+
+## Testing API Endpoints
+
+```python
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_create_operation(client: AsyncClient):
+    response = await client.post(
+        "/api/v1/operations",
+        json={"type": "training", "params": {...}}
+    )
+    assert response.status_code == 200
+    assert "operation_id" in response.json()
+```
+
+---
+
+## Key Files
+
+- `ktrdr/api/main.py` — App setup and router registration
+- `ktrdr/api/services/operations_service.py` — Operation tracking
+- `ktrdr/api/dependencies.py` — Dependency injection

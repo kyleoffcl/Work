@@ -1,10 +1,85 @@
 ---
-name: pptx
-description: "Presentation creation, editing, and analysis. When Claude needs to work with presentations (.pptx files) for: (1) Creating new presentations, (2) Modifying or editing content, (3) Working with layouts, (4) Adding comments or speaker notes, or any other presentation tasks"
-license: Proprietary. LICENSE.txt has complete terms
+name: Pptx
+description: PowerPoint processing. USE WHEN pptx, PowerPoint, slides. SkillSearch('pptx') for docs.
 ---
 
 # PPTX creation, editing, and analysis
+
+## 🎯 Load Full PAI Context
+
+**Before starting any task with this skill, load complete PAI context:**
+
+`read ~/.claude/skills/CORE/SKILL.md`
+
+This provides access to:
+- Complete contact list (Angela, Bunny, Saša, Greg, team members)
+- Stack preferences (TypeScript>Python, bun>npm, uv>pip)
+- Security rules and repository safety protocols
+- Response format requirements (structured emoji format)
+- Voice IDs for agent routing (ElevenLabs)
+- Personal preferences and operating instructions
+
+## 🔀 When to Use This Sub-Skill
+
+### Explicit Triggers
+Route to this sub-skill when user requests contain:
+
+**Creation Triggers:**
+- "create presentation", "new presentation", "make slides"
+- "build PowerPoint", "generate pptx"
+- "presentation from scratch"
+
+**Editing Triggers:**
+- "edit presentation", "modify slides", "update PowerPoint"
+- "change slide content", "edit pptx"
+
+**Template Triggers:**
+- "use presentation template", "based on template"
+- "apply template design", "template slides"
+
+**Design Triggers:**
+- "presentation design", "slide layout"
+- "speaker notes", "add notes to slides"
+- "pitch deck", "slide deck"
+
+### Contextual Triggers
+Route to this sub-skill when:
+- Working with .pptx files
+- User mentions "PowerPoint"
+- User mentions "pitch deck" or "slide deck"
+- User mentions "keynote" (if exporting to pptx)
+- Presentation-related file paths or operations
+
+### Workflow Routing
+
+Once in this sub-skill, route to specific workflows:
+
+**Creation Workflow (html2pptx):**
+- "create presentation", "new slides", "build from scratch"
+- No template mentioned
+- → Read `html2pptx.md` completely, use html2pptx.js
+
+**Template Workflow:**
+- "use template", "based on template", "apply template"
+- Existing pptx file to use as template
+- → Follow rearrange/replace workflow with inventory.py
+
+**Editing Workflow (OOXML):**
+- "edit presentation", "modify existing slides"
+- Need to change specific content in existing pptx
+- → Read `ooxml.md` completely, use unpack/pack scripts
+
+**Text Extraction Workflow:**
+- "extract text", "read presentation", "what's in this pptx"
+- → Use markitdown: `python -m markitdown file.pptx`
+
+**Visual Analysis Workflow:**
+- "show slides", "thumbnail grid", "preview slides"
+- → Use thumbnail.py script for grid visualization
+
+**Speaker Notes Workflow:**
+- "add speaker notes", "presenter notes"
+- → Use OOXML workflow, edit notesSlide{N}.xml files
 
 ## Overview
 
@@ -24,9 +99,9 @@ python -m markitdown path-to-file.pptx
 You need raw XML access for: comments, speaker notes, slide layouts, animations, design elements, and complex formatting. For any of these features, you'll need to unpack a presentation and read its raw XML contents.
 
 #### Unpacking a file
-`python ooxml/scripts/unpack.py <office_file> <output_dir>`
+`python ooxml/Scripts/unpack.py <office_file> <output_dir>`
 
-**Note**: The unpack.py script is located at `skills/pptx/ooxml/scripts/unpack.py` relative to the project root. If the script doesn't exist at this path, use `find . -name "unpack.py"` to locate it.
+**Note**: The unpack.py script is located at `skills/pptx/ooxml/Scripts/unpack.py` relative to the project root. If the script doesn't exist at this path, use `find . -name "unpack.py"` to locate it.
 
 #### Key file structures
 * `ppt/presentation.xml` - Main presentation metadata and slide references
@@ -174,10 +249,10 @@ When edit slides in an existing PowerPoint presentation, you need to work with t
 
 ### Workflow
 1. **MANDATORY - READ ENTIRE FILE**: Read [`ooxml.md`](ooxml.md) (~500 lines) completely from start to finish.  **NEVER set any range limits when reading this file.**  Read the full file content for detailed guidance on OOXML structure and editing workflows before any presentation editing.
-2. Unpack the presentation: `python ooxml/scripts/unpack.py <office_file> <output_dir>`
+2. Unpack the presentation: `python ooxml/Scripts/unpack.py <office_file> <output_dir>`
 3. Edit the XML files (primarily `ppt/slides/slide{N}.xml` and related files)
-4. **CRITICAL**: Validate immediately after each edit and fix any validation errors before proceeding: `python ooxml/scripts/validate.py <dir> --original <file>`
-5. Pack the final presentation: `python ooxml/scripts/pack.py <input_directory> <office_file>`
+4. **CRITICAL**: Validate immediately after each edit and fix any validation errors before proceeding: `python ooxml/Scripts/validate.py <dir> --original <file>`
+5. Pack the final presentation: `python ooxml/Scripts/pack.py <input_directory> <office_file>`
 
 ## Creating a new PowerPoint presentation **using a template**
 
@@ -469,6 +544,32 @@ pdftoppm -jpeg -r 150 -f 2 -l 5 template.pdf slide  # Converts only pages 2-5
 - Write concise code
 - Avoid verbose variable names and redundant operations
 - Avoid unnecessary print statements
+
+## Examples
+
+**Example 1: Create a presentation from scratch**
+```
+User: "Make a pitch deck for my startup idea"
+→ Reads html2pptx.md for syntax
+→ Creates HTML slides with proper styling and layout
+→ Converts to PowerPoint, validates with thumbnails
+```
+
+**Example 2: Use a template**
+```
+User: "Create slides using this company template"
+→ Extracts template inventory with thumbnail grid
+→ Maps content to appropriate slide layouts
+→ Replaces placeholder text, preserves formatting
+```
+
+**Example 3: Add speaker notes to existing deck**
+```
+User: "Add speaker notes to my presentation"
+→ Unpacks PPTX, navigates to notesSlide XML files
+→ Adds notes content to each slide
+→ Repacks and validates the presentation
+```
 
 ## Dependencies
 

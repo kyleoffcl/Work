@@ -1,365 +1,171 @@
 ---
 name: docker-patterns
-description: Docker and Docker Compose patterns for local development, container security, networking, volume strategies, and multi-service orchestration.
-metadata:
-  origin: ECC
+description: Docker best practices, multi-stage builds, container security, Docker Compose orchestration, and deployment patterns. Use when containerizing applications, optimizing Docker images, setting up development environments, or deploying with Docker.
+license: MIT
+compatibility: opencode
 ---
 
-# Docker Patterns
+# Docker Patterns Skill
 
-Docker and Docker Compose best practices for containerized development.
+## Overview
 
-## When to Activate
+This skill provides guidelines for building production-ready Docker containers, multi-stage builds, security hardening, Docker Compose orchestration, and deployment best practices.
 
-- Setting up Docker Compose for local development
-- Designing multi-container architectures
-- Troubleshooting container networking or volume issues
-- Reviewing Dockerfiles for security and size
-- Migrating from local dev to containerized workflow
+## Quick Reference
 
-## Docker Compose for Local Development
+### Multi-Stage Build Example
 
-### Standard Web App Stack
+```dockerfile
+# Build stage
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+WORKDIR /app
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+USER nodejs
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+CMD ["node", "dist/main.js"]
+```
+
+### Docker Compose Development
 
 ```yaml
-# docker-compose.yml
+version: '3.8'
 services:
   app:
     build:
       context: .
-      target: dev                     # Use dev stage of multi-stage Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
-      - .:/app                        # Bind mount for hot reload
-      - /app/node_modules             # Anonymous volume -- preserves container deps
+      - .:/app
+      - /app/node_modules
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/app_dev
-      - REDIS_URL=redis://redis:6379/0
       - NODE_ENV=development
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    command: npm run dev
-
-  db:
-    image: postgres:16-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app_dev
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redisdata:/data
-
-  mailpit:                            # Local email testing
-    image: axllent/mailpit
-    ports:
-      - "8025:8025"                   # Web UI
-      - "1025:1025"                   # SMTP
-
-volumes:
-  pgdata:
-  redisdata:
 ```
 
-### Development vs Production Dockerfile
+## Core Principles
+
+### 1. Multi-Stage Builds
+- Separate build and runtime environments
+- Minimize final image size
+- Don't include build tools in production
+
+### 2. Security Hardening
+- Run as non-root user
+- Use specific image tags (not `latest`)
+- Scan images for vulnerabilities
+- Drop unnecessary capabilities
+
+### 3. Layer Caching
+- Order instructions by change frequency
+- Copy package files before source code
+- Use `.dockerignore` to exclude unnecessary files
+
+### 4. Health Checks
+- Implement `/health` endpoints
+- Configure Docker health checks
+- Set appropriate intervals and timeouts
+
+## Language-Specific Examples
+
+See detailed guides in references/:
+
+- **[Dockerfile Patterns](references/dockerfile-patterns.md)** - Multi-stage builds for Node.js, Python, Go, Rust
+- **[Docker Compose Patterns](references/docker-compose-patterns.md)** - Development, production, and multi-environment setups
+- **[Container Security](references/container-security.md)** - Security hardening, scanning, and best practices
+- **[Deployment Patterns](references/deployment-patterns.md)** - Blue-green, rolling updates, Kubernetes
+
+## Dockerfile Best Practices
 
 ```dockerfile
-# Stage: dependencies
-FROM node:22-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+# ✅ DO: Use specific tags
+FROM node:18.19.0-alpine3.18
 
-# Stage: dev (hot reload, debug tools)
-FROM node:22-alpine AS dev
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-EXPOSE 3000
-CMD ["npm", "run", "dev"]
+# ✅ DO: Combine RUN commands
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Stage: build
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build && npm prune --production
-
-# Stage: production (minimal image)
-FROM node:22-alpine AS production
-WORKDIR /app
-RUN addgroup -g 1001 -S appgroup && adduser -S appuser -u 1001
+# ✅ DO: Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S appuser -u 1001 -G appgroup
 USER appuser
-COPY --from=build --chown=appuser:appgroup /app/dist ./dist
-COPY --from=build --chown=appuser:appgroup /app/node_modules ./node_modules
-COPY --from=build --chown=appuser:appgroup /app/package.json ./
-ENV NODE_ENV=production
-EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:3000/health || exit 1
-CMD ["node", "dist/server.js"]
+
+# ✅ DO: Copy with ownership
+COPY --chown=appuser:appgroup . /app
+
+# ✅ DO: Add health check
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
 ```
 
-### Override Files
+## Docker Compose Best Practices
 
 ```yaml
-# docker-compose.override.yml (auto-loaded, dev-only settings)
-services:
-  app:
-    environment:
-      - DEBUG=app:*
-      - LOG_LEVEL=debug
-    ports:
-      - "9229:9229"                   # Node.js debugger
-
-# docker-compose.prod.yml (explicit for production)
-services:
-  app:
-    build:
-      target: production
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 512M
-```
-
-```bash
-# Development (auto-loads override)
-docker compose up
-
-# Production
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-## Networking
-
-### Service Discovery
-
-Services in the same Compose network resolve by service name:
-```
-# From "app" container:
-postgres://postgres:postgres@db:5432/app_dev    # "db" resolves to the db container
-redis://redis:6379/0                             # "redis" resolves to the redis container
-```
-
-### Custom Networks
-
-```yaml
-services:
-  frontend:
-    networks:
-      - frontend-net
-
-  api:
-    networks:
-      - frontend-net
-      - backend-net
-
-  db:
-    networks:
-      - backend-net              # Only reachable from api, not frontend
-
-networks:
-  frontend-net:
-  backend-net:
-```
-
-### Exposing Only What's Needed
-
-```yaml
-services:
-  db:
-    ports:
-      - "127.0.0.1:5432:5432"   # Only accessible from host, not network
-    # Omit ports entirely in production -- accessible only within Docker network
-```
-
-## Volume Strategies
-
-```yaml
-volumes:
-  # Named volume: persists across container restarts, managed by Docker
-  pgdata:
-
-  # Bind mount: maps host directory into container (for development)
-  # - ./src:/app/src
-
-  # Anonymous volume: preserves container-generated content from bind mount override
-  # - /app/node_modules
-```
-
-### Common Patterns
-
-```yaml
-services:
-  app:
-    volumes:
-      - .:/app                   # Source code (bind mount for hot reload)
-      - /app/node_modules        # Protect container's node_modules from host
-      - /app/.next               # Protect build cache
-
-  db:
-    volumes:
-      - pgdata:/var/lib/postgresql/data          # Persistent data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql  # Init scripts
-```
-
-## Container Security
-
-### Dockerfile Hardening
-
-```dockerfile
-# 1. Use specific tags (never :latest)
-FROM node:22.12-alpine3.20
-
-# 2. Run as non-root
-RUN addgroup -g 1001 -S app && adduser -S app -u 1001
-USER app
-
-# 3. Drop capabilities (in compose)
-# 4. Read-only root filesystem where possible
-# 5. No secrets in image layers
-```
-
-### Compose Security
-
-```yaml
-services:
-  app:
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /app/.cache
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE          # Only if binding to ports < 1024
-```
-
-### Secret Management
-
-```yaml
-# GOOD: Use environment variables (injected at runtime)
+# ✅ DO: Use environment files
 services:
   app:
     env_file:
-      - .env                     # Never commit .env to git
-    environment:
-      - API_KEY                  # Inherits from host environment
+      - .env.production
 
-# GOOD: Docker secrets (Swarm mode)
-secrets:
-  db_password:
-    file: ./secrets/db_password.txt
+# ✅ DO: Set resource limits
+deploy:
+  resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
 
-services:
-  db:
-    secrets:
-      - db_password
-
-# BAD: Hardcoded in image
-# ENV API_KEY=sk-proj-xxxxx      # NEVER DO THIS
+# ✅ DO: Configure health checks
+healthcheck:
+  test: ["CMD", "wget", "--spider", "http://localhost:3000/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
 ```
 
-## .dockerignore
-
-```
-node_modules
-.git
-.env
-.env.*
-dist
-coverage
-*.log
-.next
-.cache
-docker-compose*.yml
-Dockerfile*
-README.md
-tests/
-```
-
-## Debugging
-
-### Common Commands
+## Image Scanning
 
 ```bash
-# View logs
-docker compose logs -f app           # Follow app logs
-docker compose logs --tail=50 db     # Last 50 lines from db
+# Using Trivy
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy:latest image myapp:latest
 
-# Execute commands in running container
-docker compose exec app sh           # Shell into app
-docker compose exec db psql -U postgres  # Connect to postgres
+# Using Docker Scout
+docker scout cves myapp:latest
 
-# Inspect
-docker compose ps                     # Running services
-docker compose top                    # Processes in each container
-docker stats                          # Resource usage
-
-# Rebuild
-docker compose up --build             # Rebuild images
-docker compose build --no-cache app   # Force full rebuild
-
-# Clean up
-docker compose down                   # Stop and remove containers
-docker compose down -v                # Also remove volumes (DESTRUCTIVE)
-docker system prune                   # Remove unused images/containers
+# Using Snyk
+snyk container test myapp:latest
 ```
 
-### Debugging Network Issues
+## When to Use This Skill
 
-```bash
-# Check DNS resolution inside container
-docker compose exec app nslookup db
+Use this skill when:
+- Creating Dockerfiles for production applications
+- Setting up development environments with Docker Compose
+- Optimizing image sizes with multi-stage builds
+- Hardening containers for security
+- Setting up health checks and monitoring
+- Managing multiple environments (dev/staging/prod)
+- Implementing CI/CD pipelines with Docker
+- Troubleshooting container issues
 
-# Check connectivity
-docker compose exec app wget -qO- http://api:3000/health
+## Related Skills
 
-# Inspect network
-docker network ls
-docker network inspect <project>_default
-```
-
-## Anti-Patterns
-
-```
-# BAD: Using docker compose in production without orchestration
-# Use Kubernetes, ECS, or Docker Swarm for production multi-container workloads
-
-# BAD: Storing data in containers without volumes
-# Containers are ephemeral -- all data lost on restart without volumes
-
-# BAD: Running as root
-# Always create and use a non-root user
-
-# BAD: Using :latest tag
-# Pin to specific versions for reproducible builds
-
-# BAD: One giant container with all services
-# Separate concerns: one process per container
-
-# BAD: Putting secrets in docker-compose.yml
-# Use .env files (gitignored) or Docker secrets
-```
+- `@ci-cd-pipelines` - Continuous integration and deployment with GitHub Actions
+- `@security-best-practices` - Container security and vulnerability scanning
+- `@feature-development` - Development workflow
+- `@python-patterns` - Python-specific patterns
+- `@go-conventions` - Go-specific patterns
+- `@ts-react-nextjs` - Node.js patterns

@@ -1,504 +1,200 @@
 ---
 name: security-review
-description: Use this skill when adding authentication, handling user input, working with secrets, creating API endpoints, or implementing payment/sensitive features. Provides comprehensive security checklist and patterns.
-metadata:
-  origin: ECC
+description: Performs security reviews of Hone code using OWASP guidelines. Use when reviewing database queries, CSV import logic, API endpoints, authentication, encryption, or when the user asks about security.
+allowed-tools: Read, Grep, Glob
 ---
 
-# Security Review Skill
+# Security Review for Hone
 
-This skill ensures all code follows security best practices and identifies potential vulnerabilities.
+Based on OWASP Top 10 (2021) and modern web security practices.
 
-## When to Activate
+## OWASP Top 10 Relevance to Hone
 
-- Implementing authentication or authorization
-- Handling user input or file uploads
-- Creating new API endpoints
-- Working with secrets or credentials
-- Implementing payment features
-- Storing or transmitting sensitive data
-- Integrating third-party APIs
+### A01:2021 - Broken Access Control
+- **Risk**: Unauthorized access to other users' financial data
+- **Hone Context**: Currently single-user, but if multi-user is added:
+  - Implement proper session management
+  - Validate user owns requested resources
+  - Use principle of least privilege
 
-## Security Checklist
+### A02:2021 - Cryptographic Failures
+- **Data Classification**: Transaction data is sensitive PII
+- **At Rest**: SQLCipher for database encryption (per DESIGN.md)
+- **In Transit**:
+  - All external connections MUST use TLS/HTTPS
+  - Ollama connection should use HTTPS if remote
+- **Hashing**: Using SHA-256 for deduplication (appropriate choice)
 
-### 1. Secrets Management
+**Database Encryption (Required)**:
+```rust
+// SQLCipher - open encrypted database
+let conn = Connection::open("hone.db")?;
+conn.pragma_update(None, "key", &passphrase)?;
 
-#### FAIL: NEVER Do This
-```typescript
-const apiKey = "sk-proj-xxxxx"  // Hardcoded secret
-const dbPassword = "password123" // In source code
+// Key derivation - use Argon2 to derive key from user passphrase
+use argon2::{Argon2, PasswordHasher};
+let salt = SaltString::generate(&mut OsRng);
+let argon2 = Argon2::default();
+let key = argon2.hash_password(passphrase.as_bytes(), &salt)?;
 ```
 
-#### PASS: ALWAYS Do This
-```typescript
-const apiKey = process.env.OPENAI_API_KEY
-const dbUrl = process.env.DATABASE_URL
+**Implementation Requirements**:
+- Use `rusqlite` with `bundled-sqlcipher` feature
+- Derive encryption key from passphrase using Argon2
+- Passphrase provided at startup (env var or prompt)
+- Never log or expose the passphrase
 
-// Verify secrets exist
-if (!apiKey) {
-  throw new Error('OPENAI_API_KEY not configured')
-}
+**Backup Encryption**:
+- Backups encrypted with `age` before upload to Cloudflare R2
+- Consider post-quantum algorithms for future-proofing (harvest now, decrypt later threat)
+
+### A03:2021 - Injection
+- **SQL Injection** (Critical for hone-core/src/db.rs)
+  - All queries MUST use parameterized statements
+  - Never interpolate user input into SQL
+
+```rust
+// SECURE - parameterized query
+conn.execute(
+    "INSERT INTO transactions (account_id, amount) VALUES (?, ?)",
+    params![account_id, amount]
+)?;
+
+// VULNERABLE - string interpolation
+conn.execute(
+    &format!("SELECT * FROM transactions WHERE merchant = '{}'", merchant),
+    []
+)?;
 ```
 
-#### Verification Steps
-- [ ] No hardcoded API keys, tokens, or passwords
-- [ ] All secrets in environment variables
-- [ ] `.env.local` in .gitignore
-- [ ] No secrets in git history
-- [ ] Production secrets in hosting platform (Vercel, Railway)
+- **CSV Injection** (hone-core/src/import.rs)
+  - Sanitize fields starting with `=`, `+`, `-`, `@` (Excel formula injection)
+  - Validate numeric fields are actually numeric
 
-### 2. Input Validation
+### A04:2021 - Insecure Design
+- **Threat Modeling**: Financial data attracts attackers
+- **Defense in Depth**: Multiple layers of validation
+- **Secure Defaults**: Restrictive CORS, minimal permissions
 
-#### Always Validate User Input
-```typescript
-import { z } from 'zod'
+### A05:2021 - Security Misconfiguration
+- **CORS**: Restrict to specific origins in production
 
-// Define validation schema
-const CreateUserSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(1).max(100),
-  age: z.number().int().min(0).max(150)
-})
+```rust
+// Development (permissive)
+CorsLayer::permissive()
 
-// Validate before processing
-export async function createUser(input: unknown) {
-  try {
-    const validated = CreateUserSchema.parse(input)
-    return await db.users.create(validated)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { success: false, errors: error.errors }
-    }
-    throw error
-  }
-}
+// Production (restrictive)
+CorsLayer::new()
+    .allow_origin("https://your-domain.com".parse::<HeaderValue>().unwrap())
+    .allow_methods([Method::GET, Method::POST])
 ```
 
-#### File Upload Validation
-```typescript
-function validateFileUpload(file: File) {
-  // Size check (5MB max)
-  const maxSize = 5 * 1024 * 1024
-  if (file.size > maxSize) {
-    throw new Error('File too large (max 5MB)')
-  }
+- **Error Messages**: Never expose stack traces or internal paths
+- **Headers**: Set security headers (via tower-http)
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `Content-Security-Policy`
 
-  // Type check
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error('Invalid file type')
-  }
+### A06:2021 - Vulnerable Components
+- Run `cargo audit` regularly (already set up)
+- Keep dependencies updated
+- Review transitive dependencies
 
-  // Extension check
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif']
-  const extension = file.name.toLowerCase().match(/\.[^.]+$/)?.[0]
-  if (!extension || !allowedExtensions.includes(extension)) {
-    throw new Error('Invalid file extension')
-  }
+### A07:2021 - Authentication Failures
+- Currently N/A (single-user, local)
+- If adding auth:
+  - Use established libraries (not custom)
+  - Implement rate limiting
+  - Secure session management
 
-  return true
-}
+### A08:2021 - Data Integrity Failures
+- **CSV Import**: Validate file integrity
+  - Check file size limits
+  - Validate expected columns exist
+  - Reject malformed data gracefully
+
+### A09:2021 - Security Logging
+- Log security-relevant events:
+  - Failed authentication attempts (if added)
+  - Access to sensitive endpoints
+  - Import operations
+- Don't log sensitive data (transaction details, amounts)
+
+### A10:2021 - SSRF
+- **Ollama Integration**: Validate URL is localhost/trusted
+- Don't allow user-controlled URLs for HTTP requests
+
+## Frontend Security (React/TypeScript)
+
+### XSS Prevention
+- React escapes by default (good)
+- Never use `dangerouslySetInnerHTML` with user data
+- Sanitize data before rendering if from external source
+
+### Sensitive Data
+- Don't store financial data in localStorage/sessionStorage
+- Clear sensitive state on logout
+- Use httpOnly cookies for auth tokens (if added)
+
+### Content Security Policy
+```html
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
 ```
 
-#### Verification Steps
-- [ ] All user inputs validated with schemas
-- [ ] File uploads restricted (size, type, extension)
-- [ ] No direct use of user input in queries
-- [ ] Whitelist validation (not blacklist)
-- [ ] Error messages don't leak sensitive info
+## Secrets Management
 
-### 3. SQL Injection Prevention
+### Never Commit
+- API keys, tokens, passwords
+- Database credentials
+- Private keys
 
-#### FAIL: NEVER Concatenate SQL
-```typescript
-// DANGEROUS - SQL Injection vulnerability
-const query = `SELECT * FROM users WHERE email = '${userEmail}'`
-await db.query(query)
+### Secure Storage
+- Use `.env` files (gitignored)
+- Environment variables at runtime
+- Consider `dotenv` crate for Rust
+
+### Detection Patterns
+```
+# Patterns that indicate hardcoded secrets
+api_key\s*[:=]
+password\s*[:=]
+secret\s*[:=]
+token\s*[:=]
+-----BEGIN.*PRIVATE KEY-----
 ```
 
-#### PASS: ALWAYS Use Parameterized Queries
-```typescript
-// Safe - parameterized query
-const { data } = await supabase
-  .from('users')
-  .select('*')
-  .eq('email', userEmail)
+## Security Review Checklist
 
-// Or with raw SQL
-await db.query(
-  'SELECT * FROM users WHERE email = $1',
-  [userEmail]
-)
-```
+### Database Layer (db.rs)
+- [ ] SQLCipher encryption enabled (bundled-sqlcipher feature)
+- [ ] Key derived via Argon2 from passphrase
+- [ ] All queries use parameterized statements (`params![]`)
+- [ ] No string interpolation in SQL
+- [ ] Input validation before queries
+- [ ] Errors don't expose SQL details
 
-#### Verification Steps
-- [ ] All database queries use parameterized queries
-- [ ] No string concatenation in SQL
-- [ ] ORM/query builder used correctly
-- [ ] Supabase queries properly sanitized
+### Import Layer (import.rs)
+- [ ] File size limits enforced
+- [ ] Path traversal prevented
+- [ ] CSV fields sanitized
+- [ ] Malformed input handled gracefully
 
-### 4. Authentication & Authorization
+### API Layer (hone-server)
+- [ ] Request validation on all endpoints
+- [ ] Generic error responses
+- [ ] CORS configured appropriately
+- [ ] Security headers set
 
-#### JWT Token Handling
-```typescript
-// FAIL: WRONG: localStorage (vulnerable to XSS)
-localStorage.setItem('token', token)
-
-// PASS: CORRECT: httpOnly cookies
-res.setHeader('Set-Cookie',
-  `token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`)
-```
-
-#### Authorization Checks
-```typescript
-export async function deleteUser(userId: string, requesterId: string) {
-  // ALWAYS verify authorization first
-  const requester = await db.users.findUnique({
-    where: { id: requesterId }
-  })
-
-  if (requester.role !== 'admin') {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 403 }
-    )
-  }
-
-  // Proceed with deletion
-  await db.users.delete({ where: { id: userId } })
-}
-```
-
-#### Row Level Security (Supabase)
-```sql
--- Enable RLS on all tables
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
--- Users can only view their own data
-CREATE POLICY "Users view own data"
-  ON users FOR SELECT
-  USING (auth.uid() = id);
-
--- Users can only update their own data
-CREATE POLICY "Users update own data"
-  ON users FOR UPDATE
-  USING (auth.uid() = id);
-```
-
-#### Verification Steps
-- [ ] Tokens stored in httpOnly cookies (not localStorage)
-- [ ] Authorization checks before sensitive operations
-- [ ] Row Level Security enabled in Supabase
-- [ ] Role-based access control implemented
-- [ ] Session management secure
-
-### 5. XSS Prevention
-
-#### Sanitize HTML
-```typescript
-import DOMPurify from 'isomorphic-dompurify'
-
-// ALWAYS sanitize user-provided HTML
-function renderUserContent(html: string) {
-  const clean = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p'],
-    ALLOWED_ATTR: []
-  })
-  return <div dangerouslySetInnerHTML={{ __html: clean }} />
-}
-```
-
-#### Content Security Policy
-
-Start strict and loosen only with a documented removal plan. Do not default to
-`'unsafe-inline'` or `'unsafe-eval'`; they neutralize much of CSP's protection
-and should be treated as temporary compatibility debt.
-
-```typescript
-// next.config.js
-const securityHeaders = [
-  {
-    key: 'Content-Security-Policy',
-    value: `
-      default-src 'self';
-      base-uri 'self';
-      object-src 'none';
-      frame-ancestors 'none';
-      script-src 'self';
-      style-src 'self';
-      img-src 'self' data: https:;
-      font-src 'self';
-      connect-src 'self' https://api.example.com;
-    `.replace(/\s{2,}/g, ' ').trim()
-  }
-]
-```
-
-#### Verification Steps
-- [ ] User-provided HTML sanitized
+### Frontend (ui/)
+- [ ] No sensitive data in localStorage
+- [ ] XSS vectors checked
 - [ ] CSP headers configured
-- [ ] No unvalidated dynamic content rendering
-- [ ] React's built-in XSS protection used
-
-### 6. CSRF Protection
-
-#### CSRF Tokens
-```typescript
-import { csrf } from '@/lib/csrf'
-
-export async function POST(request: Request) {
-  const token = request.headers.get('X-CSRF-Token')
-
-  if (!csrf.verify(token)) {
-    return NextResponse.json(
-      { error: 'Invalid CSRF token' },
-      { status: 403 }
-    )
-  }
-
-  // Process request
-}
-```
-
-#### SameSite Cookies
-```typescript
-res.setHeader('Set-Cookie',
-  `session=${sessionId}; HttpOnly; Secure; SameSite=Strict`)
-```
-
-#### Verification Steps
-- [ ] CSRF tokens on state-changing operations
-- [ ] SameSite=Strict on all cookies
-- [ ] Double-submit cookie pattern implemented
-
-### 7. Rate Limiting
-
-#### API Rate Limiting
-```typescript
-import rateLimit from 'express-rate-limit'
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per window
-  message: 'Too many requests'
-})
-
-// Apply to routes
-app.use('/api/', limiter)
-```
-
-#### Expensive Operations
-```typescript
-// Aggressive rate limiting for searches
-const searchLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // 10 requests per minute
-  message: 'Too many search requests'
-})
-
-app.use('/api/search', searchLimiter)
-```
-
-#### Verification Steps
-- [ ] Rate limiting on all API endpoints
-- [ ] Stricter limits on expensive operations
-- [ ] IP-based rate limiting
-- [ ] User-based rate limiting (authenticated)
-
-### 8. Sensitive Data Exposure
-
-#### Logging
-```typescript
-// FAIL: WRONG: Logging sensitive data
-console.log('User login:', { email, password })
-console.log('Payment:', { cardNumber, cvv })
-
-// PASS: CORRECT: Redact sensitive data
-console.log('User login:', { email, userId })
-console.log('Payment:', { last4: card.last4, userId })
-```
-
-#### Error Messages
-```typescript
-// FAIL: WRONG: Exposing internal details
-catch (error) {
-  return NextResponse.json(
-    { error: error.message, stack: error.stack },
-    { status: 500 }
-  )
-}
-
-// PASS: CORRECT: Generic error messages
-catch (error) {
-  console.error('Internal error:', error)
-  return NextResponse.json(
-    { error: 'An error occurred. Please try again.' },
-    { status: 500 }
-  )
-}
-```
-
-#### Verification Steps
-- [ ] No passwords, tokens, or secrets in logs
-- [ ] Error messages generic for users
-- [ ] Detailed errors only in server logs
-- [ ] No stack traces exposed to users
-
-### 9. Blockchain Security (Solana)
-
-#### Wallet Verification
-```typescript
-import { verify } from '@solana/web3.js'
-
-async function verifyWalletOwnership(
-  publicKey: string,
-  signature: string,
-  message: string
-) {
-  try {
-    const isValid = verify(
-      Buffer.from(message),
-      Buffer.from(signature, 'base64'),
-      Buffer.from(publicKey, 'base64')
-    )
-    return isValid
-  } catch (error) {
-    return false
-  }
-}
-```
-
-#### Transaction Verification
-```typescript
-async function verifyTransaction(transaction: Transaction) {
-  // Verify recipient
-  if (transaction.to !== expectedRecipient) {
-    throw new Error('Invalid recipient')
-  }
-
-  // Verify amount
-  if (transaction.amount > maxAmount) {
-    throw new Error('Amount exceeds limit')
-  }
-
-  // Verify user has sufficient balance
-  const balance = await getBalance(transaction.from)
-  if (balance < transaction.amount) {
-    throw new Error('Insufficient balance')
-  }
-
-  return true
-}
-```
-
-#### Verification Steps
-- [ ] Wallet signatures verified
-- [ ] Transaction details validated
-- [ ] Balance checks before transactions
-- [ ] No blind transaction signing
-
-### 10. Dependency Security
-
-#### Regular Updates
-```bash
-# Check for vulnerabilities
-npm audit
-
-# Fix automatically fixable issues
-npm audit fix
-
-# Update dependencies
-npm update
-
-# Check for outdated packages
-npm outdated
-```
-
-#### Lock Files
-```bash
-# ALWAYS commit lock files
-git add package-lock.json
-
-# Use in CI/CD for reproducible builds
-npm ci  # Instead of npm install
-```
-
-#### Verification Steps
-- [ ] Dependencies up to date
-- [ ] No known vulnerabilities (npm audit clean)
-- [ ] Lock files committed
-- [ ] Dependabot enabled on GitHub
-- [ ] Regular security updates
-
-## Security Testing
-
-### Automated Security Tests
-```typescript
-// Test authentication
-test('requires authentication', async () => {
-  const response = await fetch('/api/protected')
-  expect(response.status).toBe(401)
-})
-
-// Test authorization
-test('requires admin role', async () => {
-  const response = await fetch('/api/admin', {
-    headers: { Authorization: `Bearer ${userToken}` }
-  })
-  expect(response.status).toBe(403)
-})
-
-// Test input validation
-test('rejects invalid input', async () => {
-  const response = await fetch('/api/users', {
-    method: 'POST',
-    body: JSON.stringify({ email: 'not-an-email' })
-  })
-  expect(response.status).toBe(400)
-})
-
-// Test rate limiting
-test('enforces rate limits', async () => {
-  const requests = Array(101).fill(null).map(() =>
-    fetch('/api/endpoint')
-  )
-
-  const responses = await Promise.all(requests)
-  const tooManyRequests = responses.filter(r => r.status === 429)
-
-  expect(tooManyRequests.length).toBeGreaterThan(0)
-})
-```
-
-## Pre-Deployment Security Checklist
-
-Before ANY production deployment:
-
-- [ ] **Secrets**: No hardcoded secrets, all in env vars
-- [ ] **Input Validation**: All user inputs validated
-- [ ] **SQL Injection**: All queries parameterized
-- [ ] **XSS**: User content sanitized
-- [ ] **CSRF**: Protection enabled
-- [ ] **Authentication**: Proper token handling
-- [ ] **Authorization**: Role checks in place
-- [ ] **Rate Limiting**: Enabled on all endpoints
-- [ ] **HTTPS**: Enforced in production
-- [ ] **Security Headers**: CSP, X-Frame-Options configured
-- [ ] **Error Handling**: No sensitive data in errors
-- [ ] **Logging**: No sensitive data logged
-- [ ] **Dependencies**: Up to date, no vulnerabilities
-- [ ] **Row Level Security**: Enabled in Supabase
-- [ ] **CORS**: Properly configured
-- [ ] **File Uploads**: Validated (size, type)
-- [ ] **Wallet Signatures**: Verified (if blockchain)
+- [ ] API errors handled gracefully
 
 ## Resources
 
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Next.js Security](https://nextjs.org/docs/security)
-- [Supabase Security](https://supabase.com/docs/guides/auth)
-- [Web Security Academy](https://portswigger.net/web-security)
-
----
-
-**Remember**: Security is not optional. One vulnerability can compromise the entire platform. When in doubt, err on the side of caution.
+- [OWASP Top 10](https://owasp.org/Top10/)
+- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
+- [Rust Security Guidelines](https://rustsec.org/)
+- [React Security Best Practices](https://snyk.io/blog/10-react-security-best-practices/)

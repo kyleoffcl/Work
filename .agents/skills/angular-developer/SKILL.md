@@ -1,155 +1,393 @@
 ---
 name: angular-developer
-description: Generates Angular code and provides architectural guidance. Trigger when creating projects, components, or services, or for best practices on reactivity (signals, linkedSignal, resource), forms, dependency injection, routing, SSR, accessibility (ARIA), animations, styling (component styles, Tailwind CSS), testing, or CLI tooling.
-metadata:
-  origin: ECC
+description: "[Extends frontend-developer] Angular 21 specialist. Use for Angular-specific features: Signals, zoneless change detection, NgRx SignalStore, standalone components, Signal Forms, Angular Aria. Invoke alongside frontend-developer for Angular projects."
 ---
 
-# Angular Developer Guidelines
+# Angular Developer
 
-## When to Activate
+> **Extends:** frontend-developer
+> **Type:** Specialized Skill
 
-- Working in any Angular project or codebase
-- Creating or scaffolding a new Angular project, application, or library
-- Generating components, services, directives, pipes, guards, or resolvers
-- Implementing reactivity with Angular Signals, `linkedSignal`, or `resource`
-- Working with Angular forms (signal forms, reactive forms, or template-driven)
-- Setting up dependency injection, routing, lazy loading, or route guards
-- Adding accessibility (ARIA), animations, or component styling
-- Writing or debugging Angular-specific tests (unit, component harness, E2E)
-- Configuring Angular CLI tooling or the Angular MCP server
+## Trigger
 
-1. Always analyze the project's Angular version before providing guidance, as best practices and available features can vary significantly between versions. If creating a new project with Angular CLI, do not specify a version unless prompted by the user.
+Use this skill alongside `frontend-developer` when:
+- Building Angular applications
+- Creating components with Signals
+- Configuring zoneless change detection
+- Working with RxJS or NgRx
+- Setting up standalone components
+- Implementing forms (template-driven, reactive, Signal Forms)
+- Writing Angular tests (Jest, Vitest)
+- Optimizing Angular performance
 
-2. When generating code, follow Angular's style guide and best practices for maintainability and performance. Use the Angular CLI for scaffolding components, services, directives, pipes, and routes to ensure consistency.
+## Context
 
-3. Once you finish generating code, run `ng build` to ensure there are no build errors. If there are errors, analyze the error messages and fix them before proceeding. Do not skip this step, as it is critical for ensuring the generated code is correct and functional.
+You are a Senior Angular Developer with 8+ years of experience building enterprise Angular applications. You have migrated multiple projects from AngularJS through Angular 21. You are proficient in reactive programming, state management, and modern Angular patterns including Signals and zoneless change detection.
 
-## Creating New Projects
+## Expertise
 
-If no guidelines are provided by the user, use these defaults when creating a new Angular project:
+### Versions
 
-1. Use the latest stable version of Angular unless the user specifies otherwise.
-2. Prefer Signal Forms for new projects only when the target Angular version supports them. [Find out more](references/signal-forms.md).
+| Technology | Version | Notes |
+|------------|---------|-------|
+| Angular | 21 | Zoneless by default, Signal Forms |
+| Angular | 20 | Signals stable, zoneless stable |
+| TypeScript | 5.6+ | Strict mode always |
+| RxJS | 7.x | Reactive patterns |
+| NgRx | 19.x | State management |
 
-**Execution Rules for `ng new`:**
-When asked to create a new Angular project, you must determine the correct execution command by following these strict steps:
+### Core Concepts
 
-**Step 1: Check for an explicit user version.**
+#### Signals (Stable in v20+)
 
-- **IF** the user requests a specific version (e.g., Angular 15), bypass local installations and strictly use `npx`.
-- **Command:** `npx @angular/cli@<requested_version> new <project-name>`
+```typescript
+import { signal, computed, effect } from '@angular/core';
 
-**Step 2: Check for an existing Angular installation.**
+@Component({
+  selector: 'app-counter',
+  standalone: true,
+  template: `
+    <p>Count: {{ count() }}</p>
+    <p>Double: {{ double() }}</p>
+    <button (click)="increment()">+</button>
+  `
+})
+export class CounterComponent {
+  count = signal(0);
+  double = computed(() => this.count() * 2);
 
-- **IF** no specific version is requested, run `ng version` in the terminal to check if the Angular CLI is already installed on the system.
-- **IF** the command succeeds and returns an installed version, use the local/global installation directly.
-- **Command:** `ng new <project-name>`
+  constructor() {
+    effect(() => {
+      console.log('Count changed:', this.count());
+    });
+  }
 
-**Step 3: Fallback to Latest.**
+  increment() {
+    this.count.update(c => c + 1);
+  }
+}
+```
 
-- **IF** no specific version is requested AND the `ng version` command fails (indicating no Angular installation exists), you must use `npx` to fetch the latest version.
-- **Command:** `npx @angular/cli@latest new <project-name>`
+#### linkedSignal (v20+)
 
-## Components
+```typescript
+import { signal, linkedSignal } from '@angular/core';
 
-When working with Angular components, consult the following references based on the task:
+@Component({...})
+export class ProductComponent {
+  products = signal<Product[]>([]);
 
-- **Fundamentals**: Anatomy, metadata, core concepts, and template control flow (@if, @for, @switch). Read [components.md](references/components.md)
-- **Inputs**: Signal-based inputs, transforms, and model inputs. Read [inputs.md](references/inputs.md)
-- **Outputs**: Signal-based outputs and custom event best practices. Read [outputs.md](references/outputs.md)
-- **Host Elements**: Host bindings and attribute injection. Read [host-elements.md](references/host-elements.md)
+  // Automatically updates when products change
+  selectedProduct = linkedSignal(() => this.products()[0]);
 
-If you require deeper documentation not found in the references above, read the documentation at `https://angular.dev/guide/components`.
+  selectProduct(product: Product) {
+    this.selectedProduct.set(product);
+  }
+}
+```
 
-## Reactivity and Data Management
+#### Zoneless Change Detection (Default in v21)
 
-When managing state and data reactivity, use Angular Signals and consult the following references:
+```typescript
+// main.ts - Angular 21 (zoneless by default)
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
 
-- **Signals Overview**: Core signal concepts (`signal`, `computed`), reactive contexts, and `untracked`. Read [signals-overview.md](references/signals-overview.md)
-- **Dependent State (`linkedSignal`)**: Creating writable state linked to source signals. Read [linked-signal.md](references/linked-signal.md)
-- **Async Reactivity (`resource`)**: Fetching asynchronous data directly into signal state. Read [resource.md](references/resource.md)
-- **Side Effects (`effect`)**: Logging, third-party DOM manipulation (`afterRenderEffect`), and when NOT to use effects. Read [effects.md](references/effects.md)
+bootstrapApplication(AppComponent);
 
-## Forms
+// For older versions or explicit opt-in
+import { provideExperimentalZonelessChangeDetection } from '@angular/core';
 
-In most cases for new apps, **prefer signal forms**. When making a forms decision, analyze the project and consider the following guidelines:
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideExperimentalZonelessChangeDetection()
+  ]
+});
+```
 
-- If the application version supports Signal Forms and this is a new form, **prefer signal forms**.
-- For older applications or existing forms, match the application's current form strategy.
+Remove zone.js:
+```bash
+npm uninstall zone.js
+```
 
-- **Signal Forms**: Use signals for form state management. Read [signal-forms.md](references/signal-forms.md)
-- **Template-driven forms**: Use for simple forms. Read [template-driven-forms.md](references/template-driven-forms.md)
-- **Reactive forms**: Use for complex forms. Read [reactive-forms.md](references/reactive-forms.md)
+Update angular.json:
+```json
+{
+  "build": {
+    "options": {
+      "polyfills": []  // Remove zone.js
+    }
+  }
+}
+```
 
-## Dependency Injection
+#### Standalone Components (Default in v21)
 
-When implementing dependency injection in Angular, follow these guidelines:
+```typescript
+@Component({
+  selector: 'app-user',
+  standalone: true,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  template: `...`
+})
+export class UserComponent {}
+```
 
-- **Fundamentals**: Overview of Dependency Injection, services, and the `inject()` function. Read [di-fundamentals.md](references/di-fundamentals.md)
-- **Creating and Using Services**: Creating services, the `providedIn: 'root'` option, and injecting into components or other services. Read [creating-services.md](references/creating-services.md)
-- **Defining Dependency Providers**: Automatic vs manual provision, `InjectionToken`, `useClass`, `useValue`, `useFactory`, and scopes. Read [defining-providers.md](references/defining-providers.md)
-- **Injection Context**: Where `inject()` is allowed, `runInInjectionContext`, and `assertInInjectionContext`. Read [injection-context.md](references/injection-context.md)
-- **Hierarchical Injectors**: The `EnvironmentInjector` vs `ElementInjector`, resolution rules, modifiers (`optional`, `skipSelf`), and `providers` vs `viewProviders`. Read [hierarchical-injectors.md](references/hierarchical-injectors.md)
+#### Signal Forms (Experimental in v21)
 
-## Angular Aria
+```typescript
+import { SignalForm, signalForm } from '@angular/forms';
 
-When building accessible custom components for any of the following patterns: Accordion, Listbox, Combobox, Menu, Tabs, Toolbar, Tree, Grid, consult the following reference:
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  template: `
+    <form [signalForm]="loginForm" (ngSubmit)="onSubmit()">
+      <input [signalFormControl]="loginForm.controls.email" />
+      <input [signalFormControl]="loginForm.controls.password" type="password" />
+      <button type="submit" [disabled]="!loginForm.valid()">Login</button>
+    </form>
+  `
+})
+export class LoginComponent {
+  loginForm = signalForm({
+    email: ['', Validators.required, Validators.email],
+    password: ['', Validators.required, Validators.minLength(8)]
+  });
 
-- **Angular Aria Components**: Building headless, accessible components (Accordion, Listbox, Combobox, Menu, Tabs, Toolbar, Tree, Grid) and styling ARIA attributes. Read [angular-aria.md](references/angular-aria.md)
+  onSubmit() {
+    if (this.loginForm.valid()) {
+      console.log(this.loginForm.value());
+    }
+  }
+}
+```
 
-## Routing
+#### Angular Aria (Developer Preview in v21)
 
-When implementing navigation in Angular, consult the following references:
+```typescript
+import { AriaDialog, AriaButton } from '@angular/aria';
 
-- **Define Routes**: URL paths, static vs dynamic segments, wildcards, and redirects. Read [define-routes.md](references/define-routes.md)
-- **Route Loading Strategies**: Eager vs lazy loading, and context-aware loading. Read [loading-strategies.md](references/loading-strategies.md)
-- **Show Routes with Outlets**: Using `<router-outlet>`, nested outlets, and named outlets. Read [show-routes-with-outlets.md](references/show-routes-with-outlets.md)
-- **Navigate to Routes**: Declarative navigation with `RouterLink` and programmatic navigation with `Router`. Read [navigate-to-routes.md](references/navigate-to-routes.md)
-- **Control Route Access with Guards**: Implementing `CanActivate`, `CanMatch`, and other guards for security. Read [route-guards.md](references/route-guards.md)
-- **Data Resolvers**: Pre-fetching data before route activation with `ResolveFn`. Read [data-resolvers.md](references/data-resolvers.md)
-- **Router Lifecycle and Events**: Chronological order of navigation events and debugging. Read [router-lifecycle.md](references/router-lifecycle.md)
-- **Rendering Strategies**: CSR, SSG (Prerendering), and SSR with hydration. Read [rendering-strategies.md](references/rendering-strategies.md)
-- **Route Transition Animations**: Enabling and customizing the View Transitions API. Read [route-animations.md](references/route-animations.md)
+@Component({
+  selector: 'app-modal',
+  standalone: true,
+  imports: [AriaDialog, AriaButton],
+  template: `
+    <button ariaButton (click)="open()">Open Dialog</button>
+    <div ariaDialog [open]="isOpen()" (close)="close()">
+      <h2>Dialog Title</h2>
+      <p>Content here</p>
+      <button ariaButton (click)="close()">Close</button>
+    </div>
+  `
+})
+export class ModalComponent {
+  isOpen = signal(false);
+  open() { this.isOpen.set(true); }
+  close() { this.isOpen.set(false); }
+}
+```
 
-If you require deeper documentation or more context, visit the [official Angular Routing guide](https://angular.dev/guide/routing).
+### State Management
 
-## Styling and Animations
+#### NgRx with Signals
 
-When implementing styling and animations in Angular, consult the following references:
+```typescript
+// store/counter.store.ts
+import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 
-- **Using Tailwind CSS with Angular**: Integrating Tailwind CSS into Angular projects. Read [tailwind-css.md](references/tailwind-css.md)
-- **Angular Animations**: Using native CSS (recommended) or the legacy DSL for dynamic effects. Read [angular-animations.md](references/angular-animations.md)
-- **Styling components**: Best practices for component styles and encapsulation. Read [component-styling.md](references/component-styling.md)
+export const CounterStore = signalStore(
+  withState({ count: 0 }),
+  withMethods((store) => ({
+    increment() {
+      patchState(store, { count: store.count() + 1 });
+    },
+    decrement() {
+      patchState(store, { count: store.count() - 1 });
+    }
+  }))
+);
 
-## Testing
+// component
+@Component({
+  providers: [CounterStore],
+  template: `
+    <p>{{ store.count() }}</p>
+    <button (click)="store.increment()">+</button>
+  `
+})
+export class CounterComponent {
+  readonly store = inject(CounterStore);
+}
+```
 
-When writing or updating tests, consult the following references based on the task:
+### HTTP Client
 
-- **Fundamentals**: Best practices for unit testing, async patterns, and `TestBed`. Read [testing-fundamentals.md](references/testing-fundamentals.md)
-- **Component Harnesses**: Standard patterns for robust component interaction. Read [component-harnesses.md](references/component-harnesses.md)
-- **Router Testing**: Using `RouterTestingHarness` for reliable navigation tests. Read [router-testing.md](references/router-testing.md)
-- **End-to-End (E2E) Testing**: Best practices for E2E tests with Cypress or Playwright. Read [e2e-testing.md](references/e2e-testing.md)
+```typescript
+import { HttpClient } from '@angular/common/http';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-## Tooling
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private http = inject(HttpClient);
 
-When working with Angular tooling, consult the following references:
+  getUsers() {
+    return this.http.get<User[]>('/api/users');
+  }
+}
 
-- **Angular CLI**: Creating applications, generating code (components, routes, services), serving, and building. Read [cli.md](references/cli.md)
-- **Angular MCP Server**: Available tools, configuration, and experimental features. Read [mcp.md](references/mcp.md)
+@Component({...})
+export class UsersComponent {
+  private userService = inject(UserService);
 
-## Anti-Patterns
+  // Convert Observable to Signal
+  users = toSignal(this.userService.getUsers(), { initialValue: [] });
+}
+```
 
-- Using `null` or `undefined` as initial signal form field values — use `''`, `0`, or `[]` instead
-- Accessing form field state flags without calling the field first: `form.field.valid()` — use `form.field().valid()`
-- Starting new forms with older form APIs when the target Angular version supports Signal Forms
-- Setting `min`, `max`, `value`, `disabled`, or `readonly` HTML attributes on `[formField]` inputs — define these as schema rules instead
-- Calling `inject()` outside an injection context — use `runInInjectionContext` when needed
-- Using `effect()` for derived state that should use `computed()`
-- Referencing `$parent.$index` in nested `@for` loops — Angular does not support `$parent`; use `let outerIdx = $index` instead
+### Testing with Vitest (v21)
 
-## Related Skills
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/vite-plugin-angular';
 
-- `tdd-workflow` — test-driven development workflow applicable to Angular components and services
-- `security-review` — security checklist for web applications including Angular-specific concerns
-- `frontend-patterns` — general frontend patterns for context on React/Next.js approaches
+export default defineConfig({
+  plugins: [angular()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.spec.ts']
+  }
+});
+
+// component.spec.ts
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/angular';
+
+describe('CounterComponent', () => {
+  it('should increment count', async () => {
+    await render(CounterComponent);
+
+    const button = screen.getByRole('button', { name: '+' });
+    await button.click();
+
+    expect(screen.getByText('Count: 1')).toBeTruthy();
+  });
+});
+```
+
+## Visual Inspection (MCP Browser Tools)
+
+This agent can visually inspect Angular applications in the browser using Playwright:
+
+### Available Actions
+
+| Action | Tool | Use Case |
+|--------|------|----------|
+| Navigate | `playwright_navigate` | Open Angular dev server URLs |
+| Screenshot | `playwright_screenshot` | Capture component renders |
+| Inspect HTML | `playwright_get_visible_html` | Verify Angular template output |
+| Console Logs | `playwright_console_logs` | Debug Angular errors, zone issues |
+| Device Preview | `playwright_resize` | Test responsive layouts (143+ devices) |
+| Interact | `playwright_click`, `playwright_fill` | Test user interactions |
+
+### Device Simulation Presets
+
+- **iPhone**: iPhone 13, iPhone 14 Pro, iPhone 15 Pro Max
+- **iPad**: iPad Pro 11, iPad Mini, iPad Air
+- **Android**: Pixel 7, Galaxy S24, Galaxy Tab S8
+- **Desktop**: Desktop Chrome, Desktop Firefox, Desktop Safari
+
+### Angular-Specific Workflows
+
+#### Debug Component Rendering
+1. Navigate to `localhost:4200/component`
+2. Take screenshot
+3. Check console for Angular errors
+4. Inspect HTML for template output
+
+#### Zoneless Change Detection Verification
+1. Navigate to page with signal-based components
+2. Interact with component (click buttons)
+3. Screenshot to verify UI updates without zone.js
+4. Check console for any zone-related warnings
+
+#### Responsive Angular Material
+1. Navigate to Angular Material component
+2. Screenshot on Desktop (1280x720)
+3. Resize to iPad → Screenshot
+4. Resize to iPhone → Screenshot
+5. Verify Material breakpoints work correctly
+
+### Project Structure
+
+```
+src/
+├── app/
+│   ├── core/                 # Singleton services
+│   │   ├── auth/
+│   │   ├── http/
+│   │   └── guards/
+│   ├── shared/               # Reusable components
+│   │   ├── components/
+│   │   ├── directives/
+│   │   └── pipes/
+│   ├── features/             # Feature modules
+│   │   ├── users/
+│   │   ├── products/
+│   │   └── orders/
+│   ├── app.component.ts
+│   ├── app.config.ts
+│   └── app.routes.ts
+├── environments/
+└── main.ts
+```
+
+## Parent & Related Skills
+
+| Skill | Relationship |
+|-------|--------------|
+| **frontend-developer** | Parent skill - invoke for general frontend patterns |
+| **qa-engineer** | For Angular testing strategy, E2E with Playwright |
+| **api-designer** | For Angular HttpClient integration, API contracts |
+| **performance-engineer** | For bundle optimization, lazy loading strategy |
+
+## Standards
+
+- **Standalone by default**: No NgModules for new code
+- **Signals for state**: Prefer signals over BehaviorSubject
+- **Zoneless**: Use zoneless change detection
+- **Strict TypeScript**: Enable strict mode
+- **OnPush strategy**: Use with signals
+- **Lazy loading**: Lazy load feature routes
+- **TrackBy**: Always use trackBy for ngFor
+
+## Checklist
+
+### Before Creating Component
+- [ ] Standalone component
+- [ ] Signals for local state
+- [ ] OnPush change detection
+- [ ] Proper imports declared
+
+### Before Deploying
+- [ ] Production build with AOT
+- [ ] Bundle size analyzed
+- [ ] Lazy loading configured
+- [ ] Environment configs set
+
+### Visual Verification
+- [ ] UI renders correctly (screenshot verified)
+- [ ] Responsive layouts tested (mobile/tablet/desktop)
+- [ ] No console errors present
+- [ ] Angular Material components display correctly
+
+## Anti-Patterns to Avoid
+
+1. **NgModules for new code**: Use standalone components
+2. **BehaviorSubject for simple state**: Use signals
+3. **Zone.js in v21**: Use zoneless
+4. **Manual subscriptions**: Use async pipe or toSignal
+5. **Large bundles**: Lazy load features
+6. **any type**: Use strict TypeScript

@@ -1,80 +1,107 @@
 ---
 name: fastapi-patterns
-description: FastAPI best practices covering project structure, Pydantic v2 schemas, dependency injection, async handlers, authentication, authorization, transactional service layers, and testing with httpx and pytest.
-metadata:
-  origin: ECC
+description: FastAPI patterns with Pydantic, async operations, and dependency injection
+license: MIT
 ---
 
-# FastAPI Patterns
+# FastAPI Patterns Skill
 
-Modern, production-grade FastAPI development: project layout, Pydantic v2 schemas, dependency injection, async patterns, auth, transactional service methods, and testing.
+Modern FastAPI development patterns including Pydantic models, async operations, dependency injection, and production best practices.
+
+## When to Use
+
+- Building async Python APIs
+- Implementing high-performance REST/GraphQL APIs
+- Working with Pydantic for validation
+- Structuring FastAPI projects
 
 ## Project Structure
 
-```text
-my_app/
-|-- app/
-|   |-- main.py               # App factory, lifespan, middleware
-|   |-- config.py             # Settings via pydantic-settings
-|   |-- dependencies.py       # Shared FastAPI dependencies
-|   |-- database.py           # SQLAlchemy engine + session
-|   |-- routers/
-|   |   `-- users.py
-|   |-- models/               # SQLAlchemy ORM models
-|   |   `-- user.py
-|   |-- schemas/              # Pydantic request/response schemas
-|   |   `-- user.py
-|   `-- services/             # Business logic layer
-|       `-- user_service.py
-|-- tests/
-|   |-- conftest.py
-|   `-- test_users.py
-|-- pyproject.toml
-`-- .env
+```
+src/
+├── main.py                 # Application entry point
+├── config.py               # Settings management
+├── database.py             # Database connection
+├── dependencies.py         # Shared dependencies
+├── exceptions.py           # Custom exceptions
+├── api/
+│   ├── __init__.py
+│   ├── router.py           # Main router aggregator
+│   └── v1/
+│       ├── __init__.py
+│       ├── router.py
+│       ├── users/
+│       │   ├── __init__.py
+│       │   ├── router.py
+│       │   ├── schemas.py
+│       │   ├── service.py
+│       │   └── dependencies.py
+│       └── posts/
+│           └── ...
+├── models/                 # SQLAlchemy models
+│   ├── __init__.py
+│   ├── base.py
+│   ├── user.py
+│   └── post.py
+├── repositories/           # Data access layer
+│   ├── __init__.py
+│   ├── base.py
+│   └── user.py
+├── services/               # Business logic
+│   ├── __init__.py
+│   └── user.py
+└── core/
+    ├── __init__.py
+    ├── security.py
+    └── pagination.py
 ```
 
----
-
-## App Factory and Lifespan
+## Application Setup
 
 ```python
-# app/main.py
+# src/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.database import engine, Base
-from app.routers import users
+from src.config import settings
+from src.database import engine, Base
+from src.api.router import api_router
+from src.exceptions import setup_exception_handlers
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Automatically create tables on startup for ease of use in dev/demo environments.
-    # For strict production applications, manage schemas via Alembic migrations instead.
+    # Startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    # Shutdown: close pooled resources.
+    # Shutdown
     await engine.dispose()
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
+        title=settings.PROJECT_NAME,
+        version=settings.VERSION,
+        openapi_url=f"{settings.API_PREFIX}/openapi.json",
         lifespan=lifespan,
     )
 
+    # Middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_origins,
-        allow_credentials=settings.allow_credentials,
-        allow_methods=settings.allowed_methods,
-        allow_headers=settings.allowed_headers,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
-    app.include_router(users.router, prefix="/users", tags=["users"])
+    # Exception handlers
+    setup_exception_handlers(app)
+
+    # Routes
+    app.include_router(api_router, prefix=settings.API_PREFIX)
 
     return app
 
@@ -82,104 +109,121 @@ def create_app() -> FastAPI:
 app = create_app()
 ```
 
----
-
-## Configuration with pydantic-settings
+## Configuration
 
 ```python
-# app/config.py
+# src/config.py
+from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
 
-    app_name: str = "My App"
-    app_version: str = "0.1.0"
-    debug: bool = False
+    # Application
+    PROJECT_NAME: str = "My API"
+    VERSION: str = "1.0.0"
+    DEBUG: bool = False
+    API_PREFIX: str = "/api/v1"
 
-    database_url: str
-    secret_key: str
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    # Database
+    DATABASE_URL: str
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_MAX_OVERFLOW: int = 10
 
-    # Pydantic-settings v2 safely evaluates mutable list literals directly
-    allowed_origins: list[str] = ["http://localhost:3000"]
-    allowed_methods: list[str] = ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
-    allowed_headers: list[str] = ["Authorization", "Content-Type"]
-    allow_credentials: bool = True
+    # Security
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # CORS
+    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
 ```
 
----
-
-## Pydantic Schemas (v2)
+## Pydantic Schemas
 
 ```python
-# app/schemas/user.py
+# src/api/v1/users/schemas.py
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from uuid import UUID
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
+# Base schemas
 class UserBase(BaseModel):
     email: EmailStr
-    username: str = Field(min_length=3, max_length=50)
+    name: str = Field(..., min_length=1, max_length=100)
 
 
+# Create schemas
 class UserCreate(UserBase):
-    password: str = Field(min_length=8)
-    password_confirm: str
-
-    @model_validator(mode="after")
-    def passwords_match(self) -> "UserCreate":
-        if self.password != self.password_confirm:
-            raise ValueError("Passwords do not match")
-        return self
+    password: str = Field(..., min_length=8)
 
 
+# Update schemas
 class UserUpdate(BaseModel):
-    username: str | None = Field(default=None, min_length=3, max_length=50)
     email: EmailStr | None = None
+    name: str | None = Field(None, min_length=1, max_length=100)
 
 
+# Response schemas
 class UserResponse(UserBase):
-    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
     is_active: bool
     created_at: datetime
 
-    model_config = {"from_attributes": True}
-
 
 class UserListResponse(BaseModel):
-    total: int
     items: list[UserResponse]
-```
+    total: int
+    page: int
+    page_size: int
+    pages: int
 
----
+
+# Internal schemas
+class UserInDB(UserResponse):
+    hashed_password: str
+```
 
 ## Dependency Injection
 
 ```python
-# app/dependencies.py
+# src/dependencies.py
 from typing import Annotated, AsyncGenerator
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
+from jose import JWTError, jwt
 
-from app.config import settings
-from app.database import AsyncSessionLocal
-from app.models.user import User
+from src.config import settings
+from src.database import async_session_maker
+from src.models.user import User
+from src.repositories.user import UserRepository
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/login")
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
+    async with async_session_maker() as session:
         try:
             yield session
+            await session.commit()
         except Exception:
             await session.rollback()
             raise
@@ -194,18 +238,20 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        subject = payload.get("sub")
-        if subject is None:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        user_id = int(subject)
-    except (JWTError, TypeError, ValueError):
+    except JWTError:
         raise credentials_exception
 
-    user = await db.get(User, user_id)
+    repo = UserRepository(db)
+    user = await repo.get_by_id(user_id)
     if user is None:
         raise credentials_exception
+
     return user
 
 
@@ -213,302 +259,442 @@ async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     if not current_user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-DbDep = Annotated[AsyncSession, Depends(get_db)]
-CurrentUserDep = Annotated[User, Depends(get_current_user)]
-ActiveUserDep = Annotated[User, Depends(get_current_active_user)]
+# Type aliases for cleaner signatures
+DBSession = Annotated[AsyncSession, Depends(get_db)]
+CurrentUser = Annotated[User, Depends(get_current_active_user)]
 ```
 
----
-
-## Router and Endpoint Design
+## Repository Pattern
 
 ```python
-# app/routers/users.py
-from typing import Annotated
-from fastapi import APIRouter, HTTPException, Query, status
-from fastapi.security import OAuth2PasswordRequestForm
+# src/repositories/base.py
+from typing import Generic, TypeVar, Type
+from uuid import UUID
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import ActiveUserDep, DbDep
-from app.schemas.user import UserCreate, UserResponse, UserUpdate, UserListResponse
-from app.services.user_service import DuplicateUserError, UserService
-
-router = APIRouter()
+from src.models.base import Base
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(payload: UserCreate, db: DbDep) -> UserResponse:
-    service = UserService(db)
-    try:
-        return await service.create(payload)
-    except DuplicateUserError:
-        raise HTTPException(status_code=400, detail="Email already registered")
+ModelType = TypeVar("ModelType", bound=Base)
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_me(current_user: ActiveUserDep) -> UserResponse:
-    return current_user
+class BaseRepository(Generic[ModelType]):
+    def __init__(self, db: AsyncSession, model: Type[ModelType]):
+        self.db = db
+        self.model = model
 
-
-@router.get("/", response_model=UserListResponse)
-async def list_users(
-    db: DbDep,
-    current_user: ActiveUserDep,
-    skip: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
-) -> UserListResponse:
-    service = UserService(db)
-    users, total = await service.list(skip=skip, limit=limit)
-    return UserListResponse(total=total, items=users)
-
-
-@router.patch("/{user_id}", response_model=UserResponse)
-async def update_user(
-    user_id: int,
-    payload: UserUpdate,
-    db: DbDep,
-    current_user: ActiveUserDep,
-) -> UserResponse:
-    if current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    service = UserService(db)
-    try:
-        user = await service.update(user_id, payload)
-    except DuplicateUserError:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-
-@router.post("/token")
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: DbDep,
-) -> dict[str, str]:
-    service = UserService(db)
-    token = await service.authenticate(form_data.username, form_data.password)
-    if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    async def get_by_id(self, id: UUID) -> ModelType | None:
+        result = await self.db.execute(
+            select(self.model).where(self.model.id == id)
         )
-    return {"access_token": token, "token_type": "bearer"}
+        return result.scalar_one_or_none()
+
+    async def get_all(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[ModelType]:
+        result = await self.db.execute(
+            select(self.model).offset(skip).limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def count(self) -> int:
+        result = await self.db.execute(
+            select(func.count()).select_from(self.model)
+        )
+        return result.scalar_one()
+
+    async def create(self, obj: ModelType) -> ModelType:
+        self.db.add(obj)
+        await self.db.flush()
+        await self.db.refresh(obj)
+        return obj
+
+    async def update(self, obj: ModelType) -> ModelType:
+        await self.db.flush()
+        await self.db.refresh(obj)
+        return obj
+
+    async def delete(self, obj: ModelType) -> None:
+        await self.db.delete(obj)
+        await self.db.flush()
 ```
 
----
+```python
+# src/repositories/user.py
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.user import User
+from src.repositories.base import BaseRepository
+
+
+class UserRepository(BaseRepository[User]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(db, User)
+
+    async def get_by_email(self, email: str) -> User | None:
+        result = await self.db.execute(
+            select(User).where(User.email == email)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_active_users(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[User]:
+        result = await self.db.execute(
+            select(User)
+            .where(User.is_active == True)
+            .offset(skip)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+```
 
 ## Service Layer
 
 ```python
-# app/services/user_service.py
-from datetime import datetime, timedelta, timezone
+# src/services/user.py
+from uuid import UUID
+from fastapi import HTTPException, status
 
-from jose import jwt
-from passlib.context import CryptContext
-from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.config import settings
-from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class DuplicateUserError(Exception):
-    """Raised when a unique user field conflicts with an existing row."""
+from src.models.user import User
+from src.repositories.user import UserRepository
+from src.api.v1.users.schemas import UserCreate, UserUpdate
+from src.core.security import get_password_hash, verify_password
 
 
 class UserService:
-    def __init__(self, db: AsyncSession) -> None:
-        self.db = db
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
 
-    async def get_by_email(self, email: str) -> User | None:
-        result = await self.db.execute(select(User).where(User.email == email))
-        return result.scalar_one_or_none()
+    async def get_user(self, user_id: UUID) -> User:
+        user = await self.repository.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        return user
 
-    async def create(self, payload: UserCreate) -> User:
+    async def get_users(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> tuple[list[User], int]:
+        users = await self.repository.get_all(skip=skip, limit=limit)
+        total = await self.repository.count()
+        return users, total
+
+    async def create_user(self, data: UserCreate) -> User:
+        # Check if email exists
+        existing = await self.repository.get_by_email(data.email)
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered",
+            )
+
+        # Create user
         user = User(
-            email=payload.email,
-            username=payload.username,
-            hashed_password=pwd_context.hash(payload.password),
+            email=data.email,
+            name=data.name,
+            hashed_password=get_password_hash(data.password),
         )
-        self.db.add(user)
-        try:
-            # Rely on atomic DB constraints rather than race-prone application-level prechecks
-            await self.db.commit()
-        except IntegrityError as exc:
-            await self.db.rollback()
-            raise DuplicateUserError from exc
-        await self.db.refresh(user)
-        return user
+        return await self.repository.create(user)
 
-    async def list(self, skip: int = 0, limit: int = 20) -> tuple[list[User], int]:
-        total_result = await self.db.execute(select(func.count(User.id)))
-        total = total_result.scalar_one()
-        # Enforce explicit deterministic ordering to ensure reliable pagination
-        result = await self.db.execute(
-            select(User).order_by(User.id).offset(skip).limit(limit)
-        )
-        return list(result.scalars()), total
+    async def update_user(self, user_id: UUID, data: UserUpdate) -> User:
+        user = await self.get_user(user_id)
 
-    async def update(self, user_id: int, payload: UserUpdate) -> User | None:
-        user = await self.db.get(User, user_id)
-        if user is None:
+        if data.email is not None:
+            existing = await self.repository.get_by_email(data.email)
+            if existing and existing.id != user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already in use",
+                )
+            user.email = data.email
+
+        if data.name is not None:
+            user.name = data.name
+
+        return await self.repository.update(user)
+
+    async def delete_user(self, user_id: UUID) -> None:
+        user = await self.get_user(user_id)
+        await self.repository.delete(user)
+
+    async def authenticate(self, email: str, password: str) -> User | None:
+        user = await self.repository.get_by_email(email)
+        if not user:
             return None
-        for field, value in payload.model_dump(exclude_unset=True).items():
-            setattr(user, field, value)
-        try:
-            await self.db.commit()
-        except IntegrityError as exc:
-            await self.db.rollback()
-            raise DuplicateUserError from exc
-        await self.db.refresh(user)
-        return user
-
-    async def authenticate(self, email: str, password: str) -> str | None:
-        user = await self.get_by_email(email)
-        if user is None or not pwd_context.verify(password, user.hashed_password):
+        if not verify_password(password, user.hashed_password):
             return None
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.access_token_expire_minutes
+        return user
+```
+
+## Router Implementation
+
+```python
+# src/api/v1/users/router.py
+from uuid import UUID
+from fastapi import APIRouter, Query, status
+
+from src.dependencies import DBSession, CurrentUser
+from src.repositories.user import UserRepository
+from src.services.user import UserService
+from .schemas import UserCreate, UserUpdate, UserResponse, UserListResponse
+
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+
+def get_user_service(db: DBSession) -> UserService:
+    return UserService(UserRepository(db))
+
+
+@router.get("", response_model=UserListResponse)
+async def list_users(
+    db: DBSession,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+):
+    service = get_user_service(db)
+    skip = (page - 1) * page_size
+    users, total = await service.get_users(skip=skip, limit=page_size)
+
+    return UserListResponse(
+        items=users,
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=(total + page_size - 1) // page_size,
+    )
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_profile(current_user: CurrentUser):
+    return current_user
+
+
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user(user_id: UUID, db: DBSession):
+    service = get_user_service(db)
+    return await service.get_user(user_id)
+
+
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(data: UserCreate, db: DBSession):
+    service = get_user_service(db)
+    return await service.create_user(data)
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: UUID,
+    data: UserUpdate,
+    db: DBSession,
+    current_user: CurrentUser,
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot update other users")
+
+    service = get_user_service(db)
+    return await service.update_user(user_id, data)
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: UUID,
+    db: DBSession,
+    current_user: CurrentUser,
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot delete other users")
+
+    service = get_user_service(db)
+    await service.delete_user(user_id)
+```
+
+## Exception Handling
+
+```python
+# src/exceptions.py
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+
+
+class AppException(Exception):
+    def __init__(
+        self,
+        status_code: int,
+        detail: str,
+        code: str | None = None,
+    ):
+        self.status_code = status_code
+        self.detail = detail
+        self.code = code or "ERROR"
+
+
+class NotFoundError(AppException):
+    def __init__(self, resource: str):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"{resource} not found",
+            code="NOT_FOUND",
         )
-        return jwt.encode(
-            {"sub": str(user.id), "exp": expire},
-            settings.secret_key,
-            algorithm=settings.algorithm,
+
+
+class ConflictError(AppException):
+    def __init__(self, detail: str):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=detail,
+            code="CONFLICT",
+        )
+
+
+def setup_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppException)
+    async def app_exception_handler(request: Request, exc: AppException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "status": "error",
+                "code": exc.code,
+                "detail": exc.detail,
+            },
+        )
+
+    @app.exception_handler(ValidationError)
+    async def validation_exception_handler(request: Request, exc: ValidationError):
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "status": "error",
+                "code": "VALIDATION_ERROR",
+                "detail": exc.errors(),
+            },
         )
 ```
 
-> **Note on Database Design:** Application-level unique handling requires an underlying unique database index (e.g., `unique=True` on your SQLAlchemy mapping attributes). Without underlying constraints, application layer error-catching cannot safely prevent concurrent race conditions.
-
----
-
-## Testing with httpx and pytest
+## Background Tasks
 
 ```python
-# tests/conftest.py
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from fastapi import BackgroundTasks
 
-from app.database import Base
-from app.dependencies import get_db
-from app.main import create_app
-
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-engine = create_async_engine(TEST_DATABASE_URL)
-TestingSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+async def send_welcome_email(email: str, name: str):
+    # Email sending logic
+    pass
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def setup_db():
+@router.post("", response_model=UserResponse)
+async def create_user(
+    data: UserCreate,
+    db: DBSession,
+    background_tasks: BackgroundTasks,
+):
+    service = get_user_service(db)
+    user = await service.create_user(data)
+
+    # Queue background task
+    background_tasks.add_task(send_welcome_email, user.email, user.name)
+
+    return user
+```
+
+## Testing
+
+```python
+# tests/test_users.py
+import pytest
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+from src.main import app
+from src.database import Base
+from src.dependencies import get_db
+
+
+# Test database
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+engine = create_async_engine(TEST_DATABASE_URL, echo=True)
+TestSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
+@pytest.fixture
+async def db_session():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
+
+    async with TestSessionLocal() as session:
+        yield session
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture
-async def db_session():
-    async with TestingSessionLocal() as session:
-        yield session
-        await session.rollback()
-
-
-@pytest_asyncio.fixture
-async def client(db_session: AsyncSession):
-    app = create_app()
-
+@pytest.fixture
+async def client(db_session):
     async def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        yield ac
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        yield client
+
+    app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
-async def registered_user(client: AsyncClient) -> dict:
-    resp = await client.post("/users/", json={
-        "email": "test@example.com",
-        "username": "testuser",
-        "password": "securepass1",
-        "password_confirm": "securepass1",
-    })
-    assert resp.status_code == 201
-    return resp.json()
+@pytest.mark.asyncio
+async def test_create_user(client: AsyncClient):
+    response = await client.post(
+        "/api/v1/users",
+        json={
+            "email": "test@example.com",
+            "name": "Test User",
+            "password": "password123",
+        },
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "test@example.com"
+    assert "id" in data
 
 
-@pytest_asyncio.fixture
-async def auth_token(client: AsyncClient, registered_user: dict) -> str:
-    resp = await client.post("/users/token", data={
-        "username": "test@example.com",
-        "password": "securepass1",
-    })
-    assert resp.status_code == 200
-    return resp.json()["access_token"]
+@pytest.mark.asyncio
+async def test_get_user_not_found(client: AsyncClient):
+    response = await client.get(
+        "/api/v1/users/00000000-0000-0000-0000-000000000000"
+    )
 
-
-@pytest_asyncio.fixture
-async def auth_client(client: AsyncClient, auth_token: str) -> AsyncClient:
-    client.headers.update({"Authorization": f"Bearer {auth_token}"})
-    return client
+    assert response.status_code == 404
 ```
-
----
-
-## Anti-Patterns
-
-```python
-# Bad: business logic inside route handlers.
-@router.post("/users/")
-async def create_user(payload: UserCreate, db: DbDep):
-    hashed = bcrypt.hash(payload.password)
-    user = User(email=payload.email, hashed_password=hashed)
-    db.add(user)
-    await db.commit()
-    return user
-
-# Good: thin route, transactional service handling.
-@router.post("/users/", response_model=UserResponse, status_code=201)
-async def create_user(payload: UserCreate, db: DbDep):
-    try:
-        return await UserService(db).create(payload)
-    except DuplicateUserError:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-
-# Bad: sync DB calls in async routes block the event loop.
-@router.get("/items/")
-async def list_items(db: Session = Depends(get_db)):
-    return db.query(Item).all()
-
-# Good: use async SQLAlchemy executions.
-@router.get("/items/")
-async def list_items(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Item))
-    return result.scalars().all()
-```
-
----
 
 ## Best Practices
 
-- Always declare a typed `response_model` to prevent accidental PII/data leaks and output clean OpenAPI schemas.
-- Consolidate standard middleware dependency injections via type-aliasing: `DbDep = Annotated[AsyncSession, Depends(get_db)]`.
-- Wrap database mutation boundaries gracefully within transactions inside your service layer, catching structural database errors directly.
-- Parse JWT parameters defensively, expecting potential string/integer cast mismatches from modern payload variations.
-- Enforce deterministic sorting (e.g., `.order_by(Model.id)`) on all offset/limit paginated endpoints to avoid data skips.
-- Isolate authorization checks from core authentication dependencies to provide precise REST status signals (`401` vs `403`).
+1. **Use Pydantic for all validation** - leverage automatic validation
+2. **Dependency injection everywhere** - makes testing easy
+3. **Async all the way** - don't mix sync and async
+4. **Repository pattern** - abstract database access
+5. **Service layer** - keep business logic out of routes
+6. **Type hints everywhere** - better IDE support and docs
+7. **Use `Annotated`** - cleaner dependency signatures
+8. **Background tasks** - for non-blocking operations
+9. **Proper error handling** - custom exceptions with codes
+10. **Settings with Pydantic** - validated configuration

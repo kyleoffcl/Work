@@ -1,146 +1,115 @@
 ---
-name: videocut:安装
-description: 环境准备。安装依赖、下载模型。触发词：安装、环境准备、初始化
+name: videocut:自更新
+description: 自更新 skills。记录用户反馈，更新方法论和规则。触发词：更新规则、记录反馈、改进skill
 ---
 
 <!--
-input: 无
-output: 环境就绪
-pos: 前置 skill，首次使用前运行
+input: 用户反馈、错误纠正
+output: 更新后的文档（CLAUDE.md 或 tips/*.md）
+pos: 元 skill，让 Agent 从错误中学习
 
 架构守护者：一旦我被修改，请同步更新：
 1. ../README.md 的 Skill 清单
 2. /CLAUDE.md 路由表
 -->
 
-# 安装
+# 自更新
 
-> 首次使用前的环境准备（本地模式）
+> 让 Agent 从错误中学习，持续改进
 
 ## 快速使用
 
 ```
-用户: 安装环境
-用户: 初始化
+用户: 记录一下刚才的问题
+用户: 更新口误识别的规则
+用户: 这个教训要记下来
 ```
 
-### 依赖清单
+## 更新位置
 
-| 依赖 | 用途 | 安装命令 |
-|------|------|----------|
-| Python 3.8+ | 运行 FunASR | `brew install python` |
-| funasr | 语音识别 | `pip install funasr` |
-| modelscope | 模型下载 | `pip install modelscope` |
-| FFmpeg | 视频处理 | `brew install ffmpeg` |
-| Node.js 18+ | 运行转录模块 | `brew install node` |
+| 内容类型 | 目标文件 | 示例 |
+|---------|---------|------|
+| 用户画像 | `CLAUDE.md` | 偏好、习惯 |
+| 方法论 + 反馈 | `*/tips/*.md` | 规则、教训 |
 
-### 模型清单
-
-首次运行自动下载到 `~/.cache/modelscope/`：
-
-| 模型 | 大小 | 用途 |
-|------|------|------|
-| paraformer-zh | 953MB | 语音识别（带时间戳） |
-| punc_ct | 1.1GB | 标点预测 |
-| fsmn-vad | 4MB | 语音活动检测 |
-| **小计** | **~2GB** | |
-
-### 安装步骤
-
-#### 1. 安装系统依赖
-
-```bash
-# macOS
-brew install python node ffmpeg
-
-# Ubuntu
-sudo apt install python3 python3-pip nodejs ffmpeg
-```
-
-#### 2. 安装 Python 依赖
-
-```bash
-pip install funasr modelscope
-```
-
-#### 3. 下载模型（约2GB）
-
-```bash
-cd /path/to/videocut-skills/安装/scripts
-
-# 自动下载所有模型
-python test_funasr_local.py --download
-```
-
-#### 4. 验证环境
-
-```bash
-cd /path/to/videocut-skills/安装/scripts
-
-# 快速验证（检查依赖）
-python test_funasr_local.py
-
-# 综合验证（加载完整模型）
-python test_funasr_local.py --verify
-```
-
-成功输出：
-```
-🎉 本地模式完全就绪！可以使用以下命令转录：
-
-   python 剪口播/scripts/transcribe_local.py video.mp4
-```
-
----
-
-## 完整安装流程
+## 流程
 
 ```
-1. 安装系统依赖（Python、Node.js、FFmpeg）
-       ↓
-2. 安装 Python 依赖（funasr、modelscope）
-       ↓
-3. 下载模型（约2GB）
-       ↓
-4. 验证环境
-       ↓
-5. 完成 ✅
+用户触发（"刚才失败了"、"记录一下"）
+    ↓
+【自动】回溯上下文，找出问题点
+    ↓
+【自动】读目标文件全文，理解现有结构
+    ↓
+【自动】整合到正文相应位置（不是只往末尾加！）
+    ↓
+【自动】反馈记录只记事件，不重复规则
+    ↓
+汇报更新结果
 ```
 
----
+**关键**：不要问"什么问题"，直接从上下文分析！
 
-## 常见问题
+## 更新原则
 
-### Q1: 模型下载慢
+### ❌ 错误做法：往末尾加
 
-**解决**：使用国内镜像或手动下载
-
-### Q2: ffmpeg 命令找不到
-
-**解决**：确认已安装并添加到 PATH
-
-```bash
-which ffmpeg  # 应该输出路径
+```markdown
+## 反馈记录
+### 2026-01-14
+- 教训：审查稿末尾必须生成删除任务清单
+- 教训：用户确认时要分别确认口误和静音
 ```
 
-### Q3: Node.js 版本太低
+只加到反馈记录 = 规则散落在末尾，下次还会犯错
 
-**解决**：需要 Node.js 18+
+### ✅ 正确做法：整合到正文
 
-```bash
-node --version  # 需要 v18.x 或更高
+1. **读全文**，理解章节结构
+2. **找到相应位置**，把规则整合进去
+3. **反馈记录只记事件**：`- 审查稿标记了静音，但剪辑时漏删`
+
+```markdown
+## 四、审查稿格式
+（新增删除任务清单模板）
+
+## 五、确认与执行流程  ← 缺这个章节就新增
+（新增分别确认口误和静音的流程）
+
+## 反馈记录
+### 2026-01-14
+- 审查稿标记了静音，但剪辑时漏删（只删了口误）
 ```
 
-### Q4: pip 和 python 版本不一致
+## 触发条件
 
-**解决**：确保 pip 和 python 指向同一个版本
+- 用户纠正 AI 错误
+- 用户说"记住这个"、"以后注意"
+- 发现新的通用规律
 
-```bash
-# 检查版本
-python --version
-pip --version
+## 反例
 
-# 如果不一致，在 ~/.zshrc 添加 alias
-alias python=python3.11
-alias pip=pip3.11
+### 2026-01-13
 ```
+❌ 错误：
+用户: 刚才失败了，更新到skills
+AI: 请告诉我你发现了什么问题？  ← 不该问！
+
+✅ 正确：
+AI: [自动回溯上下文，找到失败点]
+AI: [执行更新]
+```
+
+### 2026-01-14
+```
+❌ 错误：
+AI: 已更新，在反馈记录新增3条教训  ← 只加末尾！
+
+✅ 正确：
+AI: [读全文，理解结构]
+AI: [整合到正文相应位置]
+AI: [反馈记录只记事件]
+AI: 已更新：新增第五章"确认与执行流程"，更新第四章模板
+```
+
+**原则**：规则要整合到正文，反馈记录只是事件日志

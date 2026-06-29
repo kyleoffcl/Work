@@ -1,657 +1,509 @@
 ---
 name: frontend-patterns
-description: Frontend development patterns for React, Next.js, state management, performance optimization, and UI best practices.
-metadata:
-  origin: ECC
+version: "2.0.0"
+description: Frontend development and API integration patterns for React, TypeScript, and state management
+sasmp_version: "1.3.0"
+bonded_agent: 06-frontend-integration
+bond_type: PRIMARY_BOND
+
+# Skill Configuration
+atomic_design:
+  single_responsibility: "Frontend API integration and state management"
+  boundaries:
+    includes: [data_fetching, state_management, error_handling, caching, optimistic_updates]
+    excludes: [api_design, backend_implementation, database_queries]
+
+parameter_validation:
+  schema:
+    type: object
+    properties:
+      framework:
+        type: string
+        enum: [react, vue, svelte, nextjs]
+      state_library:
+        type: string
+        enum: [tanstack_query, swr, zustand, redux, apollo]
+      api_type:
+        type: string
+        enum: [rest, graphql]
+
+retry_config:
+  enabled: true
+  max_attempts: 3
+  backoff:
+    type: exponential
+    initial_delay_ms: 1000
+    max_delay_ms: 10000
+
+logging:
+  level: INFO
+  fields: [query_key, status, duration_ms, cache_hit]
+
+dependencies:
+  skills: [rest, graphql]
+  agents: [06-frontend-integration]
 ---
 
-# Frontend Development Patterns
+# Frontend Patterns Skill
 
-Modern frontend patterns for React, Next.js, and performant user interfaces.
+## Purpose
+Build robust frontend applications with proper API integration and state management.
 
-## When to Activate
+## Data Fetching Patterns
 
-- Building React components (composition, props, rendering)
-- Managing state (useState, useReducer, Zustand, Context)
-- Implementing data fetching (SWR, React Query, server components)
-- Optimizing performance (memoization, virtualization, code splitting)
-- Working with forms (validation, controlled inputs, Zod schemas)
-- Handling client-side routing and navigation
-- Building accessible, responsive UI patterns
-
-## Component Patterns
-
-### Composition Over Inheritance
+### TanStack Query (React Query)
 
 ```typescript
-// PASS: GOOD: Component composition
-interface CardProps {
-  children: React.ReactNode
-  variant?: 'default' | 'outlined'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Query configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,       // 5 minutes
+      gcTime: 30 * 60 * 1000,         // 30 minutes (formerly cacheTime)
+      retry: 3,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Type-safe API client
+const api = {
+  users: {
+    list: async (params: { page: number; limit: number }) => {
+      const res = await fetch(`/api/users?${new URLSearchParams(params as any)}`);
+      if (!res.ok) throw new ApiError(res);
+      return res.json() as Promise<PaginatedResponse<User>>;
+    },
+    get: async (id: string) => {
+      const res = await fetch(`/api/users/${id}`);
+      if (!res.ok) throw new ApiError(res);
+      return res.json() as Promise<User>;
+    },
+    create: async (data: CreateUserInput) => {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new ApiError(res);
+      return res.json() as Promise<User>;
+    },
+  },
+};
+
+// Query hook with pagination
+function useUsers(page: number) {
+  return useQuery({
+    queryKey: ['users', 'list', { page }],
+    queryFn: () => api.users.list({ page, limit: 20 }),
+    placeholderData: (prev) => prev,  // Keep previous data while loading
+  });
 }
 
-export function Card({ children, variant = 'default' }: CardProps) {
-  return <div className={`card card-${variant}`}>{children}</div>
+// Single user query
+function useUser(id: string) {
+  return useQuery({
+    queryKey: ['users', 'detail', id],
+    queryFn: () => api.users.get(id),
+    enabled: !!id,
+  });
 }
 
-export function CardHeader({ children }: { children: React.ReactNode }) {
-  return <div className="card-header">{children}</div>
-}
+// Mutation with optimistic update
+function useCreateUser() {
+  const queryClient = useQueryClient();
 
-export function CardBody({ children }: { children: React.ReactNode }) {
-  return <div className="card-body">{children}</div>
-}
+  return useMutation({
+    mutationFn: api.users.create,
+    onMutate: async (newUser) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['users', 'list'] });
 
-// Usage
-<Card>
-  <CardHeader>Title</CardHeader>
-  <CardBody>Content</CardBody>
-</Card>
+      // Snapshot previous value
+      const previous = queryClient.getQueryData(['users', 'list']);
+
+      // Optimistically update
+      queryClient.setQueryData(['users', 'list'], (old: any) => ({
+        ...old,
+        data: [...(old?.data || []), { ...newUser, id: 'temp-id' }],
+      }));
+
+      return { previous };
+    },
+    onError: (err, newUser, context) => {
+      // Rollback on error
+      queryClient.setQueryData(['users', 'list'], context?.previous);
+    },
+    onSettled: () => {
+      // Refetch after mutation
+      queryClient.invalidateQueries({ queryKey: ['users', 'list'] });
+    },
+  });
+}
 ```
 
-### Compound Components
+### SWR Pattern
 
 ```typescript
-interface TabsContextValue {
-  activeTab: string
-  setActiveTab: (tab: string) => void
+import useSWR, { mutate } from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch');
+  return res.json();
+};
+
+function useUsers() {
+  const { data, error, isLoading, isValidating } = useSWR<User[]>(
+    '/api/users',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  return {
+    users: data,
+    isLoading,
+    isRefreshing: isValidating && data,
+    error,
+  };
 }
 
-const TabsContext = createContext<TabsContextValue | undefined>(undefined)
+// SWR Mutation
+function useCreateUser() {
+  return useSWRMutation(
+    '/api/users',
+    async (url: string, { arg }: { arg: CreateUserInput }) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      });
+      return res.json();
+    },
+    {
+      onSuccess: () => mutate('/api/users'),
+    }
+  );
+}
+```
 
-export function Tabs({ children, defaultTab }: {
-  children: React.ReactNode
-  defaultTab: string
-}) {
-  const [activeTab, setActiveTab] = useState(defaultTab)
+## State Management
 
-  return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      {children}
-    </TabsContext.Provider>
+### Zustand (Recommended for most cases)
+
+```typescript
+import { create } from 'zustand';
+import { persist, devtools } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  login: (credentials: Credentials) => Promise<void>;
+  logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
+}
+
+const useAuthStore = create<AuthState>()(
+  devtools(
+    persist(
+      immer((set, get) => ({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+
+        login: async (credentials) => {
+          const response = await api.auth.login(credentials);
+          set((state) => {
+            state.user = response.user;
+            state.token = response.token;
+            state.isAuthenticated = true;
+          });
+        },
+
+        logout: () => {
+          set((state) => {
+            state.user = null;
+            state.token = null;
+            state.isAuthenticated = false;
+          });
+        },
+
+        updateUser: (updates) => {
+          set((state) => {
+            if (state.user) {
+              Object.assign(state.user, updates);
+            }
+          });
+        },
+      })),
+      { name: 'auth-store' }
+    ),
+    { name: 'Auth' }
   )
-}
+);
 
-export function TabList({ children }: { children: React.ReactNode }) {
-  return <div className="tab-list">{children}</div>
-}
-
-export function Tab({ id, children }: { id: string, children: React.ReactNode }) {
-  const context = useContext(TabsContext)
-  if (!context) throw new Error('Tab must be used within Tabs')
-
-  return (
-    <button
-      className={context.activeTab === id ? 'active' : ''}
-      onClick={() => context.setActiveTab(id)}
-    >
-      {children}
-    </button>
-  )
-}
-
-// Usage
-<Tabs defaultTab="overview">
-  <TabList>
-    <Tab id="overview">Overview</Tab>
-    <Tab id="details">Details</Tab>
-  </TabList>
-</Tabs>
+// Selectors (prevent unnecessary re-renders)
+const useUser = () => useAuthStore((state) => state.user);
+const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
 ```
 
-### Render Props Pattern
+### Redux Toolkit (Enterprise)
 
 ```typescript
-interface DataLoaderProps<T> {
-  url: string
-  children: (data: T | null, loading: boolean, error: Error | null) => React.ReactNode
-}
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-export function DataLoader<T>({ url, children }: DataLoaderProps<T>) {
-  const [data, setData] = useState<T | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-
-  useEffect(() => {
-    fetch(url)
-      .then(res => res.json())
-      .then(setData)
-      .catch(setError)
-      .finally(() => setLoading(false))
-  }, [url])
-
-  return <>{children(data, loading, error)}</>
-}
-
-// Usage
-<DataLoader<Market[]> url="/api/markets">
-  {(markets, loading, error) => {
-    if (loading) return <Spinner />
-    if (error) return <Error error={error} />
-    return <MarketList markets={markets!} />
-  }}
-</DataLoader>
-```
-
-## Custom Hooks Patterns
-
-### State Management Hook
-
-```typescript
-export function useToggle(initialValue = false): [boolean, () => void] {
-  const [value, setValue] = useState(initialValue)
-
-  const toggle = useCallback(() => {
-    setValue(v => !v)
-  }, [])
-
-  return [value, toggle]
-}
-
-// Usage
-const [isOpen, toggleOpen] = useToggle()
-```
-
-### Async Data Fetching Hook
-
-```typescript
-interface UseQueryOptions<T> {
-  onSuccess?: (data: T) => void
-  onError?: (error: Error) => void
-  enabled?: boolean
-}
-
-export function useQuery<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  options?: UseQueryOptions<T>
-) {
-  const [data, setData] = useState<T | null>(null)
-  const [error, setError] = useState<Error | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  // Keep the latest fetcher/options in refs so refetch stays referentially
-  // stable even when callers pass inline functions and object literals.
-  // Without this, every render creates a new refetch, and the effect below
-  // re-runs after each state update - an infinite fetch loop.
-  const fetcherRef = useRef(fetcher)
-  const optionsRef = useRef(options)
-  useEffect(() => {
-    fetcherRef.current = fetcher
-    optionsRef.current = options
-  })
-
-  const refetch = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-
+// Async thunk
+export const fetchUsers = createAsyncThunk(
+  'users/fetchAll',
+  async (params: { page: number }, { rejectWithValue }) => {
     try {
-      const result = await fetcherRef.current()
-      setData(result)
-      optionsRef.current?.onSuccess?.(result)
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-      optionsRef.current?.onError?.(error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const enabled = options?.enabled !== false
-
-  useEffect(() => {
-    if (enabled) {
-      refetch()
-    }
-  }, [key, enabled, refetch])
-
-  return { data, error, loading, refetch }
-}
-
-// Usage
-const { data: markets, loading, error, refetch } = useQuery(
-  'markets',
-  () => fetch('/api/markets').then(r => r.json()),
-  {
-    onSuccess: data => console.log('Fetched', data.length, 'markets'),
-    onError: err => console.error('Failed:', err)
-  }
-)
-```
-
-### Debounce Hook
-
-```typescript
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => clearTimeout(handler)
-  }, [value, delay])
-
-  return debouncedValue
-}
-
-// Usage
-const [searchQuery, setSearchQuery] = useState('')
-const debouncedQuery = useDebounce(searchQuery, 500)
-
-useEffect(() => {
-  if (debouncedQuery) {
-    performSearch(debouncedQuery)
-  }
-}, [debouncedQuery])
-```
-
-## State Management Patterns
-
-### Context + Reducer Pattern
-
-```typescript
-interface State {
-  markets: Market[]
-  selectedMarket: Market | null
-  loading: boolean
-}
-
-type Action =
-  | { type: 'SET_MARKETS'; payload: Market[] }
-  | { type: 'SELECT_MARKET'; payload: Market }
-  | { type: 'SET_LOADING'; payload: boolean }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'SET_MARKETS':
-      return { ...state, markets: action.payload }
-    case 'SELECT_MARKET':
-      return { ...state, selectedMarket: action.payload }
-    case 'SET_LOADING':
-      return { ...state, loading: action.payload }
-    default:
-      return state
-  }
-}
-
-const MarketContext = createContext<{
-  state: State
-  dispatch: Dispatch<Action>
-} | undefined>(undefined)
-
-export function MarketProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, {
-    markets: [],
-    selectedMarket: null,
-    loading: false
-  })
-
-  return (
-    <MarketContext.Provider value={{ state, dispatch }}>
-      {children}
-    </MarketContext.Provider>
-  )
-}
-
-export function useMarkets() {
-  const context = useContext(MarketContext)
-  if (!context) throw new Error('useMarkets must be used within MarketProvider')
-  return context
-}
-```
-
-## Performance Optimization
-
-### Memoization
-
-```typescript
-// PASS: useMemo for expensive computations
-// Copy before sorting - Array.prototype.sort mutates in place
-const sortedMarkets = useMemo(() => {
-  return [...markets].sort((a, b) => b.volume - a.volume)
-}, [markets])
-
-// PASS: useCallback for functions passed to children
-const handleSearch = useCallback((query: string) => {
-  setSearchQuery(query)
-}, [])
-
-// PASS: React.memo for pure components
-export const MarketCard = React.memo<MarketCardProps>(({ market }) => {
-  return (
-    <div className="market-card">
-      <h3>{market.name}</h3>
-      <p>{market.description}</p>
-    </div>
-  )
-})
-```
-
-### Code Splitting & Lazy Loading
-
-```typescript
-import { lazy, Suspense } from 'react'
-
-// PASS: Lazy load heavy components
-const HeavyChart = lazy(() => import('./HeavyChart'))
-const ThreeJsBackground = lazy(() => import('./ThreeJsBackground'))
-
-export function Dashboard() {
-  return (
-    <div>
-      <Suspense fallback={<ChartSkeleton />}>
-        <HeavyChart data={data} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <ThreeJsBackground />
-      </Suspense>
-    </div>
-  )
-}
-```
-
-### Virtualization for Long Lists
-
-```typescript
-import { useVirtualizer } from '@tanstack/react-virtual'
-
-export function VirtualMarketList({ markets }: { markets: Market[] }) {
-  const parentRef = useRef<HTMLDivElement>(null)
-
-  const virtualizer = useVirtualizer({
-    count: markets.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 100,  // Estimated row height
-    overscan: 5  // Extra items to render
-  })
-
-  return (
-    <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          position: 'relative'
-        }}
-      >
-        {virtualizer.getVirtualItems().map(virtualRow => (
-          <div
-            key={virtualRow.index}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: `${virtualRow.size}px`,
-              transform: `translateY(${virtualRow.start}px)`
-            }}
-          >
-            <MarketCard market={markets[virtualRow.index]} />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
-
-## Form Handling Patterns
-
-### Controlled Form with Validation
-
-```typescript
-interface FormData {
-  name: string
-  description: string
-  endDate: string
-}
-
-interface FormErrors {
-  name?: string
-  description?: string
-  endDate?: string
-}
-
-export function CreateMarketForm() {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    description: '',
-    endDate: ''
-  })
-
-  const [errors, setErrors] = useState<FormErrors>({})
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required'
-    } else if (formData.name.length > 200) {
-      newErrors.name = 'Name must be under 200 characters'
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required'
-    }
-
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validate()) return
-
-    try {
-      await createMarket(formData)
-      // Success handling
+      return await api.users.list(params);
     } catch (error) {
-      // Error handling
+      return rejectWithValue(error.message);
     }
   }
+);
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={formData.name}
-        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-        placeholder="Market name"
-      />
-      {errors.name && <span className="error">{errors.name}</span>}
+// Slice
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: {
+    items: [] as User[],
+    status: 'idle' as 'idle' | 'loading' | 'succeeded' | 'failed',
+    error: null as string | null,
+    pagination: { page: 1, total: 0 },
+  },
+  reducers: {
+    userAdded: (state, action: PayloadAction<User>) => {
+      state.items.push(action.payload);
+    },
+    userUpdated: (state, action: PayloadAction<User>) => {
+      const index = state.items.findIndex((u) => u.id === action.payload.id);
+      if (index !== -1) {
+        state.items[index] = action.payload;
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload.data;
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      });
+  },
+});
 
-      {/* Other fields */}
-
-      <button type="submit">Create Market</button>
-    </form>
-  )
-}
+export const { userAdded, userUpdated } = usersSlice.actions;
+export default usersSlice.reducer;
 ```
 
-## Error Boundary Pattern
+## Error Handling
 
 ```typescript
-interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-}
-
-export class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  ErrorBoundaryState
-> {
-  state: ErrorBoundaryState = {
-    hasError: false,
-    error: null
+// Custom error class
+class ApiError extends Error {
+  constructor(
+    public response: Response,
+    public data?: { type: string; title: string; detail?: string }
+  ) {
+    super(data?.title || 'API Error');
+    this.name = 'ApiError';
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error boundary caught:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="error-fallback">
-          <h2>Something went wrong</h2>
-          <p>{this.state.error?.message}</p>
-          <button onClick={() => this.setState({ hasError: false })}>
-            Try again
-          </button>
-        </div>
-      )
-    }
-
-    return this.props.children
+  static async fromResponse(response: Response): Promise<ApiError> {
+    const data = await response.json().catch(() => null);
+    return new ApiError(response, data);
   }
 }
 
-// Usage
-<ErrorBoundary>
-  <App />
-</ErrorBoundary>
-```
+// Error boundary component
+function QueryErrorBoundary({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
 
-## Animation Patterns
-
-### Framer Motion Animations
-
-```typescript
-import { motion, AnimatePresence } from 'framer-motion'
-
-// PASS: List animations
-export function AnimatedMarketList({ markets }: { markets: Market[] }) {
   return (
-    <AnimatePresence>
-      {markets.map(market => (
-        <motion.div
-          key={market.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={({ error, resetErrorBoundary }) => (
+            <div className="error-container">
+              <h2>Something went wrong</h2>
+              <p>{error.message}</p>
+              <button onClick={resetErrorBoundary}>Try again</button>
+            </div>
+          )}
         >
-          <MarketCard market={market} />
-        </motion.div>
-      ))}
-    </AnimatePresence>
-  )
-}
-
-// PASS: Modal animations
-export function Modal({ isOpen, onClose, children }: ModalProps) {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            className="modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-          <motion.div
-            className="modal-content"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          >
-            {children}
-          </motion.div>
-        </>
+          {children}
+        </ErrorBoundary>
       )}
-    </AnimatePresence>
-  )
+    </QueryErrorResetBoundary>
+  );
 }
-```
 
-## Accessibility Patterns
-
-### Keyboard Navigation
-
-```typescript
-export function Dropdown({ options, onSelect }: DropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setActiveIndex(i => Math.min(i + 1, options.length - 1))
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setActiveIndex(i => Math.max(i - 1, 0))
-        break
-      case 'Enter':
-        e.preventDefault()
-        onSelect(options[activeIndex])
-        setIsOpen(false)
-        break
-      case 'Escape':
-        setIsOpen(false)
-        break
-    }
-  }
-
-  return (
-    <div
-      role="combobox"
-      aria-expanded={isOpen}
-      aria-haspopup="listbox"
-      onKeyDown={handleKeyDown}
-    >
-      {/* Dropdown implementation */}
-    </div>
-  )
-}
-```
-
-### Focus Management
-
-```typescript
-export function Modal({ isOpen, onClose, children }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
+// Hook with error handling
+function useUsersSafe(page: number) {
+  const query = useUsers(page);
 
   useEffect(() => {
-    if (isOpen) {
-      // Save currently focused element
-      previousFocusRef.current = document.activeElement as HTMLElement
-
-      // Focus modal
-      modalRef.current?.focus()
-    } else {
-      // Restore focus when closing
-      previousFocusRef.current?.focus()
+    if (query.error instanceof ApiError) {
+      if (query.error.response.status === 401) {
+        // Redirect to login
+        router.push('/login');
+      } else if (query.error.response.status >= 500) {
+        // Show toast
+        toast.error('Server error. Please try again later.');
+      }
     }
-  }, [isOpen])
+  }, [query.error]);
 
-  return isOpen ? (
-    <div
-      ref={modalRef}
-      role="dialog"
-      aria-modal="true"
-      tabIndex={-1}
-      onKeyDown={e => e.key === 'Escape' && onClose()}
-    >
-      {children}
-    </div>
-  ) : null
+  return query;
 }
 ```
 
-**Remember**: Modern frontend patterns enable maintainable, performant user interfaces. Choose patterns that fit your project complexity.
+## Optimistic Updates Pattern
+
+```typescript
+function useTodoToggle() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (todo: Todo) =>
+      api.todos.update(todo.id, { completed: !todo.completed }),
+
+    onMutate: async (todo) => {
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
+
+      const previous = queryClient.getQueryData<Todo[]>(['todos']);
+
+      queryClient.setQueryData<Todo[]>(['todos'], (old) =>
+        old?.map((t) =>
+          t.id === todo.id ? { ...t, completed: !t.completed } : t
+        )
+      );
+
+      return { previous };
+    },
+
+    onError: (err, todo, context) => {
+      queryClient.setQueryData(['todos'], context?.previous);
+      toast.error('Failed to update todo');
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+}
+```
+
+---
+
+## Unit Test Template
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
+describe('Frontend Patterns', () => {
+  describe('useUsers hook', () => {
+    it('should fetch and return users', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [{ id: '1', name: 'Test' }] }),
+      } as Response);
+
+      const { result } = renderHook(() => useUsers(1), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data?.data).toHaveLength(1);
+    });
+
+    it('should handle errors', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      const { result } = renderHook(() => useUsers(1), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+    });
+  });
+
+  describe('Zustand store', () => {
+    it('should update auth state on login', async () => {
+      const { result } = renderHook(() => useAuthStore());
+
+      await result.current.login({ email: 'test@test.com', password: 'pass' });
+
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user).toBeDefined();
+    });
+
+    it('should clear state on logout', () => {
+      const { result } = renderHook(() => useAuthStore());
+
+      result.current.logout();
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+    });
+  });
+});
+```
+
+---
+
+## Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Infinite refetching | Missing dependency array | Use stable queryKey |
+| Stale data shown | staleTime too high | Reduce staleTime or invalidate |
+| Memory leak | Unmounted component | Use cleanup in useEffect |
+| Too many re-renders | Non-memoized selectors | Use shallow comparison |
+| Optimistic rollback fails | Missing previous snapshot | Always capture previous state |
+
+---
+
+## Quality Checklist
+
+- [ ] Data fetching with TanStack Query or SWR
+- [ ] Type-safe API client
+- [ ] Error boundaries configured
+- [ ] Loading states handled
+- [ ] Optimistic updates for mutations
+- [ ] Cache invalidation strategy
+- [ ] State persistence (where needed)
+- [ ] Memoization applied
+- [ ] Tests for hooks and stores

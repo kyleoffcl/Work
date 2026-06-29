@@ -1,303 +1,130 @@
 ---
 name: jira-integration
-description: Use this skill when retrieving Jira tickets, analyzing requirements, updating ticket status, adding comments, or transitioning issues. Provides Jira API patterns via MCP or direct REST calls.
-metadata:
-  origin: ECC
+description: "Agent Skill: Comprehensive Jira integration through lightweight Python scripts. AUTOMATICALLY TRIGGER when user mentions Jira URLs like 'https://jira.*/browse/*', 'https://*.atlassian.net/browse/*', or issue keys like 'PROJ-123'. Use when searching issues (JQL), getting/updating issue details, creating issues, transitioning status, adding comments, logging worklogs, managing sprints and boards, creating issue links, or formatting Jira wiki markup. If authentication fails, offer to configure credentials interactively. Supports both Jira Cloud and Server/Data Center with automatic authentication detection. By Netresearch."
 ---
 
 # Jira Integration Skill
 
-Retrieve, analyze, and update Jira tickets directly from your AI coding workflow. Supports both **MCP-based** (recommended) and **direct REST API** approaches.
+Comprehensive Jira integration through lightweight Python CLI scripts.
 
-## When to Activate
+## Auto-Trigger Patterns
 
-- Fetching a Jira ticket to understand requirements
-- Extracting testable acceptance criteria from a ticket
-- Adding progress comments to a Jira issue
-- Transitioning a ticket status (To Do → In Progress → Done)
-- Linking merge requests or branches to a Jira issue
-- Searching for issues by JQL query
+**AUTOMATICALLY ACTIVATE** when user mentions:
+- **Jira URLs**: `https://jira.*/browse/*`, `https://*.atlassian.net/browse/*`, `https://*/jira/browse/*`
+- **Issue keys**: Pattern like `PROJ-123`, `NRS-4167`, `ABC-1` (uppercase letters + hyphen + numbers)
+- **Keywords**: "Jira issue", "Jira ticket", "search Jira", "open this ticket"
 
-## Prerequisites
+**Example triggers:**
+- "I want to work on https://jira.netresearch.de/browse/NRS-4167" → Extract NRS-4167, fetch issue
+- "What's the status of PROJ-123?" → Fetch issue PROJ-123
+- "Search Jira for my open issues" → Run JQL search
 
-### Option A: MCP Server (Recommended)
+## Authentication Failure Handling
 
-Install the `mcp-atlassian` MCP server. This exposes Jira tools directly to your AI agent.
+**CRITICAL**: When authentication fails, DO NOT just display the error. Instead:
 
-**Requirements:**
-- Python 3.10+
-- `uvx` (from `uv`), installed via your package manager or the official `uv` installation documentation
+1. **Detect failure** - Look for "Missing required variable", "Configuration errors", or 401/403 responses
+2. **Offer help** - Ask: "Jira credentials aren't configured. Would you like me to help set them up?"
+3. **Run interactive setup** - Execute: `uv run skills/jira-communication/scripts/core/jira-setup.py`
+4. **The script will**:
+   - Prompt for Jira URL
+   - Auto-detect Cloud vs Server/DC
+   - Ask for credentials (API token or Personal Access Token)
+   - Validate credentials before saving
+   - Create `~/.env.jira` with secure permissions (600)
 
-**Add to your MCP config** (e.g., `~/.claude.json` → `mcpServers`):
+## Sub-Skills
 
-```json
-{
-  "jira": {
-    "command": "uvx",
-    "args": ["mcp-atlassian==0.21.0"],
-    "env": {
-      "JIRA_URL": "https://YOUR_ORG.atlassian.net",
-      "JIRA_EMAIL": "your.email@example.com",
-      "JIRA_API_TOKEN": "your-api-token"
-    },
-    "description": "Jira issue tracking — search, create, update, comment, transition"
-  }
-}
-```
+This plugin contains two specialized skills:
 
-> **Security:** Never hardcode secrets. Prefer setting `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` in your system environment (or a secrets manager). Only use the MCP `env` block for local, uncommitted config files.
+| Skill | Purpose |
+|-------|---------|
+| `jira-communication` | API operations via Python CLI scripts |
+| `jira-syntax` | Wiki markup syntax, templates, validation |
 
-**To get a Jira API token:**
-1. Go to <https://id.atlassian.com/manage-profile/security/api-tokens>
-2. Click **Create API token**
-3. Copy the token — store it in your environment, never in source code
-
-### Option B: Direct REST API
-
-If MCP is not available, use the Jira REST API v3 directly via `curl` or a helper script.
-
-**Required environment variables:**
-
-| Variable | Description |
-|----------|-------------|
-| `JIRA_URL` | Your Jira instance URL (e.g., `https://yourorg.atlassian.net`) |
-| `JIRA_EMAIL` | Your Atlassian account email |
-| `JIRA_API_TOKEN` | API token from id.atlassian.com |
-
-Store these in your shell environment, secrets manager, or an untracked local env file. Do not commit them to the repo.
-
-For direct `curl` examples, keep credentials out of command-line arguments by passing the Jira user config on stdin:
+## Quick Start
 
 ```bash
-jira_curl() {
-  printf 'user = "%s:%s"\n' "$JIRA_EMAIL" "$JIRA_API_TOKEN" |
-    curl -s -K - "$@"
-}
+# Install uv (Python package runner)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Configure credentials in ~/.env.jira
+JIRA_URL=https://your-instance.atlassian.net
+JIRA_USERNAME=your-email@example.com
+JIRA_API_TOKEN=your-api-token
+
+# Validate setup
+uv run scripts/core/jira-validate.py --verbose
 ```
 
-## MCP Tools Reference
-
-When the `mcp-atlassian` MCP server is configured, these tools are available:
-
-| Tool | Purpose | Example |
-|------|---------|---------|
-| `jira_search` | JQL queries | `project = PROJ AND status = "In Progress"` |
-| `jira_get_issue` | Fetch full issue details by key | `PROJ-1234` |
-| `jira_create_issue` | Create issues (Task, Bug, Story, Epic) | New bug report |
-| `jira_update_issue` | Update fields (summary, description, assignee) | Change assignee |
-| `jira_transition_issue` | Change status | Move to "In Review" |
-| `jira_add_comment` | Add comments | Progress update |
-| `jira_get_sprint_issues` | List issues in a sprint | Active sprint review |
-| `jira_create_issue_link` | Link issues (Blocks, Relates to) | Dependency tracking |
-| `jira_get_issue_development_info` | See linked PRs, branches, commits | Dev context |
-
-> **Tip:** Always call `jira_get_transitions` before transitioning — transition IDs vary per project workflow.
-
-## Direct REST API Reference
-
-### Fetch a Ticket
+## Common Operations
 
 ```bash
-jira_curl \
-  -H "Content-Type: application/json" \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234" | jq '{
-    key: .key,
-    summary: .fields.summary,
-    status: .fields.status.name,
-    priority: .fields.priority.name,
-    type: .fields.issuetype.name,
-    assignee: .fields.assignee.displayName,
-    labels: .fields.labels,
-    description: .fields.description
-  }'
+# Search issues
+uv run scripts/core/jira-search.py query "project = PROJ AND status = 'In Progress'"
+
+# Get issue details
+uv run scripts/core/jira-issue.py get PROJ-123
+
+# Add worklog
+uv run scripts/core/jira-worklog.py add PROJ-123 "2h 30m" -c "Code review"
+
+# Create issue
+uv run scripts/workflow/jira-create.py issue PROJ "Fix bug" --type Bug --priority High
+
+# Transition issue
+uv run scripts/workflow/jira-transition.py PROJ-123 "In Progress"
 ```
 
-### Fetch Comments
+## Features
 
-```bash
-jira_curl \
-  -H "Content-Type: application/json" \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234?fields=comment" | jq '.fields.comment.comments[] | {
-    author: .author.displayName,
-    created: .created[:10],
-    body: .body
-  }'
-```
+- **Zero MCP overhead** - Scripts invoked via Bash, no tool descriptions loaded
+- **Fast execution** - No Docker container spin-up
+- **Full API coverage** - All common Jira operations supported
+- **Jira Server/DC + Cloud** - Works with both deployment types
+- **Automatic auth detection** - API token, PAT, or basic auth
 
-### Add a Comment
+## Sub-Skill Documentation
 
-```bash
-jira_curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{
-    "body": {
-      "version": 1,
-      "type": "doc",
-      "content": [{
-        "type": "paragraph",
-        "content": [{"type": "text", "text": "Your comment here"}]
-      }]
-    }
-  }' \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/comment"
-```
+- **skills/jira-communication/SKILL.md** - API operations (scripts, JQL, worklogs)
+- **skills/jira-syntax/SKILL.md** - Wiki markup syntax, templates, validation
 
-### Transition a Ticket
+## Scripts Reference
 
-```bash
-# 1. Get available transitions
-jira_curl \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/transitions" | jq '.transitions[] | {id, name: .name}'
+### Core Operations
+| Script | Purpose |
+|--------|---------|
+| `jira-setup.py` | **Interactive credential setup** (run when auth fails) |
+| `jira-validate.py` | Verify connection and credentials |
+| `jira-issue.py` | Get or update issue details |
+| `jira-search.py` | Search with JQL queries |
+| `jira-worklog.py` | Time tracking entries |
+| `jira-comment.py` | Add/list comments |
 
-# 2. Execute transition (replace TRANSITION_ID)
-jira_curl -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"transition": {"id": "TRANSITION_ID"}}' \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/transitions"
-```
+### Workflow Operations
+| Script | Purpose |
+|--------|---------|
+| `jira-create.py` | Create new issues |
+| `jira-transition.py` | Change issue status |
+| `jira-link.py` | Create/list issue links |
+| `jira-sprint.py` | Sprint management |
+| `jira-board.py` | Board operations |
 
-### Search with JQL
+## Jira Syntax Quick Reference
 
-```bash
-jira_curl -G \
-  --data-urlencode "jql=project = PROJ AND status = 'In Progress'" \
-  "$JIRA_URL/rest/api/3/search"
-```
+**Important**: Jira uses wiki markup, NOT Markdown.
 
-## Analyzing a Ticket
+| Jira Syntax | Purpose |
+|-------------|---------|
+| `h2. Title` | Heading (NOT `## Title`) |
+| `*bold*` | Bold (NOT `**bold**`) |
+| `{code:java}...{code}` | Code block (NOT triple backticks) |
+| `[text\|url]` | Link |
+| `[PROJ-123]` | Issue link |
 
-When retrieving a ticket for development or test automation, extract:
+See `skills/jira-syntax/SKILL.md` for complete syntax guide.
 
-### 1. Testable Requirements
-- **Functional requirements** — What the feature does
-- **Acceptance criteria** — Conditions that must be met
-- **Testable behaviors** — Specific actions and expected outcomes
-- **User roles** — Who uses this feature and their permissions
-- **Data requirements** — What data is needed
-- **Integration points** — APIs, services, or systems involved
+---
 
-### 2. Test Types Needed
-- **Unit tests** — Individual functions and utilities
-- **Integration tests** — API endpoints and service interactions
-- **E2E tests** — User-facing UI flows
-- **API tests** — Endpoint contracts and error handling
-
-### 3. Edge Cases & Error Scenarios
-- Invalid inputs (empty, too long, special characters)
-- Unauthorized access
-- Network failures or timeouts
-- Concurrent users or race conditions
-- Boundary conditions
-- Missing or null data
-- State transitions (back navigation, refresh, etc.)
-
-### 4. Structured Analysis Output
-
-```
-Ticket: PROJ-1234
-Summary: [ticket title]
-Status: [current status]
-Priority: [High/Medium/Low]
-Test Types: Unit, Integration, E2E
-
-Requirements:
-1. [requirement 1]
-2. [requirement 2]
-
-Acceptance Criteria:
-- [ ] [criterion 1]
-- [ ] [criterion 2]
-
-Test Scenarios:
-- Happy Path: [description]
-- Error Case: [description]
-- Edge Case: [description]
-
-Test Data Needed:
-- [data item 1]
-- [data item 2]
-
-Dependencies:
-- [dependency 1]
-- [dependency 2]
-```
-
-## Updating Tickets
-
-### When to Update
-
-| Workflow Step | Jira Update |
-|---|---|
-| Start work | Transition to "In Progress" |
-| Tests written | Comment with test coverage summary |
-| Branch created | Comment with branch name |
-| PR/MR created | Comment with link, link issue |
-| Tests passing | Comment with results summary |
-| PR/MR merged | Transition to "Done" or "In Review" |
-
-### Comment Templates
-
-**Starting Work:**
-```
-Starting implementation for this ticket.
-Branch: feat/PROJ-1234-feature-name
-```
-
-**Tests Implemented:**
-```
-Automated tests implemented:
-
-Unit Tests:
-- [test file 1] — [what it covers]
-- [test file 2] — [what it covers]
-
-Integration Tests:
-- [test file] — [endpoints/flows covered]
-
-All tests passing locally. Coverage: XX%
-```
-
-**PR Created:**
-```
-Pull request created:
-[PR Title](https://github.com/org/repo/pull/XXX)
-
-Ready for review.
-```
-
-**Work Complete:**
-```
-Implementation complete.
-
-PR merged: [link]
-Test results: All passing (X/Y)
-Coverage: XX%
-```
-
-## Security Guidelines
-
-- **Never hardcode** Jira API tokens in source code or skill files
-- **Always use** environment variables or a secrets manager
-- **Add `.env`** to `.gitignore` in every project
-- **Rotate tokens** immediately if exposed in git history
-- **Use least-privilege** API tokens scoped to required projects
-- **Validate** that credentials are set before making API calls — fail fast with a clear message
-
-## Troubleshooting
-
-| Error | Cause | Fix |
-|---|---|---|
-| `401 Unauthorized` | Invalid or expired API token | Regenerate at id.atlassian.com |
-| `403 Forbidden` | Token lacks project permissions | Check token scopes and project access |
-| `404 Not Found` | Wrong ticket key or base URL | Verify `JIRA_URL` and ticket key |
-| `spawn uvx ENOENT` | IDE cannot find `uvx` on PATH | Use full path (e.g., `~/.local/bin/uvx`) or set PATH in `~/.zprofile` |
-| Connection timeout | Network/VPN issue | Check VPN connection and firewall rules |
-
-## Best Practices
-
-- Update Jira as you go, not all at once at the end
-- Keep comments concise but informative
-- Link rather than copy — point to PRs, test reports, and dashboards
-- Use @mentions if you need input from others
-- Check linked issues to understand full feature scope before starting
-- If acceptance criteria are vague, ask for clarification before writing code
+> **Contributing:** Improvements to this skill should be submitted to the source repository:
+> https://github.com/netresearch/jira-skill

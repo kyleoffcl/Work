@@ -1,144 +1,117 @@
 ---
 name: swift-actor-persistence
-description: Thread-safe data persistence in Swift using actors — in-memory cache with file-backed storage, eliminating data races by design.
+description: "Use when building a thread-safe data persistence layer in Swift using actors with in-memory cache and file storage."
+license: MIT
 metadata:
-  origin: ECC
+  author: shimo4228
+  version: "1.0"
+  extracted: "2026-02-05"
+---
+# Swift Actors for Thread-Safe Persistence
+# スレッドセーフな永続化のためのSwift Actor
+
+**Extracted / 抽出日:** 2026-02-05
+**Context / コンテキスト:** iOS/Swift apps requiring thread-safe data persistence with async/await
+async/awaitを使用したスレッドセーフなデータ永続化が必要なiOS/Swiftアプリ
+
 ---
 
-# Swift Actors for Thread-Safe Persistence
+## Problem / 課題
 
-Patterns for building thread-safe data persistence layers using Swift actors. Combines in-memory caching with file-backed storage, leveraging the actor model to eliminate data races at compile time.
+Data persistence layers often face race conditions when multiple parts of an app read/write simultaneously. Traditional approaches (DispatchQueues, locks) are error-prone and verbose.
 
-## When to Activate
+データ永続化レイヤーは、アプリの複数の部分が同時に読み書きする際にレースコンディションに直面することが多い。従来のアプローチ（DispatchQueues、ロック）はエラーが発生しやすく、冗長になりがち。
 
-- Building a data persistence layer in Swift 5.5+
-- Need thread-safe access to shared mutable state
-- Want to eliminate manual synchronization (locks, DispatchQueues)
-- Building offline-first apps with local storage
+---
 
-## Core Pattern
+## Solution / 解決策
 
-### Actor-Based Repository
+Use Swift actors to isolate all persistence state and operations. The actor model guarantees:
+- No data races (compiler-enforced)
+- Automatic serialization of access
+- Async-first API that integrates with structured concurrency
 
-The actor model guarantees serialized access — no data races, enforced by the compiler.
+Swift actorを使用して、すべての永続化状態と操作を分離する。actorモデルは以下を保証：
+- データ競合なし（コンパイラによる強制）
+- アクセスの自動シリアライズ
+- 構造化並行性と統合されたasyncファーストAPI
 
 ```swift
-public actor LocalRepository<T: Codable & Identifiable> where T.ID == String {
-    private var cache: [String: T] = [:]
-    private let fileURL: URL
+public actor LocalRepository {
+    private var cache: [String: Record] = [:]
+    private let cacheFileURL: URL
 
-    public init(directory: URL = .documentsDirectory, filename: String = "data.json") {
-        self.fileURL = directory.appendingPathComponent(filename)
-        // Synchronous load during init (actor isolation not yet active)
-        self.cache = Self.loadSynchronously(from: fileURL)
+    public init(directory: URL = .documentsDirectory) {
+        self.cacheFileURL = directory.appendingPathComponent("cache.json")
+        // Synchronous cache load during init (actor isolation not yet active)
+        // init中の同期キャッシュ読み込み（actor分離がまだアクティブでないため）
+        self.cache = Self.loadCacheSynchronously(from: cacheFileURL)
     }
 
-    // MARK: - Public API
-
-    public func save(_ item: T) throws {
-        cache[item.id] = item
+    public func save(_ record: Record) throws {
+        cache[record.id] = record
         try persistToFile()
     }
 
-    public func delete(_ id: String) throws {
-        cache[id] = nil
-        try persistToFile()
-    }
-
-    public func find(by id: String) -> T? {
-        cache[id]
-    }
-
-    public func loadAll() -> [T] {
+    public func loadAll() -> [Record] {
         Array(cache.values)
     }
 
-    // MARK: - Private
+    public func find(by id: String) -> Record? {
+        cache[id]
+    }
 
     private func persistToFile() throws {
         let data = try JSONEncoder().encode(Array(cache.values))
-        try data.write(to: fileURL, options: .atomic)
+        try data.write(to: cacheFileURL)
     }
 
-    private static func loadSynchronously(from url: URL) -> [String: T] {
+    private static func loadCacheSynchronously(from url: URL) -> [String: Record] {
         guard let data = try? Data(contentsOf: url),
-              let items = try? JSONDecoder().decode([T].self, from: data) else {
+              let records = try? JSONDecoder().decode([Record].self, from: data) else {
             return [:]
         }
-        return Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+        return Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
     }
 }
 ```
 
-### Usage
+---
 
-All calls are automatically async due to actor isolation:
+## Key Patterns / 主要パターン
 
-```swift
-let repository = LocalRepository<Question>()
+1. **In-memory cache + file persistence / インメモリキャッシュ + ファイル永続化**: Fast reads from cache, durable writes to disk / キャッシュからの高速読み取り、ディスクへの永続書き込み
+2. **Synchronous init loading / 同期的な初期化読み込み**: Avoids async initialization complexity / 非同期初期化の複雑さを回避
+3. **Dictionary keying / Dictionary型によるキー管理**: O(1) lookups by ID / IDによるO(1)の検索
+4. **Private persistence / プライベートな永続化**: External callers only see domain operations / 外部呼び出し元はドメイン操作のみを参照
 
-// Read — fast O(1) lookup from in-memory cache
-let question = await repository.find(by: "q-001")
-let allQuestions = await repository.loadAll()
+---
 
-// Write — updates cache and persists to file atomically
-try await repository.save(newQuestion)
-try await repository.delete("q-001")
-```
-
-### Combining with @Observable ViewModel
+## Usage / 使用方法
 
 ```swift
-@Observable
-final class QuestionListViewModel {
-    private(set) var questions: [Question] = []
-    private let repository: LocalRepository<Question>
+let repository = LocalRepository()
 
-    init(repository: LocalRepository<Question> = LocalRepository()) {
-        self.repository = repository
-    }
-
-    func load() async {
-        questions = await repository.loadAll()
-    }
-
-    func add(_ question: Question) async throws {
-        try await repository.save(question)
-        questions = await repository.loadAll()
-    }
-}
+// All calls are async due to actor isolation
+// actor分離により、すべての呼び出しは非同期
+let records = await repository.loadAll()
+try await repository.save(newRecord)
+let found = await repository.find(by: "question-1")
 ```
 
-## Key Design Decisions
+---
 
-| Decision | Rationale |
-|----------|-----------|
-| Actor (not class + lock) | Compiler-enforced thread safety, no manual synchronization |
-| In-memory cache + file persistence | Fast reads from cache, durable writes to disk |
-| Synchronous init loading | Avoids async initialization complexity |
-| Dictionary keyed by ID | O(1) lookups by identifier |
-| Generic over `Codable & Identifiable` | Reusable across any model type |
-| Atomic file writes (`.atomic`) | Prevents partial writes on crash |
+## When to Use / 使用すべき場面
 
-## Best Practices
+- Building a data persistence layer in Swift 5.5+ / Swift 5.5以降でデータ永続化レイヤーを構築する場合
+- Need thread-safe access to shared state / 共有状態へのスレッドセーフなアクセスが必要な場合
+- Want to avoid manual synchronization (locks, queues) / 手動同期（ロック、キュー）を避けたい場合
+- Building offline-first apps with local storage / ローカルストレージを使用したオフラインファーストアプリを構築する場合
 
-- **Use `Sendable` types** for all data crossing actor boundaries
-- **Keep the actor's public API minimal** — only expose domain operations, not persistence details
-- **Use `.atomic` writes** to prevent data corruption if the app crashes mid-write
-- **Load synchronously in `init`** — async initializers add complexity with minimal benefit for local files
-- **Combine with `@Observable`** ViewModels for reactive UI updates
+---
 
-## Anti-Patterns to Avoid
+## Related Patterns / 関連パターン
 
-- Using `DispatchQueue` or `NSLock` instead of actors for new Swift concurrency code
-- Exposing the internal cache dictionary to external callers
-- Making the file URL configurable without validation
-- Forgetting that all actor method calls are `await` — callers must handle async context
-- Using `nonisolated` to bypass actor isolation (defeats the purpose)
-
-## When to Use
-
-- Local data storage in iOS/macOS apps (user data, settings, cached content)
-- Offline-first architectures that sync to a server later
-- Any shared mutable state that multiple parts of the app access concurrently
-- Replacing legacy `DispatchQueue`-based thread safety with modern Swift concurrency
+- Combine with `@Observable` ViewModels for UI binding / UIバインディング用に`@Observable` ViewModelと組み合わせる
+- Use `Sendable` types for data crossing actor boundaries / actor境界を越えるデータには`Sendable`型を使用
+- Consider `FileBasedSyncManager` actor for cloud sync operations / クラウド同期操作には`FileBasedSyncManager` actorを検討

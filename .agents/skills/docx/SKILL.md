@@ -1,213 +1,260 @@
 ---
-name: docx
-description: "Criação, edição e análise abrangente de documentos com suporte para alterações controladas, comentários, preservação de formatação e extração de texto. Quando o Claude precisar trabalhar com documentos profissionais (.docx files) para: (1) Criar novos documentos, (2) Modificar ou editar conteúdo, (3) Trabalhar com alterações controladas, (4) Adicionar comentários ou quaisquer outras tarefas de documentos"
-license: Proprietário. LICENSE.txt tem termos completos
+name: Docx
+description: Word document processing. USE WHEN docx, Word document. SkillSearch('docx') for docs.
 ---
 
-# DOCX: criação, edição e análise
+# DOCX creation, editing, and analysis
 
-## Visão Geral
+## 🎯 Load Full PAI Context
 
-Um usuário pode pedir para você criar, editar ou analisar o conteúdo de um arquivo .docx. Um arquivo .docx é essencialmente um arquivo ZIP contendo arquivos XML e outros recursos que você pode ler ou editar. Você tem diferentes ferramentas e fluxos de trabalho disponíveis para diferentes tarefas.
+**Before starting any task with this skill, load complete PAI context:**
 
-## Árvore de Decisão de Fluxo de Trabalho
+`read ~/.claude/skills/CORE/SKILL.md`
 
-### Lendo/Analisando Conteúdo
+This provides access to:
+- Complete contact list (Angela, Bunny, Saša, Greg, team members)
+- Stack preferences (TypeScript>Python, bun>npm, uv>pip)
+- Security rules and repository safety protocols
+- Response format requirements (structured emoji format)
+- Voice IDs for agent routing (ElevenLabs)
+- Personal preferences and operating instructions
 
-Use as seções "Extração de texto" ou "Acesso XML bruto" abaixo
+## When to Activate This Skill
 
-### Criando Novo Documento
+### Creating Word Documents
+- User says "create Word document", "new docx", "make a document"
+- User wants to generate professional documents from scratch
+- User needs formatted documents with tables, images, or complex layout
 
-Use o fluxo de trabalho "Criando um novo documento Word"
+### Editing Word Documents
+- User says "edit Word document", "modify docx", "update document"
+- User mentions "tracked changes", "redlining", "document review"
+- User wants to add, remove, or modify content in existing .docx files
+- User needs to work with comments, formatting, or document structure
 
-### Editando Documento Existente
+### Reading and Analyzing Documents
+- User says "read docx", "extract text from Word", "analyze document"
+- User wants to view tracked changes, comments, or document metadata
+- User needs to convert documents to other formats (markdown, PDF, images)
+- User wants to inspect document structure or raw OOXML
 
-- **Seu próprio documento + alterações simples**
-  Use o fluxo de trabalho "Edição básica OOXML"
+### Contextual Activation
+- User provides a .docx file or path to a Word document
+- User is working with professional, legal, academic, or business documents
+- User needs to preserve formatting, track changes, or maintain document integrity
 
-- **Documento de outra pessoa**
-  Use o fluxo de trabalho **"Redlining workflow"** (padrão recomendado)
+## Overview
 
-- **Documentos legais, acadêmicos, de negócios ou governamentais**
-  Use o fluxo de trabalho **"Redlining workflow"** (obrigatório)
+A user may ask you to create, edit, or analyze the contents of a .docx file. A .docx file is essentially a ZIP archive containing XML files and other resources that you can read or edit. You have different tools and workflows available for different tasks.
 
-## Lendo e analisando conteúdo
+## Workflow Decision Tree
 
-### Extração de texto
+### Reading/Analyzing Content
+Use "Text extraction" or "Raw XML access" sections below
 
-Se você precisa apenas ler o conteúdo de texto de um documento, você deve converter o documento para markdown usando pandoc. O Pandoc fornece excelente suporte para preservar a estrutura do documento e pode mostrar alterações controladas:
+### Creating New Document
+Use "Creating a new Word document" workflow
+
+### Editing Existing Document
+- **Your own document + simple changes**
+  Use "Basic OOXML editing" workflow
+
+- **Someone else's document**
+  Use **"Redlining workflow"** (recommended default)
+
+- **Legal, academic, business, or government docs**
+  Use **"Redlining workflow"** (required)
+
+## Reading and analyzing content
+
+### Text extraction
+If you just need to read the text contents of a document, you should convert the document to markdown using pandoc. Pandoc provides excellent support for preserving document structure and can show tracked changes:
 
 ```bash
-# Converter documento para markdown com alterações controladas
+# Convert document to markdown with tracked changes
 pandoc --track-changes=all path-to-file.docx -o output.md
-# Opções: --track-changes=accept/reject/all
+# Options: --track-changes=accept/reject/all
 ```
 
-### Acesso XML bruto
+### Raw XML access
+You need raw XML access for: comments, complex formatting, document structure, embedded media, and metadata. For any of these features, you'll need to unpack a document and read its raw XML contents.
 
-Você precisa de acesso XML bruto para: comentários, formatação complexa, estrutura do documento, mídia incorporada e metadados. Para qualquer um desses recursos, você precisará descompactar um documento e ler seu conteúdo XML bruto.
+#### Unpacking a file
+`python ooxml/Scripts/unpack.py <office_file> <output_directory>`
 
-#### Descompactando um arquivo
+#### Key file structures
+* `word/document.xml` - Main document contents
+* `word/comments.xml` - Comments referenced in document.xml
+* `word/media/` - Embedded images and media files
+* Tracked changes use `<w:ins>` (insertions) and `<w:del>` (deletions) tags
 
-`python ooxml/scripts/unpack.py <office_file> <output_directory>`
+## Creating a new Word document
 
-#### Estruturas chave de arquivo
+When creating a new Word document from scratch, use **docx-js**, which allows you to create Word documents using JavaScript/TypeScript.
 
-- `word/document.xml` - Conteúdo principal do documento
-- `word/comments.xml` - Comentários referenciados em document.xml
-- `word/media/` - Imagens e arquivos de mídia incorporados
-- Alterações controladas usam tags `<w:ins>` (inserções) e `<w:del>` (exclusões)
+### Workflow
+1. **MANDATORY - READ ENTIRE FILE**: Read [`docx-js.md`](docx-js.md) (~500 lines) completely from start to finish. **NEVER set any range limits when reading this file.** Read the full file content for detailed syntax, critical formatting rules, and best practices before proceeding with document creation.
+2. Create a JavaScript/TypeScript file using Document, Paragraph, TextRun components (You can assume all dependencies are installed, but if not, refer to the dependencies section below)
+3. Export as .docx using Packer.toBuffer()
 
-## Criando um novo documento Word
+## Editing an existing Word document
 
-Ao criar um novo documento Word do zero, use **docx-js**, que permite criar documentos Word usando JavaScript/TypeScript.
+When editing an existing Word document, use the **Document library** (a Python library for OOXML manipulation). The library automatically handles infrastructure setup and provides methods for document manipulation. For complex scenarios, you can access the underlying DOM directly through the library.
 
-### Fluxo de Trabalho
+### Workflow
+1. **MANDATORY - READ ENTIRE FILE**: Read [`ooxml.md`](ooxml.md) (~600 lines) completely from start to finish. **NEVER set any range limits when reading this file.** Read the full file content for the Document library API and XML patterns for directly editing document files.
+2. Unpack the document: `python ooxml/Scripts/unpack.py <office_file> <output_directory>`
+3. Create and run a Python script using the Document library (see "Document Library" section in ooxml.md)
+4. Pack the final document: `python ooxml/Scripts/pack.py <input_directory> <office_file>`
 
-1. **OBRIGATÓRIO - LEIA O ARQUIVO INTEIRO**: Leia [`docx-js.md`](docx-js.md) (~500 linhas) completamente do início ao fim. **NUNCA defina limites de intervalo ao ler este arquivo.** Leia o conteúdo completo do arquivo para sintaxe detalhada, regras de formatação críticas e práticas recomendadas antes de prosseguir com a criação do documento.
-2. Crie um arquivo JavaScript/TypeScript usando componentes Document, Paragraph, TextRun (Você pode assumir que todas as dependências estão instaladas, mas se não, consulte a seção de dependências abaixo)
-3. Exporte como .docx usando Packer.toBuffer()
+The Document library provides both high-level methods for common operations and direct DOM access for complex scenarios.
 
-## Editando um documento Word existente
+## Redlining workflow for document review
 
-Ao editar um documento Word existente, use a **biblioteca Document** (uma biblioteca Python para manipulação de OOXML). A biblioteca lida automaticamente com a configuração da infraestrutura e fornece métodos para manipulação de documentos. Para cenários complexos, você pode acessar o DOM subjacente diretamente através da biblioteca.
+This workflow allows you to plan comprehensive tracked changes using markdown before implementing them in OOXML. **CRITICAL**: For complete tracked changes, you must implement ALL changes systematically.
 
-### Fluxo de Trabalho
+**Batching Strategy**: Group related changes into batches of 3-10 changes. This makes debugging manageable while maintaining efficiency. Test each batch before moving to the next.
 
-1. **OBRIGATÓRIO - LEIA O ARQUIVO INTEIRO**: Leia [`ooxml.md`](ooxml.md) (~600 linhas) completamente do início ao fim. **NUNCA defina limites de intervalo ao ler este arquivo.** Leia o conteúdo completo do arquivo para a API da biblioteca Document e padrões XML para editar diretamente arquivos de documentos.
-2. Descompacte o documento: `python ooxml/scripts/unpack.py <office_file> <output_directory>`
-3. Crie e execute um script Python usando a biblioteca Document (veja a seção "Document Library" em ooxml.md)
-4. Empacote o documento final: `python ooxml/scripts/pack.py <input_directory> <office_file>`
+**Principle: Minimal, Precise Edits**
+When implementing tracked changes, only mark text that actually changes. Repeating unchanged text makes edits harder to review and appears unprofessional. Break replacements into: [unchanged text] + [deletion] + [insertion] + [unchanged text]. Preserve the original run's RSID for unchanged text by extracting the `<w:r>` element from the original and reusing it.
 
-A biblioteca Document fornece métodos de alto nível para operações comuns e acesso direto ao DOM para cenários complexos.
-
-## Fluxo de trabalho de Redlining para revisão de documentos
-
-Este fluxo de trabalho permite que você planeje alterações controladas abrangentes usando markdown antes de implementá-las em OOXML. **CRÍTICO**: Para alterações controladas completas, você deve implementar TODAS as alterações sistematicamente.
-
-**Estratégia de Loteamento**: Agrupe alterações relacionadas em lotes de 3-10 alterações. Isso torna a depuração gerenciável enquanto mantém a eficiência. Teste cada lote antes de passar para o próximo.
-
-**Princípio: Edições Mínimas e Precisas**
-Ao implementar alterações controladas, marque apenas o texto que realmente muda. Repetir texto inalterado torna as edições mais difíceis de revisar e parece pouco profissional. Quebre as substituições em: [texto inalterado] + [exclusão] + [inserção] + [texto inalterado]. Preserve o RSID da execução original para texto inalterado extraindo o elemento `<w:r>` do original e reutilizando-o.
-
-Exemplo - Alterando "30 dias" para "60 dias" em uma frase:
-
+Example - Changing "30 days" to "60 days" in a sentence:
 ```python
-# RUIM - Substitui a frase inteira
-'<w:del><w:r><w:delText>O prazo é de 30 dias.</w:delText></w:r></w:del><w:ins><w:r><w:t>O prazo é de 60 dias.</w:t></w:r></w:ins>'
+# BAD - Replaces entire sentence
+'<w:del><w:r><w:delText>The term is 30 days.</w:delText></w:r></w:del><w:ins><w:r><w:t>The term is 60 days.</w:t></w:r></w:ins>'
 
-# BOM - Marca apenas o que mudou, preserva <w:r> original para texto inalterado
-'<w:r w:rsidR="00AB12CD"><w:t>O prazo é de </w:t></w:r><w:del><w:r><w:delText>30</w:delText></w:r></w:del><w:ins><w:r><w:t>60</w:t></w:r></w:ins><w:r w:rsidR="00AB12CD"><w:t> dias.</w:t></w:r>'
+# GOOD - Only marks what changed, preserves original <w:r> for unchanged text
+'<w:r w:rsidR="00AB12CD"><w:t>The term is </w:t></w:r><w:del><w:r><w:delText>30</w:delText></w:r></w:del><w:ins><w:r><w:t>60</w:t></w:r></w:ins><w:r w:rsidR="00AB12CD"><w:t> days.</w:t></w:r>'
 ```
 
-### Fluxo de trabalho de alterações controladas
+### Tracked changes workflow
 
-1. **Obter representação markdown**: Converta o documento para markdown com alterações controladas preservadas:
-
+1. **Get markdown representation**: Convert document to markdown with tracked changes preserved:
    ```bash
    pandoc --track-changes=all path-to-file.docx -o current.md
    ```
 
-2. **Identificar e agrupar alterações**: Revise o documento e identifique TODAS as alterações necessárias, organizando-as em lotes lógicos:
+2. **Identify and group changes**: Review the document and identify ALL changes needed, organizing them into logical batches:
 
-   **Métodos de localização** (para encontrar alterações no XML):
-   - Números de seção/título (por exemplo, "Seção 3.2", "Artigo IV")
-   - Identificadores de parágrafo se numerados
-   - Padrões Grep com texto circundante único
-   - Estrutura do documento (por exemplo, "primeiro parágrafo", "bloco de assinatura")
-   - **NÃO use números de linha markdown** - eles não mapeiam para a estrutura XML
+   **Location methods** (for finding changes in XML):
+   - Section/heading numbers (e.g., "Section 3.2", "Article IV")
+   - Paragraph identifiers if numbered
+   - Grep patterns with unique surrounding text
+   - Document structure (e.g., "first paragraph", "signature block")
+   - **DO NOT use markdown line numbers** - they don't map to XML structure
 
-   **Organização de lote** (agrupe 3-10 alterações relacionadas por lote):
-   - Por seção: "Lote 1: alterações da Seção 2", "Lote 2: atualizações da Seção 5"
-   - Por tipo: "Lote 1: Correções de data", "Lote 2: Alterações de nome das partes"
-   - Por complexidade: Comece com substituições de texto simples, depois aborde alterações estruturais complexas
-   - Sequencial: "Lote 1: Páginas 1-3", "Lote 2: Páginas 4-6"
+   **Batch organization** (group 3-10 related changes per batch):
+   - By section: "Batch 1: Section 2 amendments", "Batch 2: Section 5 updates"
+   - By type: "Batch 1: Date corrections", "Batch 2: Party name changes"
+   - By complexity: Start with simple text replacements, then tackle complex structural changes
+   - Sequential: "Batch 1: Pages 1-3", "Batch 2: Pages 4-6"
 
-3. **Ler documentação e descompactar**:
-   - **OBRIGATÓRIO - LEIA O ARQUIVO INTEIRO**: Leia [`ooxml.md`](ooxml.md) (~600 linhas) completamente do início ao fim. **NUNCA defina limites de intervalo ao ler este arquivo.** Preste atenção especial às seções "Document Library" e "Tracked Change Patterns".
-   - **Descompacte o documento**: `python ooxml/scripts/unpack.py <file.docx> <dir>`
-   - **Anote o RSID sugerido**: O script de descompactação sugerirá um RSID para usar em suas alterações controladas. Copie este RSID para uso na etapa 4b.
+3. **Read documentation and unpack**:
+   - **MANDATORY - READ ENTIRE FILE**: Read [`ooxml.md`](ooxml.md) (~600 lines) completely from start to finish. **NEVER set any range limits when reading this file.** Pay special attention to the "Document Library" and "Tracked Change Patterns" sections.
+   - **Unpack the document**: `python ooxml/Scripts/unpack.py <file.docx> <dir>`
+   - **Note the suggested RSID**: The unpack script will suggest an RSID to use for your tracked changes. Copy this RSID for use in step 4b.
 
-4. **Implementar alterações em lotes**: Agrupe alterações logicamente (por seção, por tipo ou por proximidade) e implemente-as juntas em um único script. Esta abordagem:
-   - Torna a depuração mais fácil (lote menor = mais fácil isolar erros)
-   - Permite progresso incremental
-   - Mantém a eficiência (tamanho de lote de 3-10 alterações funciona bem)
+4. **Implement changes in batches**: Group changes logically (by section, by type, or by proximity) and implement them together in a single script. This approach:
+   - Makes debugging easier (smaller batch = easier to isolate errors)
+   - Allows incremental progress
+   - Maintains efficiency (batch size of 3-10 changes works well)
 
-   **Agrupamentos de lote sugeridos:**
-   - Por seção do documento (por exemplo, "alterações da Seção 3", "Definições", "Cláusula de rescisão")
-   - Por tipo de alteração (por exemplo, "Alterações de data", "Atualizações de nome das partes", "Substituições de termos legais")
-   - Por proximidade (por exemplo, "Alterações nas páginas 1-3", "Alterações na primeira metade do documento")
+   **Suggested batch groupings:**
+   - By document section (e.g., "Section 3 changes", "Definitions", "Termination clause")
+   - By change type (e.g., "Date changes", "Party name updates", "Legal term replacements")
+   - By proximity (e.g., "Changes on pages 1-3", "Changes in first half of document")
 
-   Para cada lote de alterações relacionadas:
+   For each batch of related changes:
 
-   **a. Mapear texto para XML**: Grep por texto em `word/document.xml` para verificar como o texto é dividido em elementos `<w:r>`.
+   **a. Map text to XML**: Grep for text in `word/document.xml` to verify how text is split across `<w:r>` elements.
 
-   **b. Criar e executar script**: Use `get_node` para encontrar nós, implementar alterações, depois `doc.save()`. Veja a seção **"Document Library"** em ooxml.md para padrões.
+   **b. Create and run script**: Use `get_node` to find nodes, implement changes, then `doc.save()`. See **"Document Library"** section in ooxml.md for patterns.
 
-   **Nota**: Sempre faça grep em `word/document.xml` imediatamente antes de escrever um script para obter os números de linha atuais e verificar o conteúdo do texto. Os números de linha mudam após cada execução de script.
+   **Note**: Always grep `word/document.xml` immediately before writing a script to get current line numbers and verify text content. Line numbers change after each script run.
 
-5. **Empacotar o documento**: Após todos os lotes estarem completos, converta o diretório descompactado de volta para .docx:
-
+5. **Pack the document**: After all batches are complete, convert the unpacked directory back to .docx:
    ```bash
-   python ooxml/scripts/pack.py unpacked reviewed-document.docx
+   python ooxml/Scripts/pack.py unpacked reviewed-document.docx
    ```
 
-6. **Verificação final**: Faça uma verificação abrangente do documento completo:
-   - Converta o documento final para markdown:
+6. **Final verification**: Do a comprehensive check of the complete document:
+   - Convert final document to markdown:
      ```bash
      pandoc --track-changes=all reviewed-document.docx -o verification.md
      ```
-   - Verifique se TODAS as alterações foram aplicadas corretamente:
+   - Verify ALL changes were applied correctly:
      ```bash
-     grep "frase original" verification.md  # NÃO deve encontrar
-     grep "frase de substituição" verification.md  # Deve encontrar
+     grep "original phrase" verification.md  # Should NOT find it
+     grep "replacement phrase" verification.md  # Should find it
      ```
-   - Verifique se nenhuma alteração não intencional foi introduzida
+   - Check that no unintended changes were introduced
 
-## Convertendo Documentos para Imagens
 
-Para analisar visualmente documentos Word, converta-os em imagens usando um processo de duas etapas:
+## Converting Documents to Images
 
-1. **Converter DOCX para PDF**:
+To visually analyze Word documents, convert them to images using a two-step process:
 
+1. **Convert DOCX to PDF**:
    ```bash
    soffice --headless --convert-to pdf document.docx
    ```
 
-2. **Converter páginas PDF para imagens JPEG**:
+2. **Convert PDF pages to JPEG images**:
    ```bash
    pdftoppm -jpeg -r 150 document.pdf page
    ```
-   Isso cria arquivos como `page-1.jpg`, `page-2.jpg`, etc.
+   This creates files like `page-1.jpg`, `page-2.jpg`, etc.
 
-Opções:
+Options:
+- `-r 150`: Sets resolution to 150 DPI (adjust for quality/size balance)
+- `-jpeg`: Output JPEG format (use `-png` for PNG if preferred)
+- `-f N`: First page to convert (e.g., `-f 2` starts from page 2)
+- `-l N`: Last page to convert (e.g., `-l 5` stops at page 5)
+- `page`: Prefix for output files
 
-- `-r 150`: Define a resolução para 150 DPI (ajuste para equilíbrio qualidade/tamanho)
-- `-jpeg`: Saída no formato JPEG (use `-png` para PNG se preferir)
-- `-f N`: Primeira página para converter (por exemplo, `-f 2` começa da página 2)
-- `-l N`: Última página para converter (por exemplo, `-l 5` para na página 5)
-- `page`: Prefixo para arquivos de saída
-
-Exemplo para intervalo específico:
-
+Example for specific range:
 ```bash
-pdftoppm -jpeg -r 150 -f 2 -l 5 document.pdf page  # Converte apenas páginas 2-5
+pdftoppm -jpeg -r 150 -f 2 -l 5 document.pdf page  # Converts only pages 2-5
 ```
 
-## Diretrizes de Estilo de Código
+## Code Style Guidelines
+**IMPORTANT**: When generating code for DOCX operations:
+- Write concise code
+- Avoid verbose variable names and redundant operations
+- Avoid unnecessary print statements
 
-**IMPORTANTE**: Ao gerar código para operações DOCX:
+## Examples
 
-- Escreva código conciso
-- Evite nomes de variáveis verbosos e operações redundantes
-- Evite instruções de impressão (print) desnecessárias
+**Example 1: Create a document from scratch**
+```
+User: "Create a Word doc with my consulting proposal"
+→ Reads docx-js.md for syntax
+→ Builds document with headers, body text, tables
+→ Exports .docx file to specified location
+```
 
-## Dependências
+**Example 2: Review and redline a contract**
+```
+User: "Add tracked changes to this contract - change the payment terms"
+→ Unpacks document, reads ooxml.md
+→ Implements tracked changes with proper <w:ins>/<w:del> tags
+→ Repacks document with visible redlines for review
+```
 
-Dependências necessárias (instale se não estiverem disponíveis):
+**Example 3: Extract content from Word file**
+```
+User: "What's in this Word doc?"
+→ Converts to markdown using pandoc
+→ Preserves tracked changes and structure
+→ Returns readable text with formatting preserved
+```
 
-- **pandoc**: `sudo apt-get install pandoc` (para extração de texto)
-- **docx**: `npm install -g docx` (para criar novos documentos)
-- **LibreOffice**: `sudo apt-get install libreoffice` (para conversão PDF)
-- **Poppler**: `sudo apt-get install poppler-utils` (para pdftoppm converter PDF para imagens)
-- **defusedxml**: `pip install defusedxml` (para análise XML segura)
+## Dependencies
+
+Required dependencies (install if not available):
+
+- **pandoc**: `sudo apt-get install pandoc` (for text extraction)
+- **docx**: `npm install -g docx` (for creating new documents)
+- **LibreOffice**: `sudo apt-get install libreoffice` (for PDF conversion)
+- **Poppler**: `sudo apt-get install poppler-utils` (for pdftoppm to convert PDF to images)
+- **defusedxml**: `pip install defusedxml` (for secure XML parsing)

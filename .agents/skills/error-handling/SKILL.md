@@ -1,377 +1,709 @@
 ---
 name: error-handling
-description: Patterns for robust error handling across TypeScript, Python, and Go. Covers typed errors, error boundaries, retries, circuit breakers, and user-facing error messages.
-metadata:
-  origin: ECC
+description: Comprehensive error handling patterns for Splits Network services and apps
+alwaysApply: false
+applyTo:
+    - "services/**/*.ts"
+    - "apps/**/*.ts"
+    - "apps/**/*.tsx"
+    - "packages/**/*.ts"
 ---
 
-# Error Handling Patterns
+# Error Handling Skill
 
-Consistent, robust error handling patterns for production applications.
+This skill provides guidance for consistent, user-friendly error handling across Splits Network.
 
-## When to Activate
+## Purpose
 
-- Designing error types or exception hierarchies for a new module or service
-- Adding retry logic or circuit breakers for unreliable external dependencies
-- Reviewing API endpoints for missing error handling
-- Implementing user-facing error messages and feedback
-- Debugging cascading failures or silent error swallowing
+Help developers implement robust error handling:
+
+- **HTTP Status Codes**: Correct status codes for API responses
+- **Error Response Format**: Standardized error structure
+- **Error Classes**: Custom error types for different scenarios
+- **Frontend Error Handling**: User-friendly error messages
+- **Logging**: Error logging best practices
+
+## When to Use This Skill
+
+Use this skill when:
+
+- Implementing API error responses
+- Creating custom error classes
+- Handling errors in frontend components
+- Logging errors for debugging
+- Displaying error messages to users
 
 ## Core Principles
 
-1. **Fail fast and loudly** — surface errors at the boundary where they occur; don't bury them
-2. **Typed errors over string messages** — errors are first-class values with structure
-3. **User messages ≠ developer messages** — show friendly text to users, log full context server-side
-4. **Never swallow errors silently** — every `catch` block must either handle, re-throw, or log
-5. **Errors are part of your API contract** — document every error code a client may receive
+### 1. HTTP Status Codes
 
-## TypeScript / JavaScript
-
-### Typed Error Classes
+Use correct HTTP status codes for API responses:
 
 ```typescript
-// Define an error hierarchy for your domain
+// 400 Bad Request - Client error (validation, malformed request)
+if (!isValidEmail(email)) {
+  return reply.code(400).send({
+    error: {
+      code: 'VALIDATION_ERROR',
+      message: 'Invalid email format',
+      details: { field: 'email' }
+    }
+  });
+}
+
+// 401 Unauthorized - Missing or invalid authentication
+if (!request.headers['x-clerk-user-id']) {
+  return reply.code(401).send({
+    error: {
+      code: 'UNAUTHORIZED',
+      message: 'Authentication required'
+    }
+  });
+}
+
+// 403 Forbidden - Valid auth but insufficient permissions
+if (!canAccessResource(userId, resourceId)) {
+  return reply.code(403).send({
+    error: {
+      code: 'FORBIDDEN',
+      message: 'You do not have permission to access this resource'
+    }
+  });
+}
+
+// 404 Not Found - Resource doesn't exist
+const job = await repository.getById(id);
+if (!job) {
+  return reply.code(404).send({
+    error: {
+      code: 'NOT_FOUND',
+      message: 'Job not found'
+    }
+  });
+}
+
+// 409 Conflict - Resource state conflict
+const existing = await repository.findByEmail(email);
+if (existing) {
+  return reply.code(409).send({
+    error: {
+      code: 'CONFLICT',
+      message: 'User with this email already exists'
+    }
+  });
+}
+
+// 422 Unprocessable Entity - Semantic validation error
+if (application.stage === 'closed') {
+  return reply.code(422).send({
+    error: {
+      code: 'INVALID_STATE',
+      message: 'Cannot update closed application'
+    }
+  });
+}
+
+// 429 Too Many Requests - Rate limit exceeded
+if (rateLimitExceeded) {
+  return reply.code(429).send({
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests, please try again later',
+      retryAfter: 60
+    }
+  });
+}
+
+// 500 Internal Server Error - Unexpected server error
+catch (error) {
+  console.error('Unexpected error:', error);
+  return reply.code(500).send({
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred'
+    }
+  });
+}
+
+// 503 Service Unavailable - External dependency failure
+if (!canConnectToDatabase) {
+  return reply.code(503).send({
+    error: {
+      code: 'SERVICE_UNAVAILABLE',
+      message: 'Database unavailable, please try again later'
+    }
+  });
+}
+```
+
+See [references/http-status-codes.md](./references/http-status-codes.md).
+
+### 2. Error Response Format
+
+All error responses follow standard envelope:
+
+```typescript
+{
+  "error": {
+    "code": "ERROR_CODE",           // Machine-readable error code
+    "message": "User-friendly message", // Human-readable description
+    "details"?: { ... },             // Optional additional context
+    "retryAfter"?: number            // Optional retry delay (seconds)
+  }
+}
+```
+
+**Examples**:
+
+```typescript
+// Validation error with field details
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": {
+      "fields": {
+        "email": "Invalid email format",
+        "phone": "Phone number is required"
+      }
+    }
+  }
+}
+
+// Not found error
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Candidate not found"
+  }
+}
+
+// Permission error
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "You do not have permission to delete this job"
+  }
+}
+
+// Rate limit error
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many API requests",
+    "retryAfter": 60
+  }
+}
+```
+
+See [examples/error-responses.ts](./examples/error-responses.ts).
+
+### 3. Custom Error Classes
+
+Create typed error classes for different scenarios:
+
+```typescript
+// Base application error
 export class AppError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly statusCode: number = 500,
-    public readonly details?: unknown,
-  ) {
-    super(message)
-    this.name = this.constructor.name
-    // Maintain correct prototype chain in transpiled ES5 JavaScript.
-    // Required for `instanceof` checks (e.g., `error instanceof NotFoundError`)
-    // to work correctly when extending the built-in Error class.
-    Object.setPrototypeOf(this, new.target.prototype)
-  }
+    constructor(
+        public code: string,
+        message: string,
+        public statusCode: number = 500,
+        public details?: any,
+    ) {
+        super(message);
+        this.name = "AppError";
+    }
 }
 
-export class NotFoundError extends AppError {
-  constructor(resource: string, id: string) {
-    super(`${resource} not found: ${id}`, 'NOT_FOUND', 404)
-  }
-}
-
+// Validation errors (400)
 export class ValidationError extends AppError {
-  constructor(message: string, details: { field: string; message: string }[]) {
-    super(message, 'VALIDATION_ERROR', 422, details)
-  }
+    constructor(message: string, details?: any) {
+        super("VALIDATION_ERROR", message, 400, details);
+        this.name = "ValidationError";
+    }
 }
 
-export class UnauthorizedError extends AppError {
-  constructor(reason = 'Authentication required') {
-    super(reason, 'UNAUTHORIZED', 401)
-  }
+// Not found errors (404)
+export class NotFoundError extends AppError {
+    constructor(resource: string) {
+        super("NOT_FOUND", `${resource} not found`, 404);
+        this.name = "NotFoundError";
+    }
 }
 
-export class RateLimitError extends AppError {
-  constructor(public readonly retryAfterMs: number) {
-    super('Rate limit exceeded', 'RATE_LIMITED', 429)
-  }
-}
-```
-
-### Result Pattern (no-throw style)
-
-For operations where failure is expected and common (parsing, external calls):
-
-```typescript
-type Result<T, E = AppError> =
-  | { ok: true; value: T }
-  | { ok: false; error: E }
-
-function ok<T>(value: T): Result<T> {
-  return { ok: true, value }
+// Permission errors (403)
+export class ForbiddenError extends AppError {
+    constructor(message: string = "Access denied") {
+        super("FORBIDDEN", message, 403);
+        this.name = "ForbiddenError";
+    }
 }
 
-function err<E>(error: E): Result<never, E> {
-  return { ok: false, error }
+// Conflict errors (409)
+export class ConflictError extends AppError {
+    constructor(message: string) {
+        super("CONFLICT", message, 409);
+        this.name = "ConflictError";
+    }
+}
+
+// State errors (422)
+export class InvalidStateError extends AppError {
+    constructor(message: string) {
+        super("INVALID_STATE", message, 422);
+        this.name = "InvalidStateError";
+    }
 }
 
 // Usage
-async function fetchUser(id: string): Promise<Result<User>> {
-  try {
-    const user = await db.users.findUnique({ where: { id } })
-    if (!user) return err(new NotFoundError('User', id))
-    return ok(user)
-  } catch (e) {
-    return err(new AppError('Database error', 'DB_ERROR'))
-  }
-}
-
-const result = await fetchUser('abc-123')
-if (!result.ok) {
-  // TypeScript knows result.error here
-  logger.error('Failed to fetch user', { error: result.error })
-  return
-}
-// TypeScript knows result.value here
-console.log(result.value.email)
+throw new NotFoundError("Job");
+throw new ValidationError("Invalid email", { field: "email" });
+throw new ForbiddenError("Only recruiters can submit candidates");
+throw new ConflictError("Application already exists");
+throw new InvalidStateError("Cannot reopen closed job");
 ```
 
-### API Error Handler (Next.js / Express)
+See [examples/error-classes.ts](./examples/error-classes.ts).
+
+### 4. Error Handler Middleware
+
+Fastify error handler catches all errors:
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server'
+// services/ats-service/src/index.ts
+app.setErrorHandler((error, request, reply) => {
+    // Log error with context
+    console.error("Error handling request:", {
+        method: request.method,
+        url: request.url,
+        error: error.message,
+        stack: error.stack,
+        userId: request.headers["x-clerk-user-id"],
+    });
 
-function handleApiError(error: unknown): NextResponse {
-  // Known application error
-  if (error instanceof AppError) {
-    return NextResponse.json(
-      {
+    // Handle custom AppError
+    if (error instanceof AppError) {
+        return reply.code(error.statusCode).send({
+            error: {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+            },
+        });
+    }
+
+    // Handle Fastify validation errors
+    if (error.validation) {
+        return reply.code(400).send({
+            error: {
+                code: "VALIDATION_ERROR",
+                message: "Request validation failed",
+                details: error.validation,
+            },
+        });
+    }
+
+    // Handle Supabase errors
+    if (error.code?.startsWith("PGRST")) {
+        return reply.code(500).send({
+            error: {
+                code: "DATABASE_ERROR",
+                message: "Database operation failed",
+            },
+        });
+    }
+
+    // Fallback to 500 for unexpected errors
+    return reply.code(500).send({
         error: {
-          code: error.code,
-          message: error.message,
-          ...(error.details ? { details: error.details } : {}),
+            code: "INTERNAL_SERVER_ERROR",
+            message: "An unexpected error occurred",
         },
-      },
-      { status: error.statusCode },
-    )
-  }
-
-  // Zod validation error
-  if (error instanceof z.ZodError) {
-    return NextResponse.json(
-      {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Request validation failed',
-          details: error.issues.map(i => ({
-            field: i.path.join('.'),
-            message: i.message,
-          })),
-        },
-      },
-      { status: 422 },
-    )
-  }
-
-  // Unexpected error — log details, return generic message
-  console.error('Unexpected error:', error)
-  return NextResponse.json(
-    { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
-    { status: 500 },
-  )
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    // ... handler logic
-  } catch (error) {
-    return handleApiError(error)
-  }
-}
+    });
+});
 ```
 
-### React Error Boundary
+See [examples/error-middleware.ts](./examples/error-middleware.ts).
+
+### 5. Frontend Error Handling
+
+Handle API errors gracefully in frontend:
 
 ```typescript
-import { Component, ErrorInfo, ReactNode } from 'react'
+'use client';
 
-interface Props {
-  fallback: ReactNode
-  onError?: (error: Error, info: ErrorInfo) => void
-  children: ReactNode
-}
+import { useState } from 'react';
+import { apiClient } from '@/lib/api-client';
 
-interface State {
-  hasError: boolean
-  error: Error | null
-}
+export default function JobForm() {
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
-export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null }
+  async function handleSubmit(data: any) {
+    setError(null);
+    setFieldErrors({});
+    setSubmitting(true);
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    this.props.onError?.(error, info)
-    console.error('Unhandled React error:', error, info)
-  }
-
-  render() {
-    if (this.state.hasError) return this.props.fallback
-    return this.props.children
-  }
-}
-
-// Usage
-<ErrorBoundary fallback={<p>Something went wrong. Please refresh.</p>}>
-  <MyComponent />
-</ErrorBoundary>
-```
-
-## Python
-
-### Custom Exception Hierarchy
-
-```python
-class AppError(Exception):
-    """Base application error."""
-    def __init__(self, message: str, code: str, status_code: int = 500):
-        super().__init__(message)
-        self.code = code
-        self.status_code = status_code
-
-class NotFoundError(AppError):
-    def __init__(self, resource: str, id: str):
-        super().__init__(f"{resource} not found: {id}", "NOT_FOUND", 404)
-
-class ValidationError(AppError):
-    def __init__(self, message: str, details: list[dict] | None = None):
-        super().__init__(message, "VALIDATION_ERROR", 422)
-        self.details = details or []
-```
-
-### FastAPI Global Exception Handler
-
-```python
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-
-app = FastAPI()
-
-@app.exception_handler(AppError)
-async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": {"code": exc.code, "message": str(exc)}},
-    )
-
-@app.exception_handler(Exception)
-async def generic_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    # Log full details, return generic message
-    logger.exception("Unexpected error", exc_info=exc)
-    return JSONResponse(
-        status_code=500,
-        content={"error": {"code": "INTERNAL_ERROR", "message": "An unexpected error occurred"}},
-    )
-```
-
-## Go
-
-### Sentinel Errors and Error Wrapping
-
-```go
-package domain
-
-import "errors"
-
-// Sentinel errors for type-checking
-var (
-    ErrNotFound    = errors.New("not found")
-    ErrUnauthorized = errors.New("unauthorized")
-    ErrConflict     = errors.New("conflict")
-)
-
-// Wrap errors with context — never lose the original
-func (r *UserRepository) FindByID(ctx context.Context, id string) (*User, error) {
-    user, err := r.db.QueryRow(ctx, "SELECT * FROM users WHERE id = $1", id)
-    if errors.Is(err, sql.ErrNoRows) {
-        return nil, fmt.Errorf("user %s: %w", id, ErrNotFound)
-    }
-    if err != nil {
-        return nil, fmt.Errorf("querying user %s: %w", id, err)
-    }
-    return user, nil
-}
-
-// At the handler level, unwrap to determine response
-func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-    user, err := h.service.GetUser(r.Context(), chi.URLParam(r, "id"))
-    if err != nil {
-        switch {
-        case errors.Is(err, domain.ErrNotFound):
-            writeError(w, http.StatusNotFound, "not_found", err.Error())
-        case errors.Is(err, domain.ErrUnauthorized):
-            writeError(w, http.StatusForbidden, "forbidden", "Access denied")
-        default:
-            slog.Error("unexpected error", "err", err)
-            writeError(w, http.StatusInternalServerError, "internal_error", "An unexpected error occurred")
-        }
-        return
-    }
-    writeJSON(w, http.StatusOK, user)
-}
-```
-
-## Retry with Exponential Backoff
-
-```typescript
-interface RetryOptions {
-  maxAttempts?: number
-  baseDelayMs?: number
-  maxDelayMs?: number
-  retryIf?: (error: unknown) => boolean
-}
-
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
-  const {
-    maxAttempts = 3,
-    baseDelayMs = 500,
-    maxDelayMs = 10_000,
-    retryIf = () => true,
-  } = options
-
-  let lastError: unknown
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await fn()
-    } catch (error) {
-      lastError = error
-      if (attempt === maxAttempts || !retryIf(error)) throw error
+      await apiClient.post('/jobs', data);
+      // Success handling...
+    } catch (err: any) {
+      // Network error
+      if (!err.response) {
+        setError('Network error. Please check your connection.');
+        return;
+      }
 
-      const jitter = Math.random() * baseDelayMs
-      const delay = Math.min(baseDelayMs * 2 ** (attempt - 1) + jitter, maxDelayMs)
-      await new Promise(resolve => setTimeout(resolve, delay))
+      const { error } = err.response.data;
+
+      // Validation error with field details
+      if (error.code === 'VALIDATION_ERROR' && error.details?.fields) {
+        setFieldErrors(error.details.fields);
+        setError('Please fix the validation errors below.');
+      }
+      // Permission error
+      else if (error.code === 'FORBIDDEN') {
+        setError('You do not have permission to create jobs.');
+      }
+      // Generic error
+      else {
+        setError(error.message || 'An unexpected error occurred.');
+      }
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  throw lastError
-}
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Global error alert */}
+      {error && (
+        <div className="alert alert-error mb-4">
+          <i className="fa-duotone fa-regular fa-circle-exclamation"></i>
+          <span>{error}</span>
+        </div>
+      )}
 
-// Usage: retry transient network errors, not 4xx
-const data = await withRetry(() => fetch('/api/data').then(r => r.json()), {
-  maxAttempts: 3,
-  retryIf: (error) => !(error instanceof AppError && error.statusCode < 500),
-})
+      {/* Field with error */}
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Job Title *</legend>
+        <input
+          type="text"
+          className={`input w-full ${fieldErrors.title ? 'input-error' : ''}`}
+          name="title"
+        />
+        {fieldErrors.title && (
+          <p className="fieldset-label text-error">{fieldErrors.title}</p>
+        )}
+      </fieldset>
+
+      <button type="submit" className="btn btn-primary" disabled={submitting}>
+        {submitting ? 'Creating...' : 'Create Job'}
+      </button>
+    </form>
+  );
+}
 ```
 
-## User-Facing Error Messages
+See [examples/frontend-error-handling.tsx](./examples/frontend-error-handling.tsx).
 
-Map error codes to human-readable messages. Keep technical details out of user-visible text.
+### 6. Error Logging
+
+Log errors with context for debugging:
 
 ```typescript
-const USER_ERROR_MESSAGES: Record<string, string> = {
-  NOT_FOUND: 'The requested item could not be found.',
-  UNAUTHORIZED: 'Please sign in to continue.',
-  FORBIDDEN: "You don't have permission to do that.",
-  VALIDATION_ERROR: 'Please check your input and try again.',
-  RATE_LIMITED: 'Too many requests. Please wait a moment and try again.',
-  INTERNAL_ERROR: 'Something went wrong on our end. Please try again later.',
+// Backend error logging
+function logError(
+    error: Error,
+    context: {
+        service: string;
+        method: string;
+        userId?: string;
+        resourceId?: string;
+    },
+): void {
+    console.error("Error:", {
+        service: context.service,
+        method: context.method,
+        userId: context.userId,
+        resourceId: context.resourceId,
+        error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+        },
+        timestamp: new Date().toISOString(),
+    });
 }
 
-export function getUserMessage(code: string): string {
-  return USER_ERROR_MESSAGES[code] ?? USER_ERROR_MESSAGES.INTERNAL_ERROR
+// Usage
+try {
+    await repository.update(id, data);
+} catch (error) {
+    logError(error as Error, {
+        service: "ats-service",
+        method: "JobRepository.update",
+        userId: clerkUserId,
+        resourceId: id,
+    });
+    throw error;
 }
 ```
 
-## Error Handling Checklist
+**Logging Rules**:
 
-Before merging any code that touches error handling:
+- ✅ Log all 500 errors with full context
+- ✅ Include user ID and resource ID
+- ✅ Include timestamp
+- ✅ Include stack trace
+- ⚠️ Log 400-level errors at info/warn level (not error)
+- ❌ Don't log sensitive data (passwords, tokens)
 
-- [ ] Every `catch` block handles, re-throws, or logs — no silent swallowing
-- [ ] API errors follow the standard envelope `{ error: { code, message } }`
-- [ ] User-facing messages contain no stack traces or internal details
-- [ ] Full error context is logged server-side
-- [ ] Custom error classes extend a base `AppError` with a `code` field
-- [ ] Async functions surface errors to callers — no fire-and-forget without fallback
-- [ ] Retry logic only retries retriable errors (not 4xx client errors)
-- [ ] React components are wrapped in `ErrorBoundary` for rendering errors
+See [examples/error-logging.ts](./examples/error-logging.ts).
+
+### 7. Async Error Handling
+
+Handle errors in async operations:
+
+```typescript
+// Try-catch for async functions
+async function fetchJob(id: string): Promise<Job> {
+    try {
+        const { data, error } = await supabase
+            .from("jobs")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error) throw error;
+        if (!data) throw new NotFoundError("Job");
+
+        return data;
+    } catch (error) {
+        // Log error
+        console.error("Failed to fetch job:", error);
+        throw error; // Re-throw for caller to handle
+    }
+}
+
+// Promise.allSettled for parallel operations
+async function fetchMultipleJobs(ids: string[]): Promise<Job[]> {
+    const results = await Promise.allSettled(ids.map((id) => fetchJob(id)));
+
+    const jobs = results
+        .filter(
+            (r): r is PromiseFulfilledResult<Job> => r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+
+    const errors = results
+        .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+        .map((r) => r.reason);
+
+    if (errors.length > 0) {
+        console.warn(`Failed to fetch ${errors.length} jobs:`, errors);
+    }
+
+    return jobs;
+}
+```
+
+See [examples/async-error-handling.ts](./examples/async-error-handling.ts).
+
+### 8. Database Error Handling
+
+Handle Supabase/PostgreSQL errors:
+
+```typescript
+async function createJob(data: JobCreate): Promise<Job> {
+    try {
+        const { data: job, error } = await supabase
+            .from("jobs")
+            .insert(data)
+            .select()
+            .single();
+
+        if (error) {
+            // Handle specific error codes
+            switch (error.code) {
+                case "23505": // Unique constraint violation
+                    throw new ConflictError(
+                        "Job with this title already exists",
+                    );
+
+                case "23503": // Foreign key violation
+                    throw new ValidationError("Invalid company ID");
+
+                case "23502": // Not null violation
+                    throw new ValidationError("Missing required field");
+
+                case "PGRST116": // Not found
+                    throw new NotFoundError("Job");
+
+                default:
+                    console.error("Database error:", error);
+                    throw new AppError(
+                        "DATABASE_ERROR",
+                        "Database operation failed",
+                    );
+            }
+        }
+
+        return job;
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+
+        console.error("Unexpected database error:", error);
+        throw new AppError("DATABASE_ERROR", "Database operation failed");
+    }
+}
+```
+
+See [examples/database-error-handling.ts](./examples/database-error-handling.ts) and [references/supabase-error-codes.md](./references/supabase-error-codes.md).
+
+## Error Code Catalog
+
+### Client Errors (4xx)
+
+- `VALIDATION_ERROR` (400) - Request validation failed
+- `UNAUTHORIZED` (401) - Authentication required
+- `FORBIDDEN` (403) - Insufficient permissions
+- `NOT_FOUND` (404) - Resource not found
+- `CONFLICT` (409) - Resource state conflict
+- `INVALID_STATE` (422) - Invalid resource state
+- `RATE_LIMIT_EXCEEDED` (429) - Rate limit exceeded
+
+### Server Errors (5xx)
+
+- `INTERNAL_SERVER_ERROR` (500) - Unexpected server error
+- `DATABASE_ERROR` (500) - Database operation failed
+- `SERVICE_UNAVAILABLE` (503) - External service unavailable
+
+See [references/error-codes.md](./references/error-codes.md).
+
+## Testing Error Handling
+
+Test error scenarios:
+
+```typescript
+describe("JobRepository", () => {
+    it("should throw NotFoundError for non-existent job", async () => {
+        mockSupabase.single.mockResolvedValue({ data: null, error: null });
+
+        await expect(repository.getById("999")).rejects.toThrow(NotFoundError);
+    });
+
+    it("should throw ConflictError for duplicate job", async () => {
+        mockSupabase.insert.mockResolvedValue({
+            data: null,
+            error: { code: "23505" },
+        });
+
+        await expect(repository.create(jobData)).rejects.toThrow(ConflictError);
+    });
+
+    it("should return 404 for non-existent job", async () => {
+        const response = await app.inject({
+            method: "GET",
+            url: "/api/v2/jobs/non-existent-id",
+        });
+
+        expect(response.statusCode).toBe(404);
+        expect(JSON.parse(response.body)).toMatchObject({
+            error: {
+                code: "NOT_FOUND",
+                message: expect.any(String),
+            },
+        });
+    });
+});
+```
+
+See [examples/error-testing.ts](./examples/error-testing.ts).
+
+## Anti-Patterns to Avoid
+
+### ❌ Swallowing Errors
+
+```typescript
+// WRONG - Silent failure
+try {
+    await saveData();
+} catch (error) {
+    // Do nothing - error is lost!
+}
+
+// CORRECT - Log and handle
+try {
+    await saveData();
+} catch (error) {
+    console.error("Failed to save data:", error);
+    throw error; // Or handle appropriately
+}
+```
+
+### ❌ Generic Error Messages
+
+```typescript
+// WRONG - Unhelpful
+throw new Error("Something went wrong");
+
+// CORRECT - Specific
+throw new ValidationError("Email format is invalid");
+```
+
+### ❌ Exposing Stack Traces to Users
+
+```typescript
+// WRONG - Security risk
+return reply.code(500).send({
+    error: error.stack, // Exposes internal details!
+});
+
+// CORRECT - Generic message
+return reply.code(500).send({
+    error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+    },
+});
+```
+
+### ❌ Not Using Status Codes
+
+```typescript
+// WRONG - Always 200
+return reply.send({
+    success: false,
+    error: "Not found",
+});
+
+// CORRECT - Use status code
+return reply.code(404).send({
+    error: {
+        code: "NOT_FOUND",
+        message: "Job not found",
+    },
+});
+```
+
+## References
+
+- [Error Classes](./examples/error-classes.ts)
+- [Error Responses](./examples/error-responses.ts)
+- [Error Middleware](./examples/error-middleware.ts)
+- [Frontend Error Handling](./examples/frontend-error-handling.tsx)
+- [Database Error Handling](./examples/database-error-handling.ts)
+- [Async Error Handling](./examples/async-error-handling.ts)
+- [Error Testing](./examples/error-testing.ts)
+- [HTTP Status Codes](./references/http-status-codes.md)
+- [Error Codes Catalog](./references/error-codes.md)
+- [Supabase Error Codes](./references/supabase-error-codes.md)
+
+## Related Skills
+
+- `api-specifications` - API response format standards
+- `database-patterns` - Database error handling
+- `testing-patterns` - Testing error scenarios

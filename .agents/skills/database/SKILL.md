@@ -1,212 +1,328 @@
 ---
-name: database
-description: "Database development and operations workflow covering SQL, NoSQL, database design, migrations, optimization, and data engineering."
-category: workflow-bundle
-risk: safe
-source: personal
-date_added: "2026-02-27"
+name: Database
+description: ทำงานกับ PostgreSQL และ MongoDB อย่างมีประสิทธิภาพ
 ---
 
-# Database Workflow Bundle
+# Database Skill
 
 ## Overview
 
-Comprehensive database workflow for database design, development, optimization, migrations, and data engineering. Covers SQL, NoSQL, and modern data platforms.
+Skill สำหรับออกแบบ จัดการ และ optimize databases ทั้ง SQL และ NoSQL
 
-## When to Use This Workflow
+---
 
-Use this workflow when:
-- Designing database schemas
-- Implementing database migrations
-- Optimizing query performance
-- Setting up data pipelines
-- Managing database operations
-- Implementing data quality
+## PostgreSQL
 
-## Workflow Phases
+### Setup with Docker
 
-### Phase 1: Database Design
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-#### Skills to Invoke
-- `database-architect` - Database architecture
-- `database-design` - Schema design
-- `postgresql` - PostgreSQL design
-- `nosql-expert` - NoSQL design
-
-#### Actions
-1. Gather requirements
-2. Design schema
-3. Define relationships
-4. Plan indexing strategy
-5. Design for scalability
-
-#### Copy-Paste Prompts
-```
-Use @database-architect to design database schema
+volumes:
+  postgres_data:
 ```
 
-```
-Use @postgresql to design PostgreSQL schema
-```
+### Schema Design Best Practices
 
-### Phase 2: Database Implementation
+#### Naming Conventions
 
-#### Skills to Invoke
-- `prisma-expert` - Prisma ORM
-- `database-migrations-sql-migrations` - SQL migrations
-- `neon-postgres` - Serverless Postgres
+```sql
+-- Tables: plural, snake_case
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-#### Actions
-1. Set up database connection
-2. Configure ORM
-3. Create migrations
-4. Implement models
-5. Set up seed data
+-- Foreign keys: singular_table_id
+CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending'
+);
 
-#### Copy-Paste Prompts
-```
-Use @prisma-expert to set up Prisma ORM
-```
-
-```
-Use @database-migrations-sql-migrations to create migrations
-```
-
-### Phase 3: Query Optimization
-
-#### Skills to Invoke
-- `database-optimizer` - Database optimization
-- `sql-optimization-patterns` - SQL optimization
-- `postgres-best-practices` - PostgreSQL optimization
-
-#### Actions
-1. Analyze slow queries
-2. Review execution plans
-3. Optimize indexes
-4. Refactor queries
-5. Implement caching
-
-#### Copy-Paste Prompts
-```
-Use @database-optimizer to optimize database performance
+-- Junction tables: table1_table2
+CREATE TABLE user_roles (
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    role_id BIGINT REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, role_id)
+);
 ```
 
-```
-Use @sql-optimization-patterns to optimize SQL queries
-```
+#### Indexes
 
-### Phase 4: Data Migration
+```sql
+-- Single column index
+CREATE INDEX idx_users_email ON users(email);
 
-#### Skills to Invoke
-- `database-migration` - Database migration
-- `framework-migration-code-migrate` - Code migration
+-- Composite index
+CREATE INDEX idx_orders_user_status ON orders(user_id, status);
 
-#### Actions
-1. Plan migration strategy
-2. Create migration scripts
-3. Test migration
-4. Execute migration
-5. Verify data integrity
+-- Partial index
+CREATE INDEX idx_orders_pending ON orders(created_at)
+    WHERE status = 'pending';
 
-#### Copy-Paste Prompts
-```
-Use @database-migration to plan database migration
+-- GIN index for JSONB
+CREATE INDEX idx_products_metadata ON products USING GIN(metadata);
 ```
 
-### Phase 5: Data Pipeline Development
+### Common Queries
 
-#### Skills to Invoke
-- `data-engineer` - Data engineering
-- `data-engineering-data-pipeline` - Data pipelines
-- `airflow-dag-patterns` - Airflow workflows
-- `dbt-transformation-patterns` - dbt transformations
+#### Pagination
 
-#### Actions
-1. Design data pipeline
-2. Set up data ingestion
-3. Implement transformations
-4. Configure scheduling
-5. Set up monitoring
+```sql
+-- Offset pagination (simple but slow for large offsets)
+SELECT * FROM users
+ORDER BY id
+LIMIT 20 OFFSET 40;
 
-#### Copy-Paste Prompts
-```
-Use @data-engineer to design data pipeline
+-- Cursor/Keyset pagination (better performance)
+SELECT * FROM users
+WHERE id > :last_id
+ORDER BY id
+LIMIT 20;
 ```
 
-```
-Use @airflow-dag-patterns to create Airflow DAGs
-```
+#### Full-text Search
 
-### Phase 6: Data Quality
+```sql
+-- Create search vector
+ALTER TABLE products ADD COLUMN search_vector tsvector;
 
-#### Skills to Invoke
-- `data-quality-frameworks` - Data quality
-- `data-engineering-data-driven-feature` - Data-driven features
+UPDATE products SET search_vector =
+    to_tsvector('english', name || ' ' || description);
 
-#### Actions
-1. Define quality metrics
-2. Implement validation
-3. Set up monitoring
-4. Create alerts
-5. Document standards
+CREATE INDEX idx_products_search ON products USING GIN(search_vector);
 
-#### Copy-Paste Prompts
-```
-Use @data-quality-frameworks to implement data quality checks
+-- Search query
+SELECT * FROM products
+WHERE search_vector @@ to_tsquery('english', 'laptop & gaming');
 ```
 
-### Phase 7: Database Operations
+### Performance Optimization
 
-#### Skills to Invoke
-- `database-admin` - Database administration
-- `backup-automation` - Backup automation
+#### EXPLAIN ANALYZE
 
-#### Actions
-1. Set up backups
-2. Configure replication
-3. Monitor performance
-4. Plan capacity
-5. Implement security
-
-#### Copy-Paste Prompts
-```
-Use @database-admin to manage database operations
+```sql
+EXPLAIN ANALYZE
+SELECT u.*, COUNT(o.id) as order_count
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE u.created_at > '2024-01-01'
+GROUP BY u.id;
 ```
 
-## Database Technology Workflows
+#### Tips
 
-### PostgreSQL
-```
-Skills: postgresql, postgres-best-practices, neon-postgres, prisma-expert
+1. **ใช้ Index อย่างเหมาะสม** - ไม่มากไม่น้อย
+2. **Avoid SELECT \*** - เลือกเฉพาะ columns ที่ต้องการ
+3. **Use Connection Pooling** - PgBouncer หรือ built-in pools
+4. **Partition large tables** - โดยเฉพาะ time-series data
+5. **Vacuum regularly** - ป้องกัน bloat
+
+---
+
+## MongoDB
+
+### Setup with Docker
+
+```yaml
+# docker-compose.yml
+services:
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
 ```
 
-### MongoDB
-```
-Skills: nosql-expert, azure-cosmos-db-py
+### Schema Design Best Practices
+
+#### Embedding vs Referencing
+
+```javascript
+// Embedding - When data is accessed together
+{
+  _id: ObjectId("..."),
+  name: "John Doe",
+  email: "john@example.com",
+  addresses: [
+    { street: "123 Main St", city: "Bangkok", country: "Thailand" },
+    { street: "456 Oak Ave", city: "Chiang Mai", country: "Thailand" }
+  ]
+}
+
+// Referencing - When data is accessed separately or grows unbounded
+// Users collection
+{
+  _id: ObjectId("user123"),
+  name: "John Doe",
+  email: "john@example.com"
+}
+
+// Orders collection
+{
+  _id: ObjectId("order456"),
+  userId: ObjectId("user123"),
+  items: [...],
+  total: 1500
+}
 ```
 
-### Redis
+#### Indexes
+
+```javascript
+// Single field index
+db.users.createIndex({ email: 1 }, { unique: true });
+
+// Compound index
+db.orders.createIndex({ userId: 1, createdAt: -1 });
+
+// Text index
+db.products.createIndex({ name: "text", description: "text" });
+
+// TTL index (auto-delete after time)
+db.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 });
 ```
-Skills: bullmq-specialist, upstash-qstash
+
+### Common Operations
+
+#### Aggregation Pipeline
+
+```javascript
+// Sales summary by category
+db.orders.aggregate([
+  { $match: { status: "completed" } },
+  { $unwind: "$items" },
+  {
+    $group: {
+      _id: "$items.category",
+      totalSales: { $sum: "$items.price" },
+      count: { $sum: 1 },
+    },
+  },
+  { $sort: { totalSales: -1 } },
+  { $limit: 10 },
+]);
+
+// Join collections
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "userId",
+      foreignField: "_id",
+      as: "user",
+    },
+  },
+  { $unwind: "$user" },
+  {
+    $project: {
+      _id: 1,
+      total: 1,
+      "user.name": 1,
+      "user.email": 1,
+    },
+  },
+]);
 ```
 
-### Data Warehousing
+#### Transactions
+
+```javascript
+const session = client.startSession();
+
+try {
+  session.startTransaction();
+
+  await users.updateOne(
+    { _id: userId },
+    { $inc: { balance: -amount } },
+    { session },
+  );
+
+  await transactions.insertOne(
+    { userId, amount, type: "debit", createdAt: new Date() },
+    { session },
+  );
+
+  await session.commitTransaction();
+} catch (error) {
+  await session.abortTransaction();
+  throw error;
+} finally {
+  session.endSession();
+}
 ```
-Skills: clickhouse-io, dbt-transformation-patterns
+
+### Performance Optimization
+
+1. **Use projections** - Return only needed fields
+2. **Create appropriate indexes** - Check with `explain()`
+3. **Use aggregation** - Let DB do the work
+4. **Shard for scale** - Distribute data across servers
+5. **Use connection pooling** - Reuse connections
+
+---
+
+## Migrations
+
+### PostgreSQL (with Prisma)
+
+```bash
+# Create migration
+npx prisma migrate dev --name add_users_table
+
+# Apply to production
+npx prisma migrate deploy
 ```
 
-## Quality Gates
+### PostgreSQL (with Flyway)
 
-- [ ] Schema designed and reviewed
-- [ ] Migrations tested
-- [ ] Performance benchmarks met
-- [ ] Backups configured
-- [ ] Monitoring in place
-- [ ] Documentation complete
+```sql
+-- V1__create_users_table.sql
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
 
-## Related Workflow Bundles
+-- V2__add_role_to_users.sql
+ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'user';
+```
 
-- `development` - Application development
-- `cloud-devops` - Infrastructure
-- `ai-ml` - AI/ML data pipelines
-- `testing-qa` - Data testing
+---
+
+## Database Checklist
+
+- [ ] ออกแบบ schema ที่เหมาะสม
+- [ ] สร้าง indexes ที่จำเป็น
+- [ ] Setup connection pooling
+- [ ] Configure backups
+- [ ] Setup migrations
+- [ ] Monitor performance
+- [ ] Plan for scaling
+- [ ] Implement soft deletes (optional)
+- [ ] Add audit columns (created_at, updated_at)
