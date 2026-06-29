@@ -757,7 +757,7 @@
     "photo-editing-tools": {
       "source": "vivy-yi/xiaohongshu-skills",
       "sourceType": "github",
-      "skillPath": "skills/06-\u5de5\u5177\u751f\u6001/photo-editing-tools/SKILL.md",
+      "skillPath": "skills/06-工具生态/photo-editing-tools/SKILL.md",
       "computedHash": "817c828c8db63a5f30a428d3750a69da86d339a3dd3c220722606d1cbf864ec3"
     },
     "photo-restoration": {
@@ -1390,6 +1390,12 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/web-renderer-test/SKILL.md",
       "computedHash": "c5edfba5d68d897b3cdf9b208db16f99506d84852ef50a192c55b216cc18a2cf"
+    },
+    "website-build": {
+      "source": "GRCEngClub/claude-grc-engineering",
+      "sourceType": "github",
+      "skillPath": "plugins/grc-portfolio/skills/website-build/SKILL.md",
+      "computedHash": "5521fcf4876e32f1eec77ddca60ebb68f8e2ba9951ef45061a7f7a969e93b3cf"
     },
     "website-style-images": {
       "source": "LeoYeAI/openclaw-master-skills",
