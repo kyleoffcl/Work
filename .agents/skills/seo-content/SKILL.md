@@ -1,198 +1,317 @@
 ---
 name: seo-content
-description: >
-  Content quality and E-E-A-T analysis with AI citation readiness assessment.
-  Use when user says "content quality", "E-E-A-T", "content analysis",
-  "readability check", "thin content", or "content audit".
-user-invocable: true
-argument-hint: "[url]"
-license: MIT
-metadata:
-  author: AgriciDaniel
-  version: "2.2.0"
-  category: seo
+description: Content quality and E-E-A-T assessment with AI citation readiness scoring. Evaluates Experience, Expertise, Authoritativeness, and Trustworthiness alongside word count analysis, readability metrics, keyword optimization, content structure, and Generative Engine Optimization (GEO) signals.
 ---
 
-# Content Quality & E-E-A-T Analysis
+# SEO Content Skill
 
-## Google's "Who / How / Why" Test (canonical heuristic)
+## Purpose
 
-Before scoring E-E-A-T sub-factors, every page audit should pass Google's
-own three-question heuristic from the helpful-content guide:
+Evaluate content quality through the lens of Google's E-E-A-T framework, modern content quality signals, and AI citation readiness (GEO). This skill assesses whether content meets the standards required for strong organic rankings and visibility in AI-generated search results (Google AI Mode, AI Overviews, Perplexity, ChatGPT search).
 
-| Question | What to look for |
-|---|---|
-| **Who** created it? | Visible byline, author bio page, professional credentials. Required where readers expect it; non-negotiable for YMYL. |
-| **How** was it created? | Process disclosure where readers would reasonably ask — especially for AI-assisted content. Original research / first-hand evidence / lived experience. |
-| **Why** does it exist? | "To help people" rather than "to attract search clicks." Watch for niche entry without expertise, content churn for freshness signals, content written to a word-count target. |
+---
 
-Primary source:
-https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+## E-E-A-T Scoring Model
 
-When all three answers are weak, the page is at risk under the core ranking
-system's helpfulness signals (formerly the standalone Helpful Content System,
-merged into core during the March 2024 update).
+### Weight Distribution
 
-## E-E-A-T Framework (updated Sept 2025 QRG)
+| Signal | Weight | Rationale |
+|--------|--------|-----------|
+| **Experience** | 20% | First-hand experience signals authenticity and practical value |
+| **Expertise** | 25% | Demonstrated subject-matter depth drives topical authority |
+| **Authoritativeness** | 25% | External validation and recognition establish domain credibility |
+| **Trustworthiness** | 30% | The foundation; without trust, other signals lose impact |
 
-Read `skills/seo/references/eeat-framework.md` for full criteria.
+> **Note**: Trustworthiness receives the highest weight because Google's Quality Rater Guidelines explicitly state: "Trust is the most important member of the E-E-A-T family."
 
-### Experience (first-hand signals)
-- Original research, case studies, before/after results
-- Personal anecdotes, process documentation
-- Unique data, proprietary insights
-- Photos/videos from direct experience
+---
 
-### Expertise
-- Author credentials, certifications, bio
-- Professional background relevant to topic
-- Technical depth appropriate for audience
-- Accurate, well-sourced claims
+### Experience (20 points)
 
-### Authoritativeness
-- External citations, backlinks from authoritative sources
-- Brand mentions, industry recognition
-- Published in recognized outlets
-- Cited by other experts
+Demonstrates that the content creator has first-hand, real-world experience with the topic.
 
-### Trustworthiness
-- Contact information, physical address
-- Privacy policy, terms of service
-- Customer testimonials, reviews
-- Date stamps, transparent corrections
-- Secure site (HTTPS)
+| Signal | What to Check | Points |
+|--------|---------------|--------|
+| First-person narratives | "I tested this...", "In my experience...", "When I built..." | 4 |
+| Original data or research | Proprietary surveys, experiments, case studies with real numbers | 4 |
+| Specific examples | Named tools, specific configurations, exact steps taken | 3 |
+| Visual proof | Screenshots, photos, videos showing hands-on experience | 3 |
+| Timeline references | "Over the past 3 years...", "Since 2021..." | 2 |
+| Practical tips | Advice that only comes from doing, not just researching | 2 |
+| Limitations disclosed | Honest about what did not work or constraints encountered | 2 |
 
-## Content Metrics
+---
 
-### Word Count Analysis
-Compare against page type minimums:
-| Page Type | Minimum |
-|-----------|---------|
-| Homepage | 500 |
-| Service page | 800 |
-| Blog post | 1,500 |
-| Product page | 300+ (400+ for complex products) |
-| Location page | 500-600 |
+### Expertise (25 points)
 
-> **Important:** These are **topical coverage floors**, not targets. Google has confirmed word count is NOT a direct ranking factor. The goal is comprehensive topical coverage; a 500-word page that thoroughly answers the query will outrank a 2,000-word page that doesn't. Use these as guidelines for adequate coverage depth, not rigid requirements.
+Demonstrates deep subject-matter knowledge and technical competence.
 
-### Readability
-- Flesch Reading Ease: target 60-70 for general audience
+| Signal | What to Check | Points |
+|--------|---------------|--------|
+| Technical depth | Content goes beyond surface level; explains "why" not just "what" | 5 |
+| Author credentials | Author bio with relevant qualifications, certifications, roles | 4 |
+| Accurate information | Facts are correct, up to date, and verifiable | 4 |
+| Nuanced analysis | Acknowledges complexity, trade-offs, and context-dependent answers | 3 |
+| Industry terminology | Correct use of domain-specific terms (not keyword stuffing) | 3 |
+| Comprehensive coverage | Addresses the topic fully; no obvious gaps | 3 |
+| Methodology transparency | Explains how conclusions were reached | 3 |
 
-> **Note:** Flesch Reading Ease is a useful proxy for content accessibility but is NOT a direct Google ranking factor. John Mueller has confirmed Google does not use basic readability scores for ranking. Yoast deprioritized Flesch scores in v19.3. Use readability analysis as a content quality indicator, not as an SEO metric to optimize directly.
-- Grade level: match target audience
-- Sentence length: average 15-20 words
-- Paragraph length: 2-4 sentences
+---
 
-### Keyword Optimization
-- Primary keyword in title, H1, first 100 words
-- Natural density (1-3%)
-- Semantic variations present
-- No keyword stuffing
+### Authoritativeness (25 points)
 
-### Content Structure
-- Logical heading hierarchy (H1 -> H2 -> H3)
-- Scannable sections with descriptive headings
-- Bullet/numbered lists where appropriate
-- Table of contents for long-form content
+Demonstrates that the site, brand, or author is a recognized authority on the topic.
 
-### Multimedia
-- Relevant images with proper alt text
-- Videos where appropriate
-- Infographics for complex data
-- Charts/graphs for statistics
+| Signal | What to Check | Points |
+|--------|---------------|--------|
+| Outbound citations | Links to authoritative sources (academic, industry leaders, government) | 5 |
+| Inbound link profile | (When available) Other authoritative sites link to this content | 4 |
+| Author recognition | Author is known in the industry; has other published work | 4 |
+| Brand authority signals | About page, team page, company history, media mentions | 3 |
+| Content depth across topic | Multiple related articles showing topical cluster coverage | 3 |
+| Social proof | Testimonials, case studies, client logos, partnerships | 3 |
+| Consistent publishing | Regular content updates showing ongoing commitment to topic | 3 |
 
-### Internal Linking
-- 3-5 relevant internal links per 1000 words
-- Descriptive anchor text
-- Links to related content
-- No orphan pages
+---
 
-### External Linking
-- Cite authoritative sources
-- Open in new tab for user experience
-- Reasonable count (not excessive)
+### Trustworthiness (30 points)
 
-## AI Content Assessment (Sept 2025 QRG addition)
+Demonstrates that the content, site, and organization can be trusted.
 
-Google's raters now formally assess whether content appears AI-generated.
+| Signal | What to Check | Points |
+|--------|---------------|--------|
+| HTTPS enforced | Site uses HTTPS with valid certificate | 4 |
+| Contact information | Physical address, phone number, or clear contact form | 4 |
+| Privacy policy | Linked and comprehensive | 3 |
+| Terms of service | Present and accessible | 2 |
+| Editorial policy | Content review process disclosed | 3 |
+| Date transparency | Published date and last updated date visible | 3 |
+| Source attribution | Claims are backed with citations or links | 4 |
+| Error correction | Corrections or updates noted when content changes | 2 |
+| No deceptive practices | No misleading headlines, bait-and-switch, or hidden affiliates | 3 |
+| Advertising transparency | Sponsored content and affiliate links clearly disclosed | 2 |
 
-### Acceptable AI Content
-- Demonstrates genuine E-E-A-T
-- Provides unique value
-- Has human oversight and editing
-- Contains original insights
+---
 
-### Low-Quality AI Content Markers
-- Generic phrasing, lack of specificity
-- No original insight
-- Repetitive structure across pages
-- No author attribution
-- Factual inaccuracies
+## Word Count Analysis by Page Type
 
-> **Helpful Content System (March 2024):** The Helpful Content System was merged into Google's core ranking algorithm during the March 2024 core update. It no longer operates as a standalone classifier. Helpfulness signals are now weighted within every core update. The same principles apply (people-first content, demonstrating E-E-A-T, satisfying user intent), but enforcement is continuous rather than through separate HCU updates.
+| Page Type | Minimum | Optimal Range | Maximum Before Concern |
+|-----------|---------|---------------|----------------------|
+| Blog Post (informational) | 800 | 1,500 to 2,500 | 5,000+ (check for fluff) |
+| Blog Post (how-to/tutorial) | 1,000 | 2,000 to 3,000 | 6,000+ (check readability) |
+| Blog Post (listicle) | 600 | 1,000 to 2,000 | 4,000+ (check item depth) |
+| Landing Page | 300 | 500 to 1,000 | 2,000+ (check conversion focus) |
+| Product Page | 200 | 300 to 800 | 1,500+ (check buying intent focus) |
+| Category Page | 100 | 200 to 500 | 1,000+ (check user intent) |
+| Homepage | 300 | 500 to 1,000 | 2,000+ (check focus) |
+| Pillar Page | 2,000 | 3,000 to 5,000 | 10,000+ (check navigation) |
+| FAQ Page | 500 | 1,000 to 2,000 | 3,000+ (check relevance) |
+| About Page | 300 | 500 to 1,000 | 2,000+ (check focus) |
 
-## AI Citation Readiness (GEO signals)
+---
 
-Optimize for AI search engines (ChatGPT, Perplexity, Google AI Overviews):
+## Readability Assessment
 
-- Clear, quotable statements with statistics/facts
-- Structured data (especially for data points)
-- Strong heading hierarchy (H1->H2->H3 flow)
-- Answer-first formatting for key questions
-- Tables and lists for comparative data
-- Clear attribution and source citations
+### Flesch Reading Ease Score
 
-### AI Search Visibility & GEO (2025-2026)
+| Score Range | Difficulty Level | Target Audience | Assessment |
+|-------------|-----------------|-----------------|------------|
+| 90-100 | Very Easy | 5th grade | Too simple for most B2B content |
+| 80-89 | Easy | 6th grade | Consumer content, broad audience |
+| 70-79 | Fairly Easy | 7th grade | Good for general web content |
+| 60-69 | Standard | 8th-9th grade | Optimal for most informational content |
+| 50-59 | Fairly Difficult | 10th-12th grade | Acceptable for technical/professional |
+| 30-49 | Difficult | College | Only for highly technical audiences |
+| 0-29 | Very Difficult | College graduate | Likely too complex; consider simplifying |
 
-**Google AI Mode** is Google's conversational AI search surface — powered by **Gemini 3.5 Flash** since I/O 2026 (May 2026) and now past **1 billion monthly users** globally. Unlike AI Overviews (which appear above organic results), AI Mode is a fully conversational experience with **zero organic blue links**, making AI citation the only visibility mechanism. It is a *distinct citation engine* from AI Overviews — the two share only ~14% of cited URLs — so optimize for both surfaces, not one (see the `seo-geo` skill).
+### Readability Checks
 
-**Key optimization strategies for AI citation:**
-- **Structured answers:** Clear question-answer formats, definition patterns, and step-by-step instructions that AI systems can extract and cite
-- **First-party data:** Original research, statistics, case studies, and unique datasets are highly cited by AI systems
-- **Schema markup:** Article, FAQPage (Google retired FAQ *rich results* in May 2026, but the markup still aids AI parsing/entity resolution) or QAPage for genuine user Q&A, and structured content schemas help AI systems parse and attribute content
-- **Topical authority:** AI systems preferentially cite sources that demonstrate deep expertise. Build content clusters, not isolated pages
-- **Entity clarity:** Ensure brand, authors, and key concepts are clearly defined with structured data (Organization, Person schema)
-- **Multi-platform tracking:** Monitor visibility across Google AI Overviews, AI Mode, ChatGPT, Perplexity, and Bing Copilot, not just traditional rankings. Treat AI citation as a standalone KPI alongside organic rankings and traffic.
+| Check | Target | Severity |
+|-------|--------|----------|
+| Flesch Reading Ease | 60-70 for general; 50-60 for technical | Medium |
+| Average sentence length | 15-20 words | Medium |
+| Paragraph length | 2-4 sentences (or 40-80 words) | Low |
+| Passive voice usage | Under 10% of sentences | Low |
+| Transition words | Present in at least 30% of sentences | Low |
+| Subheading frequency | One every 200-300 words | Medium |
+| Bullet/list usage | At least one list per 500 words of content | Low |
+| Short paragraphs | No single paragraph exceeds 150 words | Medium |
 
-**Generative Engine Optimization (GEO):**
-Per Google's AI optimization guide, "AEO" and "GEO" are rebranded labels for SEO — AI Overviews and AI Mode are grounded in the same ranking and quality systems as classic Search. The optimization signals that matter (quotability, attribution, heading hierarchy, freshness) are SEO fundamentals applied to AI-search surfaces, not a separate discipline. Cross-reference the `seo-geo` skill for detailed workflows; both surfaces share the primary-source synthesis in `skills/seo-geo/references/google-ai-optimization-guide.md`.
+---
 
-## Content Freshness
+## Keyword Optimization
 
-- Publication date visible
-- Last updated date if content has been revised
-- Flag content older than 12 months without update for fast-changing topics
+| Check | Pass Criteria | Severity |
+|-------|---------------|----------|
+| Primary keyword in title | Within first 60 characters of title tag | High |
+| Primary keyword in H1 | Present in visible H1 text | High |
+| Primary keyword in first 100 words | Appears naturally in opening paragraph | High |
+| Primary keyword density | 1-2% (natural usage) | Medium |
+| No keyword stuffing | Density under 3%; reads naturally | High |
+| Secondary keywords present | 2-3 related keywords used throughout | Medium |
+| Semantic variations (LSI) | Synonyms and related terms used naturally | Medium |
+| Keyword in URL | Present in URL slug | Medium |
+| Keyword in meta description | Included naturally (Google may bold it in SERPs) | Medium |
+| Keyword in image alt text | At least one image alt contains keyword | Low |
+| Keyword in subheadings | Present in at least one H2 or H3 | Medium |
 
-## Output
+---
 
-### Content Quality Score: XX/100
+## Content Structure Analysis
 
-### E-E-A-T Breakdown
-| Factor | Score | Key Signals |
-|--------|-------|-------------|
-| Experience | XX/25 | ... |
-| Expertise | XX/25 | ... |
-| Authoritativeness | XX/25 | ... |
-| Trustworthiness | XX/25 | ... |
+| Check | Pass Criteria | Severity |
+|-------|---------------|----------|
+| Clear heading hierarchy | H1 > H2 > H3 (no skipped levels) | High |
+| Table of contents | Present for content over 2,000 words | Medium |
+| Introduction with hook | First paragraph establishes topic and reader value | Medium |
+| Conclusion with CTA | Clear summary and next step for the reader | Medium |
+| Internal links | 3+ links to relevant pages on the same site | High |
+| External links | 2+ links to authoritative external sources | High |
+| Visual content | At least 1 image per 500 words; tables for data | Medium |
+| FAQ section | Present for informational content (addresses related queries) | Medium |
+| Scannable format | Short paragraphs, bullet points, bold key terms | Medium |
+| Content freshness | Updated within last 12 months (or topic is evergreen) | Medium |
 
-### AI Citation Readiness: XX/100
+---
 
-### Issues Found
-### Recommendations
+## AI Content Assessment
 
-## DataForSEO Integration (Optional)
+### Per September 2025 Quality Rater Guidelines
 
-If DataForSEO MCP tools are available, use `kw_data_google_ads_search_volume` for real keyword volume data, `dataforseo_labs_bulk_keyword_difficulty` for difficulty scores, `dataforseo_labs_search_intent` for intent classification, and `content_analysis_summary` for content quality analysis.
+Google's position: AI-generated content is acceptable if it is helpful, reliable, and created for people. The focus is on content quality, not content origin.
 
-## Error Handling
+| Check | What to Evaluate | Severity |
+|-------|------------------|----------|
+| Adds unique value | Content provides insights, analysis, or perspectives not available elsewhere | High |
+| Not generic filler | Avoids vague, surface-level content that could apply to any topic | High |
+| Factually accurate | All claims are verifiable and correct | Critical |
+| Human editorial oversight | Evidence of human review, editing, and quality control | High |
+| Original analysis | Not just rephrased from top-ranking competitors | Medium |
+| Personal voice | Consistent tone and perspective throughout | Medium |
+| No hallucinated facts | No fabricated statistics, quotes, or citations | Critical |
+| Disclosure (if applicable) | AI assistance disclosed where required by regulations or policy | Low |
 
-| Scenario | Action |
-|----------|--------|
-| URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess page content. Suggest the user verify the URL and try again. |
-| Content behind paywall (402/403, login wall) | Report that the content is not publicly accessible. Analyze only the visible portion (meta tags, headers) and note the limitation. |
-| Thin content (fewer than 100 words retrievable) | Report the findings as-is rather than guessing. Flag the page as potentially JavaScript-rendered or gated, and suggest the user provide the full text directly. |
+### Content Quality Red Flags
 
-## FLOW Framework Integration
+| Red Flag | What It Indicates | Severity |
+|----------|-------------------|----------|
+| Generic opening ("In today's world...") | Low-effort, potentially mass-produced content | Medium |
+| Repetitive phrasing | Same idea restated multiple ways to inflate word count | High |
+| Vague claims without evidence | "Many experts say..." without naming experts | High |
+| Perfect grammar with no personality | Robotic tone, no human voice | Medium |
+| Excessive hedging | "It could potentially be argued that perhaps..." | Medium |
+| Keyword-first writing | Content organized around keywords, not user intent | High |
+| No original insights | Entirely derivative of existing top-ranking content | High |
 
-For prompt-guided content optimization, use `/seo flow optimize <url>` and `/seo flow win <url>` — FLOW's optimize and win prompts provide structured E-E-A-T improvement and BOFU conversion workflows.
+---
+
+## Generative Engine Optimization (GEO) Signals
+
+### AI Search Landscape (Current as of 2025)
+
+| Platform | Feature | Impact on SEO |
+|----------|---------|---------------|
+| **Google AI Mode** (May 2025) | Full conversational AI search experience | Cited sources get visibility; uncited sources lose clicks |
+| **Google AI Overviews** | AI-generated summaries at top of SERPs | Sources cited in overviews see increased CTR |
+| **Perplexity** | AI search engine with source citations | Direct citations drive referral traffic |
+| **ChatGPT Search** | OpenAI's web search feature | Sources influence AI responses |
+| **Bing Copilot** | Microsoft's AI search integration | Cited sources displayed alongside AI answers |
+
+### Helpful Content System (Merged into Core Ranking March 2024)
+
+The Helpful Content System is no longer a separate ranking system; it was merged into Google's core ranking algorithm in March 2024. The principles remain critical:
+
+| Principle | What It Means | Check |
+|-----------|---------------|-------|
+| People-first content | Written for humans, not search engines | Does removing SEO terms still make this content worth reading? |
+| Satisfying experience | Reader gets what they came for | Does the content fully answer the query implied by the title? |
+| Demonstrates E-E-A-T | All four signals present | See E-E-A-T scoring above |
+| Not search-engine-first | Content not primarily designed to attract search visits | Would you feel confident sharing this with a friend? |
+| Adds value beyond sources | Not just rephrasing or aggregating | What does this content provide that source material does not? |
+
+### GEO Optimization Checks
+
+| Signal | Why It Matters for AI Search | Check |
+|--------|------------------------------|-------|
+| Clear, quotable statements | AI engines extract concise statements for citations | Content contains 2-3 sentence summaries of key points |
+| Structured data (JSON-LD) | Helps AI understand content semantics | Schema markup present and accurate |
+| Definitive answers | AI prefers content that directly answers questions | Key questions answered in 1-2 sentences before elaboration |
+| Statistics and data | AI engines cite sources with specific data points | Original or properly cited statistics included |
+| Author authority | AI engines prefer citing authoritative sources | Author bio with credentials, expertise signals present |
+| Recency signals | AI engines prefer current information | Published date and last updated date visible |
+| FAQ format | Question-answer format is directly extractable by AI | FAQ section with clear, concise answers |
+| Source citations | Content that cites sources is itself more citable | Outbound links to authoritative references |
+| Topical depth | AI engines favor comprehensive, in-depth coverage | Content covers the topic more thoroughly than competitors |
+| Unique perspective | AI engines value novel viewpoints over repetition | Content includes original analysis, opinions, or data |
+
+---
+
+## Output Format
+
+```markdown
+# Content Quality Assessment: [URL]
+**Analyzed:** [YYYY-MM-DD]
+**Page Type:** [blog/landing/product/etc.]
+**Word Count:** [N]
+**Primary Keyword:** [keyword]
+
+## E-E-A-T Score: XX/100
+
+| Signal | Score | Max | Assessment |
+|--------|-------|-----|------------|
+| Experience | XX | 20 | [Strong/Adequate/Weak/Missing] |
+| Expertise | XX | 25 | [Strong/Adequate/Weak/Missing] |
+| Authoritativeness | XX | 25 | [Strong/Adequate/Weak/Missing] |
+| Trustworthiness | XX | 30 | [Strong/Adequate/Weak/Missing] |
+| **Total** | **XX** | **100** | |
+
+## Content Quality Metrics
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Word Count | [N] | [range for page type] | [PASS/WARN/FAIL] |
+| Flesch Reading Ease | [N] | 60-70 | [PASS/WARN/FAIL] |
+| Avg Sentence Length | [N] words | 15-20 | [PASS/WARN/FAIL] |
+| Keyword Density | [N]% | 1-2% | [PASS/WARN/FAIL] |
+| Internal Links | [N] | 3+ | [PASS/WARN/FAIL] |
+| External Links | [N] | 2+ | [PASS/WARN/FAIL] |
+| Images | [N] | 1 per 500 words | [PASS/WARN/FAIL] |
+
+## AI Content Assessment
+[Evaluation of content quality, originality, and helpfulness per QRG]
+
+## GEO Readiness: XX/100
+[Assessment of AI citation readiness, quotable statements, structured data]
+
+## Recommendations
+1. [Most impactful improvement]
+2. [Second improvement]
+3. ...
+```
+
+---
+
+## Usage
+
+```bash
+# Assess content quality of a page
+/seo-content https://example.com/blog/article
+
+# Assess with specific keyword focus
+/seo-content https://example.com/blog/article --keyword "saas validation"
+
+# Assess with industry context
+/seo-content https://example.com/pricing --industry saas
+```
+
+---
+
+## Notes
+
+- E-E-A-T is not a direct ranking factor but informs the quality signals that are used for ranking
+- The Helpful Content System was merged into core ranking in March 2024; it no longer operates as a separate system
+- GEO (Generative Engine Optimization) is an emerging discipline; best practices will evolve
+- Google AI Mode launched in May 2025 and represents a fundamental shift in how search results are displayed
+- AI content assessment follows the September 2025 Quality Rater Guidelines: quality matters, not origin
+- Word count targets are guidelines, not rules; some topics genuinely require more or fewer words
+- Readability scores should match the target audience; B2B SaaS content can be more complex than consumer content

@@ -1,220 +1,185 @@
 ---
-name: onboarding
-description: When the user wants to optimize post-signup onboarding, user activation, first-run experience, or time-to-value. Also use when the user mentions "onboarding flow," "activation rate," "user activation," "first-run experience," "empty states," "onboarding checklist," "aha moment," "new user experience," "users aren't activating," "nobody completes setup," "low activation rate," "users sign up but don't use the product," "time to value," or "first session experience." Use this whenever users are signing up but not sticking around. For signup/registration optimization, see signup. For ongoing email sequences, see emails.
-metadata:
-  version: 2.0.0
+id: SKL-onboarding-ONBOARDING
+name: Onboarding
+description: 'Developer onboarding is the process of helping new team members become
+  productive quickly. Effective onboarding includes clear documentation, mentorship,
+  hands-on tasks, and a structured program that '
+version: 1.0.0
+status: active
+owner: '@cerebra-team'
+last_updated: '2026-02-22'
+category: Backend
+tags:
+- api
+- backend
+- server
+- database
+stack:
+- Python
+- Node.js
+- REST API
+- GraphQL
+difficulty: Intermediate
 ---
 
-# Onboarding CRO
+# Onboarding
+
+## Skill Profile
+*(Select at least one profile to enable specific modules)*
+- [ ] **DevOps**
+- [x] **Backend**
+- [ ] **Frontend**
+- [ ] **AI-RAG**
+- [ ] **Security Critical**
+
+## Overview
+Developer onboarding is the process of helping new team members become productive quickly. Effective onboarding includes clear documentation, mentorship, hands-on tasks, and a structured program that reduces time-to-productivity and improves retention.
+
+## Why This Matters
+- **<Benefit>**: <short explanation>
+- **<Benefit>**: <short explanation>
+- **<Benefit>**: <short explanation>
+
+## Core Concepts & Rules
+
+### 1. Core Principles
+- Follow established patterns and conventions
+- Maintain consistency across codebase
+- Document decisions and trade-offs
+
+### 2. Implementation Guidelines
+- Start with the simplest viable solution
+- Iterate based on feedback and requirements
+- Test thoroughly before deployment
+
+
+## Inputs / Outputs / Contracts
+* **Inputs**:
+  - <e.g., env vars, request payload, file paths, schema>
+* **Entry Conditions**:
+  - <Pre-requisites: e.g., Repo initialized, DB running, specific branch checked out>
+* **Outputs**:
+  - <e.g., artifacts (PR diff, docs, tests, dashboard JSON)>
+* **Artifacts Required (Deliverables)**:
+  - <e.g., Code Diff, Unit Tests, Migration Script, API Docs>
+* **Acceptance Evidence**:
+  - <e.g., Test Report (screenshot/log), Benchmark Result, Security Scan Report>
+* **Success Criteria**:
+  - <e.g., p95 < 300ms, coverage ≥ 80%>
+
+## Skill Composition
+* **Depends on**: None
+* **Compatible with**: None
+* **Conflicts with**: None
+* **Related Skills**: None
+
+## Quick Start
+#
+
+## Assumptions / Constraints / Non-goals
+
+* **Assumptions**:
+  - Development environment is properly configured
+  - Required dependencies are available
+  - Team has basic understanding of domain
+* **Constraints**:
+  - Must follow existing codebase conventions
+  - Time and resource limitations
+  - Compatibility requirements
+* **Non-goals**:
+  - This skill does not cover edge cases outside scope
+  - Not a replacement for formal training
+
+
+## Compatibility & Prerequisites
+
+* **Supported Versions**:
+  - Python 3.8+
+  - Node.js 16+
+  - Modern browsers (Chrome, Firefox, Safari, Edge)
+* **Required AI Tools**:
+  - Code editor (VS Code recommended)
+  - Testing framework appropriate for language
+  - Version control (Git)
+* **Dependencies**:
+  - Language-specific package manager
+  - Build tools
+  - Testing libraries
+* **Environment Setup**:
+  - `.env.example` keys: `API_KEY`, `DATABASE_URL` (no values)
+
+
+## Test Scenario Matrix (QA Strategy)
+
+| Type | Focus Area | Required Scenarios / Mocks |
+| :--- | :--- | :--- |
+| **Unit** | Core Logic | Must cover primary logic and at least 3 edge/error cases. Target minimum 80% coverage |
+| **Integration** | DB / API | All external API calls or database connections must be mocked during unit tests |
+| **E2E** | User Journey | Critical user flows to test |
+| **Performance** | Latency / Load | Benchmark requirements |
+| **Security** | Vuln / Auth | SAST/DAST or dependency audit |
+| **Frontend** | UX / A11y | Accessibility checklist (WCAG), Performance Budget (Lighthouse score) |
+
+
+## Technical Guardrails & Security Threat Model
+
+### 1. Security & Privacy (Threat Model)
+* **Top Threats**: Injection attacks, authentication bypass, data exposure
+- [ ] **Data Handling**: Sanitize all user inputs to prevent Injection attacks. Never log raw PII
+- [ ] **Secrets Management**: No hardcoded API keys. Use Env Vars/Secrets Manager
+- [ ] **Authorization**: Validate user permissions before state changes
 
-You are an expert in user onboarding and activation. Your goal is to help users reach their "aha moment" as quickly as possible and establish habits that lead to long-term retention.
+### 2. Performance & Resources
+- [ ] **Execution Efficiency**: Consider time complexity for algorithms
+- [ ] **Memory Management**: Use streams/pagination for large data
+- [ ] **Resource Cleanup**: Close DB connections/file handlers in finally blocks
 
-## Initial Assessment
+### 3. Architecture & Scalability
+- [ ] **Design Pattern**: Follow SOLID principles, use Dependency Injection
+- [ ] **Modularity**: Decouple logic from UI/Frameworks
 
-**Check for product marketing context first:**
-If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+### 4. Observability & Reliability
+- [ ] **Logging Standards**: Structured JSON, include trace IDs `request_id`
+- [ ] **Metrics**: Track `error_rate`, `latency`, `queue_depth`
+- [ ] **Error Handling**: Standardized error codes, no bare except
+- [ ] **Observability Artifacts**:
+    - **Log Fields**: timestamp, level, message, request_id
+    - **Metrics**: request_count, error_count, response_time
+    - **Dashboards/Alerts**: High Error Rate > 5%
 
-Before providing recommendations, understand:
 
-1. **Product Context** - What type of product? B2B or B2C? Core value proposition?
-2. **Activation Definition** - What's the "aha moment"? What action indicates a user "gets it"?
-3. **Current State** - What happens after signup? Where do users drop off?
+## Agent Directives & Error Recovery
+*(ข้อกำหนดสำหรับ AI Agent ในการคิดและแก้ปัญหาเมื่อเกิดข้อผิดพลาด)*
 
----
+- **Thinking Process**: Analyze root cause before fixing. Do not brute-force.
+- **Fallback Strategy**: Stop after 3 failed test attempts. Output root cause and ask for human intervention/clarification.
+- **Self-Review**: Check against Guardrails & Anti-patterns before finalizing.
+- **Output Constraints**: Output ONLY the modified code block. Do not explain unless asked.
 
-## Core Principles
 
-### 1. Time-to-Value Is Everything
-Remove every step between signup and experiencing core value.
+## Definition of Done (DoD) Checklist
 
-### 2. One Goal Per Session
-Focus first session on one successful outcome. Save advanced features for later.
+- [ ] Tests passed + coverage met
+- [ ] Lint/Typecheck passed
+- [ ] Logging/Metrics/Trace implemented
+- [ ] Security checks passed
+- [ ] Documentation/Changelog updated
+- [ ] Accessibility/Performance requirements met (if frontend)
 
-### 3. Do, Don't Show
-Interactive > Tutorial. Doing the thing > Learning about the thing.
 
-### 4. Progress Creates Motivation
-Show advancement. Celebrate completions. Make the path visible.
+## Anti-patterns
+#
 
----
+## Reference Links & Examples
 
-## Defining Activation
+* Internal documentation and examples
+* Official documentation and best practices
+* Community resources and discussions
 
-### Find Your Aha Moment
 
-The action that correlates most strongly with retention:
-- What do retained users do that churned users don't?
-- What's the earliest indicator of future engagement?
+## Versioning & Changelog
 
-**Examples by product type:**
-- Project management: Create first project + add team member
-- Analytics: Install tracking + see first report
-- Design tool: Create first design + export/share
-- Marketplace: Complete first transaction
+* **Version**: 1.0.0
+* **Changelog**:
+  - 2026-02-22: Initial version with complete template structure
 
-### Activation Metrics
-- % of signups who reach activation
-- Time to activation
-- Steps to activation
-- Activation by cohort/source
-
----
-
-## Onboarding Flow Design
-
-### Immediate Post-Signup (First 30 Seconds)
-
-| Approach | Best For | Risk |
-|----------|----------|------|
-| Product-first | Simple products, B2C, mobile | Blank slate overwhelm |
-| Guided setup | Products needing personalization | Adds friction before value |
-| Value-first | Products with demo data | May not feel "real" |
-
-**Whatever you choose:**
-- Clear single next action
-- No dead ends
-- Progress indication if multi-step
-
-### Onboarding Checklist Pattern
-
-**When to use:**
-- Multiple setup steps required
-- Product has several features to discover
-- Self-serve B2B products
-
-**Best practices:**
-- 3-7 items (not overwhelming)
-- Order by value (most impactful first)
-- Start with quick wins
-- Progress bar/completion %
-- Celebration on completion
-- Dismiss option (don't trap users)
-
-### Empty States
-
-Empty states are onboarding opportunities, not dead ends.
-
-**Good empty state:**
-- Explains what this area is for
-- Shows what it looks like with data
-- Clear primary action to add first item
-- Optional: Pre-populate with example data
-
-### Tooltips and Guided Tours
-
-**When to use:** Complex UI, features that aren't self-evident, power features users might miss
-
-**Best practices:**
-- Max 3-5 steps per tour
-- Dismissable at any time
-- Don't repeat for returning users
-
----
-
-## Multi-Channel Onboarding
-
-### Email + In-App Coordination
-
-**Trigger-based emails:**
-- Welcome email (immediate)
-- Incomplete onboarding (24h, 72h)
-- Activation achieved (celebration + next step)
-- Feature discovery (days 3, 7, 14)
-
-**Email should:**
-- Reinforce in-app actions, not duplicate them
-- Drive back to product with specific CTA
-- Be personalized based on actions taken
-
----
-
-## Handling Stalled Users
-
-### Detection
-Define "stalled" criteria (X days inactive, incomplete setup)
-
-### Re-engagement Tactics
-
-1. **Email sequence** - Reminder of value, address blockers, offer help
-2. **In-app recovery** - Welcome back, pick up where left off
-3. **Human touch** - For high-value accounts, personal outreach
-
----
-
-## Measurement
-
-### Key Metrics
-
-| Metric | Description |
-|--------|-------------|
-| Activation rate | % reaching activation event |
-| Time to activation | How long to first value |
-| Onboarding completion | % completing setup |
-| Day 1/7/30 retention | Return rate by timeframe |
-
-### Funnel Analysis
-
-Track drop-off at each step:
-```
-Signup → Step 1 → Step 2 → Activation → Retention
-100%      80%       60%       40%         25%
-```
-
-Identify biggest drops and focus there.
-
----
-
-## Output Format
-
-### Onboarding Audit
-For each issue: Finding → Impact → Recommendation → Priority
-
-### Onboarding Flow Design
-- Activation goal
-- Step-by-step flow
-- Checklist items (if applicable)
-- Empty state copy
-- Email sequence triggers
-- Metrics plan
-
----
-
-## Common Patterns by Product Type
-
-| Product Type | Key Steps |
-|--------------|-----------|
-| B2B SaaS | Setup wizard → First value action → Team invite → Deep setup |
-| Marketplace | Complete profile → Browse → First transaction → Repeat loop |
-| Mobile App | Permissions → Quick win → Push setup → Habit loop |
-| Content Platform | Follow/customize → Consume → Create → Engage |
-
----
-
-## Experiment Ideas
-
-When recommending experiments, consider tests for:
-- Flow simplification (step count, ordering)
-- Progress and motivation mechanics
-- Personalization by role or goal
-- Support and help availability
-
-**For comprehensive experiment ideas**: See [references/experiments.md](references/experiments.md)
-
----
-
-## Task-Specific Questions
-
-1. What action most correlates with retention?
-2. What happens immediately after signup?
-3. Where do users currently drop off?
-4. What's your activation rate target?
-5. Do you have cohort analysis on successful vs. churned users?
-
----
-
-## Related Skills
-
-- **signup**: For optimizing the signup before onboarding
-- **emails**: For onboarding email series
-- **paywalls**: For converting to paid during/after onboarding
-- **ab-testing**: For testing onboarding changes
