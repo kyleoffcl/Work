@@ -754,6 +754,24 @@
       "skillPath": "skills/peekaboo/SKILL.md",
       "computedHash": "4fbbd4381002b19f77dafd461becd27ae28388cdf673a1adbba9940a2e29fc65"
     },
+    "photo-editing-tools": {
+      "source": "vivy-yi/xiaohongshu-skills",
+      "sourceType": "github",
+      "skillPath": "skills/06-\u5de5\u5177\u751f\u6001/photo-editing-tools/SKILL.md",
+      "computedHash": "817c828c8db63a5f30a428d3750a69da86d339a3dd3c220722606d1cbf864ec3"
+    },
+    "photo-restoration": {
+      "source": "ShinChven/nano-banana-skills",
+      "sourceType": "github",
+      "skillPath": "skills/photo-restoration/SKILL.md",
+      "computedHash": "80c13bb19402f4661e7c5e97ed2c09b06317f9b953b594ed8089505b6410815a"
+    },
+    "photoshop-cutout": {
+      "source": "THU-SAGE/syll",
+      "sourceType": "github",
+      "skillPath": "syll/skills/photoshop-cutout/SKILL.md",
+      "computedHash": "70cfe15f40b168a9494af78f04d2abd14bb4623f10e39ec266c1a0384a2b94de"
+    },
     "popups": {
       "source": "coreyhaines31/marketingskills",
       "sourceType": "github",
@@ -1284,10 +1302,10 @@
       "computedHash": "b43698e8a568f27d7671da8bcf8b902443d5b08fac1e4ef286b6cb9d8e2746e3"
     },
     "video": {
-      "source": "coreyhaines31/marketingskills",
+      "source": "thedaviddias/Front-End-Checklist",
       "sourceType": "github",
       "skillPath": "skills/video/SKILL.md",
-      "computedHash": "8286d39be8d86f9fc1c39b3c340cdebcf9a490f7606ffde566572baa163b1fe7"
+      "computedHash": "11c9d54c527401172318e423229dd623af821b15f58d6384e97f3a69bed2e5ed"
     },
     "video-captions": {
       "source": "thedaviddias/Front-End-Checklist",
@@ -1324,6 +1342,24 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/video-report/SKILL.md",
       "computedHash": "b5cf9b7014112c070736b6d935fb6babf80eb9acec8363d9adc2e69ae9f50136"
+    },
+    "video-shortform": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "plugins/_official/examples/video-shortform/SKILL.md",
+      "computedHash": "a14393165bd3d85ed04ccc5348a43cd9e7e3878f0e27b34902c1a993612a943d"
+    },
+    "video-template-frame-liquid-bg-hero": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "plugins/_official/video-templates/frame-liquid-bg-hero/SKILL.md",
+      "computedHash": "482d6bb3b2bffec284a02172ece727bdd3283bdd9e05eff6d2654270dea6f884"
+    },
+    "video-thumbnail": {
+      "source": "thedaviddias/Front-End-Checklist",
+      "sourceType": "github",
+      "skillPath": "skills/video-thumbnail/SKILL.md",
+      "computedHash": "7d6db80e1304c9b513da46ecc3223c488227e3a82fca2b2d35d84164c81b9f73"
     },
     "video-use": {
       "source": "browser-use/video-use",
