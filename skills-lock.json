@@ -7,6 +7,13 @@
       "skillPath": "contrib/hermes-skill/SKILL.md",
       "computedHash": "b946c24a4c5ccb27076a2a03927658303c6e06f573a1712ec4b0a685f2a7c5f3"
     },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
+    },
     "gstack": {
       "source": "garrytan/gstack",
       "sourceType": "github",
