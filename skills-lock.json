@@ -1302,10 +1302,10 @@
       "computedHash": "b43698e8a568f27d7671da8bcf8b902443d5b08fac1e4ef286b6cb9d8e2746e3"
     },
     "video": {
-      "source": "thedaviddias/Front-End-Checklist",
+      "source": "coreyhaines31/marketingskills",
       "sourceType": "github",
       "skillPath": "skills/video/SKILL.md",
-      "computedHash": "11c9d54c527401172318e423229dd623af821b15f58d6384e97f3a69bed2e5ed"
+      "computedHash": "8286d39be8d86f9fc1c39b3c340cdebcf9a490f7606ffde566572baa163b1fe7"
     },
     "video-captions": {
       "source": "thedaviddias/Front-End-Checklist",
@@ -1342,6 +1342,12 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/video-report/SKILL.md",
       "computedHash": "b5cf9b7014112c070736b6d935fb6babf80eb9acec8363d9adc2e69ae9f50136"
+    },
+    "video-seo-schema": {
+      "source": "thedaviddias/Front-End-Checklist",
+      "sourceType": "github",
+      "skillPath": "skills/video/SKILL.md",
+      "computedHash": "2a9948f8a521da7a88371ea85a3f06b2ecba7c363353c590fb48a8894a08b058"
     },
     "video-shortform": {
       "source": "nexu-io/open-design",
