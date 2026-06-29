@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Folio – Clif | Cozy Comet Cabin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0ede8;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      color: #2c2c2c;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+    }
+
+    .folio {
+      background: #ffffff;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      background: #1a1a1a;
+      height: 6px;
+    }
+
+    .accent-bar {
+      background: #b8972a;
+      height: 3px;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 36px 48px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e8e2d8;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand-left img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+    }
+
+    .brand-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: #1a1a1a;
+      text-transform: uppercase;
+    }
+
+    .brand-text p {
+      font-size: 0.7rem;
+      color: #888;
+      line-height: 1.7;
+      margin-top: 4px;
+    }
+
+    .folio-label {
+      text-align: right;
+    }
+
+    .folio-label span {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      color: #b8972a;
+      letter-spacing: 0.05em;
+    }
+
+    .folio-label small {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+
+    /* ── Guest info strip ── */
+    .guest-strip {
+      background: #faf8f4;
+      border-bottom: 1px solid #e8e2d8;
+      padding: 20px 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .guest-strip .field label {
+      display: block;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+
+    .guest-strip .field span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2c2c2c;
+    }
+
+    /* ── Charges table ── */
+    .charges {
+      padding: 32px 48px 0;
+    }
+
+    .charges h2 {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #b8972a;
+      margin-bottom: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #999;
+      font-weight: 500;
+      padding: 0 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e8e2d8;
+    }
+
+    thead th:last-child { text-align: right; }
+
+    tbody td {
+      padding: 12px 12px;
+      font-size: 0.8rem;
+      color: #3a3a3a;
+      border-bottom: 1px solid #f0ede8;
+      vertical-align: middle;
+    }
+
+    tbody td:last-child { text-align: right; }
+
+    tbody td .night-label {
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    tbody td .night-sub {
+      font-size: 0.68rem;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── Totals ── */
+    .totals-wrap {
+      padding: 0 48px 32px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .totals-box {
+      width: 260px;
+      margin-top: 0;
+      border-top: 1px solid #e8e2d8;
+      padding-top: 16px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.8rem;
+    }
+
+    .totals-row .tl { color: #888; }
+    .totals-row .tv { color: #2c2c2c; font-weight: 500; }
+    .totals-row .tv.credit { color: #5a8a5a; }
+
+    .totals-row.balance-row {
+      margin-top: 10px;
+      padding: 12px 14px;
+      background: #1a1a1a;
+    }
+
+    .totals-row.balance-row .tl {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #b8972a;
+      font-weight: 600;
+    }
+
+    .totals-row.balance-row .tv {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* ── Payments section ── */
+    .payments {
+      padding: 0 48px 28px;
+    }
+
+    .payments h2 {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #b8972a;
+      margin-bottom: 14px;
+    }
+
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #faf8f4;
+      border: 1px solid #e8e2d8;
+      border-radius: 2px;
+      font-size: 0.8rem;
+    }
+
+    .payment-row .pr-left { color: #555; }
+    .payment-row .pr-right { color: #5a8a5a; font-weight: 600; }
+
+    /* ── Divider ── */
+    .section-divider {
+      height: 1px;
+      background: #e8e2d8;
+      margin: 0 48px 28px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #faf8f4;
+      border-top: 1px solid #e8e2d8;
+      padding: 24px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer .thank-you {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      color: #555;
+      font-style: italic;
+    }
+
+    .footer .host-sig {
+      text-align: right;
+    }
+
+    .footer .host-sig .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .footer .host-sig .role {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #b8972a;
+      margin-top: 2px;
+    }
+
+    .bottom-bar {
+      background: #b8972a;
+      height: 3px;
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .folio { box-shadow: none; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="folio">
+
+    <div class="top-bar"></div>
+    <div class="accent-bar"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-left">
+        <img src="assets/logo.png" alt="Cozy Comet Cabin" />
+        <div class="brand-text">
+          <h1>Cozy Comet Cabin</h1>
+          <p>
+            Ring Road Neighborhood<br />
+            Opposite Kyanja Community Police<br />
+            Kampala, Uganda
+          </p>
+        </div>
+      </div>
+      <div class="folio-label">
+        <small>Document</small>
+        <span>Guest Folio</span>
+        <small>Date: 29 June 2026</small>
+      </div>
+    </div>
+
+    <!-- Guest Info Strip -->
+    <div class="guest-strip">
+      <div class="field">
+        <label>Guest Name</label>
+        <span>Clif</span>
+      </div>
+      <div class="field">
+        <label>Check-In</label>
+        <span>Sat, 27 Jun 2026</span>
+      </div>
+      <div class="field">
+        <label>Check-Out</label>
+        <span>Thu, 2 Jul 2026</span>
+      </div>
+      <div class="field">
+        <label>Nights</label>
+        <span>5</span>
+      </div>
+    </div>
+
+    <!-- Charges -->
+    <div class="charges">
+      <h2>Room Charges</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>27 Jun</td>
+            <td>
+              <div class="night-label">Accommodation — Night 1</div>
+              <div class="night-sub">Saturday</div>
+            </td>
+            <td>USD $35.00</td>
+          </tr>
+          <tr>
+            <td>28 Jun</td>
+            <td>
+              <div class="night-label">Accommodation — Night 2</div>
+              <div class="night-sub">Sunday</div>
+            </td>
+            <td>USD $35.00</td>
+          </tr>
+          <tr>
+            <td>29 Jun</td>
+            <td>
+              <div class="night-label">Accommodation — Night 3</div>
+              <div class="night-sub">Monday</div>
+            </td>
+            <td>USD $35.00</td>
+          </tr>
+          <tr>
+            <td>30 Jun</td>
+            <td>
+              <div class="night-label">Accommodation — Night 4</div>
+              <div class="night-sub">Tuesday</div>
+            </td>
+            <td>USD $35.00</td>
+          </tr>
+          <tr>
+            <td>1 Jul</td>
+            <td>
+              <div class="night-label">Accommodation — Night 5</div>
+              <div class="night-sub">Wednesday</div>
+            </td>
+            <td>USD $35.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="totals-wrap">
+      <div class="totals-box">
+        <div class="totals-row">
+          <span class="tl">Subtotal (5 nights)</span>
+          <span class="tv">USD $175.00</span>
+        </div>
+        <div class="totals-row balance-row">
+          <span class="tl">Balance Due</span>
+          <span class="tv">USD $145.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Payments -->
+    <div class="payments">
+      <h2>Payments Received</h2>
+      <div class="payment-row">
+        <span class="pr-left">Cash — Received upon arrival &nbsp;·&nbsp; 27 Jun 2026</span>
+        <span class="pr-right">− USD $30.00</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="thank-you">"Thank you for your stay, Clif."</div>
+      <div class="host-sig">
+        <div class="name">Kyle</div>
+        <div class="role">Host · Cozy Comet Cabin</div>
+      </div>
+    </div>
+
+    <div class="bottom-bar"></div>
+
+  </div>
+</body>
+</html>
