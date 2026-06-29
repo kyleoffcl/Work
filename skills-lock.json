@@ -2101,7 +2101,7 @@
       "skillPath": "skills/documentation/documentation-hygiene/SKILL.md",
       "computedHash": "a482049d952e197361a0f3dad969244910391891d8d2aba6ad918c7f7d59d462"
     },
-    "Documentação tecnica para Software": {
+    "Documenta\u00e7\u00e3o tecnica para Software": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/documentation/documenta-o-tecnica-para-software/SKILL.md",
@@ -2749,7 +2749,7 @@
       "skillPath": "skills/design/logistics-cost-optimization/SKILL.md",
       "computedHash": "50795f285934860a46b9005f6a5478d62aa778d25b348465aa44477953ddf0b8"
     },
-    "MATLAB离散点Hough变换直线检测": {
+    "MATLAB\u79bb\u6563\u70b9Hough\u53d8\u6362\u76f4\u7ebf\u68c0\u6d4b": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/development/matlab-hough/SKILL.md",
@@ -3949,7 +3949,7 @@
       "skillPath": "skills/backend/websocket-patterns/SKILL.md",
       "computedHash": "be9be975edbac85dbbe9cbe8a78d24d2d666f72e1ae95106887f132660d2de87"
     },
-    "WhatsApp Ultimate — No Meta API | Lead Mining, Bulk Send, Scheduled Reminders & Follow-ups": {
+    "WhatsApp Ultimate \u2014 No Meta API | Lead Mining, Bulk Send, Scheduled Reminders & Follow-ups": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/backend/whatsapp-ultimate-no-meta-api-lead-mining-bulk-send-scheduled-reminders-follow-ups/SKILL.md",
@@ -17149,6 +17149,12 @@
       "skillPath": "skills/fullstack-web/apple-health-fitness/SKILL.md",
       "computedHash": "3cbd4fe96c5d4f44d86f473be1f31a6710e9c53610be32fe3f65cf21169e6b05"
     },
+    "apple-hig": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/apple-hig/SKILL.md",
+      "computedHash": "b285e1f50af4fc27f46411ebdfad41b242561ae2bc3e76bbc6d002dfc643dd7e"
+    },
     "apple-hig-designer": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -24187,7 +24193,7 @@
       "skillPath": "skills/data-ai/chatgpt/SKILL.md",
       "computedHash": "83ae7bb9221b4e43a8dfba9f99f90645ada53e54aabdcb41a15de5814541839e"
     },
-    "chatgpt / 启用开发者模式的 / openai": {
+    "chatgpt / \u542f\u7528\u5f00\u53d1\u8005\u6a21\u5f0f\u7684 / openai": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/ai-agents/chatgpt-openai/SKILL.md",
@@ -26083,6 +26089,12 @@
       "skillPath": "skills/data-ai/college-football-data-automation/SKILL.md",
       "computedHash": "08a4b0757df07ad39dce08180171489537b99b7aa272fc6a5d78e8fcbc356d90"
     },
+    "color-expert": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/color-expert/SKILL.md",
+      "computedHash": "631d8d5616e9beec305e1be3ef9d991804dc5b964a5a6577bba74e0a67a0a0cd"
+    },
     "color-palette": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -27685,6 +27697,12 @@
       "skillPath": "skills/ai-agents/creating-subagents/SKILL.md",
       "computedHash": "6356592a45d73ec878bda6321b9c609199be4d20a702b966caface2959b38fcf"
     },
+    "creative-director": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/creative-director/SKILL.md",
+      "computedHash": "09a9f8ebcc517d44a9f6479c0ecc5e1fd34b5d38ad4426001d1029365063f1f1"
+    },
     "credential-manager": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -28068,6 +28086,12 @@
       "sourceType": "github",
       "skillPath": "skills/tools/d2lbrightspace-automation/SKILL.md",
       "computedHash": "b61752eb4b0e6faccdd03859321950798235bbd376ded2b0413470e9457e6684"
+    },
+    "d3-visualization": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/d3-visualization/SKILL.md",
+      "computedHash": "7e32bb6de4e251f97d7af60e8b47b7a71cd1000315c896258eef70e9354b2e94"
     },
     "d3-viz": {
       "source": "diegosouzapw/awesome-omni-skill",
@@ -29256,6 +29280,12 @@
       "sourceType": "github",
       "skillPath": "skills/design/design-request-en/SKILL.md",
       "computedHash": "5bd6d21ba4d375c76bbcf2fbd9b34b22c85ad47501a6bf4abad312301277b57e"
+    },
+    "design-review": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/design-review/SKILL.md",
+      "computedHash": "da4a20ca3ce54709846774499b67055d5258d3f9f85ca40fc2c7b76b1861cb63"
     },
     "design-spec": {
       "source": "diegosouzapw/awesome-omni-skill",
@@ -34681,6 +34711,12 @@
       "skillPath": "skills/tools/gladia-automation/SKILL.md",
       "computedHash": "e5288665e5aebc18519e26b1fac78c42e9032b3992345f3c6c0d5a04b23ae57a"
     },
+    "glassmorphism": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-it/glassmorphism/SKILL.md",
+      "computedHash": "942b06877e1c1cc4ed5c8e90e3e903ad253bb69f0ccfa9b9b766f4eda3c9d301"
+    },
     "glba-expert": {
       "source": "GRCEngClub/claude-grc-engineering",
       "sourceType": "github",
@@ -39895,6 +39931,12 @@
       "skillPath": "skills/data-ai/matchms/SKILL.md",
       "computedHash": "68575977155c2b3bb3260efbcbe1a4923477806f0aea41955db2e5ece09a87e5"
     },
+    "material-design": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-it/material-design/SKILL.md",
+      "computedHash": "167fb7dd439af4f03e9ec99a809bdac6d7cc9f9101c652c1e4a89f9d0949fd2c"
+    },
     "math-modeling": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -42715,6 +42757,36 @@
       "skillPath": "skills/development/office-productivity/SKILL.md",
       "computedHash": "4ca217482feb00dc220ec17b55c6370c10b682779ea4a965059b65cff9e2e122"
     },
+    "officecli-data-dashboard": {
+      "source": "iOfficeAI/OfficeCLI",
+      "sourceType": "github",
+      "skillPath": "skills/officecli-data-dashboard/SKILL.md",
+      "computedHash": "38cf745bb04cb7005cd089e6e87073509f190e46e035707528a5d0b01b2dafd0"
+    },
+    "officecli-docx": {
+      "source": "iOfficeAI/OfficeCLI",
+      "sourceType": "github",
+      "skillPath": "skills/officecli-docx/SKILL.md",
+      "computedHash": "46e666e72da9901dcb4eea6a2cb3587c41864fbdd5f56b752d1f7e087418d446"
+    },
+    "officecli-pitch-deck": {
+      "source": "iOfficeAI/OfficeCLI",
+      "sourceType": "github",
+      "skillPath": "skills/officecli-pitch-deck/SKILL.md",
+      "computedHash": "6b59efdc094451945fd059548771326cce4bd2e3544d0659d3d6acf0825ea2b1"
+    },
+    "officecli-pptx": {
+      "source": "iOfficeAI/OfficeCLI",
+      "sourceType": "github",
+      "skillPath": "skills/officecli-pptx/SKILL.md",
+      "computedHash": "0d53192751d5770984f16f3c34f9923377651555c667150d7f96e16e8c9757b3"
+    },
+    "officecli-xlsx": {
+      "source": "iOfficeAI/OfficeCLI",
+      "sourceType": "github",
+      "skillPath": "skills/officecli-xlsx/SKILL.md",
+      "computedHash": "a5a0e18245f810cc662bcdd2a8d7d9e909ad442ab6ec6f82862b01eb1e517396"
+    },
     "og-creator-skill": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -44308,7 +44380,7 @@
     "photo-editing-tools": {
       "source": "vivy-yi/xiaohongshu-skills",
       "sourceType": "github",
-      "skillPath": "skills/06-工具生态/photo-editing-tools/SKILL.md",
+      "skillPath": "skills/06-\u5de5\u5177\u751f\u6001/photo-editing-tools/SKILL.md",
       "computedHash": "817c828c8db63a5f30a428d3750a69da86d339a3dd3c220722606d1cbf864ec3"
     },
     "photo-restoration": {
@@ -52759,6 +52831,12 @@
       "skillPath": "skills/swiftui-patterns/SKILL.md",
       "computedHash": "86aa244015049fd70bbc4359d8e6aff6b901a38c09ebfc08cee02cbc46d407e5"
     },
+    "swiss-design": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-it/swiss-design/SKILL.md",
+      "computedHash": "ce4a617e90a508dcbe6583870389a03995f59a6221ad7d126f3d746b30726d7f"
+    },
     "switchboard-data-operator": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
@@ -56419,13 +56497,13 @@
       "skillPath": "SKILL.md",
       "computedHash": "8e9e08be507785a1850779a4c91f76124ca24df644becc2122bc8f0fd3ff6f80"
     },
-    "videocut:安装": {
+    "videocut:\u5b89\u88c5": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/content-media/videocut/SKILL.md",
       "computedHash": "2d41ac71a07d79831110705d838af163d569228c0c6991a8d4a983b0d6cedfd7"
     },
-    "videocut:自更新": {
+    "videocut:\u81ea\u66f4\u65b0": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/tools/videocut/SKILL.md",
@@ -58321,31 +58399,31 @@
       "skillPath": "skills/development/zyte-api-automation/SKILL.md",
       "computedHash": "0f87248c29b95d4a2d0c0f70ef87c381095218798d23993b25d73ddcb15a5333"
     },
-    "代码审查": {
+    "\u4ee3\u7801\u5ba1\u67e5": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/development/unnamed/SKILL.md",
       "computedHash": "24663ae66debfa43e006702396d1a18d4cf159afb6bae4045ff76606ffe84c74"
     },
-    "好的主人 / 我是你的主人 / conversation": {
+    "\u597d\u7684\u4e3b\u4eba / \u6211\u662f\u4f60\u7684\u4e3b\u4eba / conversation": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/ai-agents/conversation/SKILL.md",
       "computedHash": "3ac788c1b34bff96b4a8bcaf924850d9a356dc5599f7d38115fb7caeb4b2e877"
     },
-    "然而 / conversation / 风一样的坑爹哥": {
+    "\u7136\u800c / conversation / \u98ce\u4e00\u6837\u7684\u5751\u7239\u54e5": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/ai-agents/conversation-ecnu-icalk/SKILL.md",
       "computedHash": "cf6c0ab42aefc833e45eb9ab692766945b3c9af40a39ca0bdfaebe962c3c4a97"
     },
-    "蓝鲸代码安全三大红线": {
+    "\u84dd\u9cb8\u4ee3\u7801\u5b89\u5168\u4e09\u5927\u7ea2\u7ebf": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/testing-security/unnamed/SKILL.md",
       "computedHash": "bb5e7d27f879e6af63d1791788b6f3e42555c852711163bc4cbe17fbdd854cb5"
     },
-    "长列表虚拟滚动优化方案": {
+    "\u957f\u5217\u8868\u865a\u62df\u6eda\u52a8\u4f18\u5316\u65b9\u6848": {
       "source": "diegosouzapw/awesome-omni-skill",
       "sourceType": "github",
       "skillPath": "skills/development/unnamed-majiayu000/SKILL.md",
