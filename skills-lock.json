@@ -1073,10 +1073,10 @@
       "computedHash": "48a38c5e2b000d134c3db282364b1014bad362fa91d4618ad8c2eb7cee991208"
     },
     "skill-creator": {
-      "source": "openclaw/openclaw",
+      "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "9165e935df18d09731ec971790ba2f14150d90e6788995738d66d4197e524f60"
+      "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
     },
     "slacrawl": {
       "source": "openclaw/openclaw",
