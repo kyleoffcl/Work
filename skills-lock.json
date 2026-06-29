@@ -1307,6 +1307,12 @@
       "skillPath": "skills/video-frames/SKILL.md",
       "computedHash": "77dffe08eb504e9e1187b4f45abe455c586453fd2c9c3a923436ea69353c3e57"
     },
+    "video-generation": {
+      "source": "bytedance/deer-flow",
+      "sourceType": "github",
+      "skillPath": "skills/public/video-generation/SKILL.md",
+      "computedHash": "1bc42cd686e5471731ec8eb06eb8a1d40bcabfb5e6ac9791d3ca8000dffc46ab"
+    },
     "video-report": {
       "source": "remotion-dev/remotion",
       "sourceType": "github",
