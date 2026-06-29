@@ -7,6 +7,13 @@
       "skillPath": "contrib/hermes-skill/SKILL.md",
       "computedHash": "b946c24a4c5ccb27076a2a03927658303c6e06f573a1712ec4b0a685f2a7c5f3"
     },
+    "canvas-design": {
+      "source": "anthropics/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/canvas-design/SKILL.md",
+      "computedHash": "3fa7ea60170023ad8268bf9fd734ea75dd404279a2ef8ddf5abaa1102ad8e5f4"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "ref": "main",
