@@ -1391,6 +1391,12 @@
       "skillPath": ".agents/skills/web-renderer-test/SKILL.md",
       "computedHash": "c5edfba5d68d897b3cdf9b208db16f99506d84852ef50a192c55b216cc18a2cf"
     },
+    "website-style-images": {
+      "source": "LeoYeAI/openclaw-master-skills",
+      "sourceType": "github",
+      "skillPath": "skills/nano-website-style-images/SKILL.md",
+      "computedHash": "8d1538ab433a89157f3096ac90e704c55d44dd9b0d088053dcff88809e0d8317"
+    },
     "writing-docs": {
       "source": "remotion-dev/remotion",
       "sourceType": "github",
