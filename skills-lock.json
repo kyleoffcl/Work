@@ -1289,6 +1289,12 @@
       "skillPath": "skills/video/SKILL.md",
       "computedHash": "8286d39be8d86f9fc1c39b3c340cdebcf9a490f7606ffde566572baa163b1fe7"
     },
+    "video-captions": {
+      "source": "thedaviddias/Front-End-Checklist",
+      "sourceType": "github",
+      "skillPath": "skills/video-captions/SKILL.md",
+      "computedHash": "80455865577bb65a9bc7809e4e80b780ba29d44ef53ce52bda95ac71b1c85eeb"
+    },
     "video-editing": {
       "source": "affaan-m/ECC",
       "sourceType": "github",
