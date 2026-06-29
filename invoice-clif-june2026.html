@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice – Clif | Cozy Comet Cabin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #e8d9b0;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+    }
+
+    .page {
+      background: #111111;
+      border: 1px solid #b8972a;
+      max-width: 720px;
+      width: 100%;
+      padding: 56px 60px;
+      position: relative;
+    }
+
+    /* corner accents */
+    .page::before, .page::after {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-color: #b8972a;
+      border-style: solid;
+    }
+    .page::before { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+    .page::after  { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .logo-wrap img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(184,151,42,0.4));
+    }
+
+    .brand h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #c9a84c;
+      text-transform: uppercase;
+    }
+
+    .brand address {
+      font-style: normal;
+      font-size: 0.72rem;
+      line-height: 1.7;
+      color: #9e8c6e;
+      margin-top: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #b8972a;
+      opacity: 0.4;
+      margin: 0 0 32px;
+    }
+
+    /* ── Invoice meta ── */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 0;
+      margin-bottom: 36px;
+    }
+
+    .meta-grid .label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7a6b4f;
+    }
+
+    .meta-grid .value {
+      font-size: 0.82rem;
+      color: #dfc97a;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Invoice title ── */
+    .invoice-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: #c9a84c;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+
+    thead tr {
+      background: #b8972a;
+    }
+
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0a0a0a;
+      font-weight: 600;
+    }
+
+    thead th:last-child { text-align: right; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(184,151,42,0.15);
+    }
+
+    tbody tr:nth-child(even) { background: rgba(184,151,42,0.04); }
+
+    tbody td {
+      padding: 14px 14px;
+      font-size: 0.82rem;
+      color: #e8d9b0;
+    }
+
+    tbody td:last-child { text-align: right; }
+
+    /* ── Totals ── */
+    .totals {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    .totals-row {
+      display: flex;
+      gap: 40px;
+      width: 280px;
+      justify-content: space-between;
+      font-size: 0.82rem;
+    }
+
+    .totals-row .t-label { color: #9e8c6e; }
+    .totals-row .t-val   { color: #e8d9b0; }
+
+    .totals-row.subtotal { padding-bottom: 10px; border-bottom: 1px solid rgba(184,151,42,0.3); }
+    .totals-row.payment .t-val { color: #a8c77f; }
+
+    .totals-row.balance {
+      margin-top: 4px;
+      padding: 12px 16px;
+      background: rgba(184,151,42,0.1);
+      border: 1px solid #b8972a;
+      width: 300px;
+    }
+
+    .totals-row.balance .t-label {
+      font-weight: 600;
+      color: #c9a84c;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .totals-row.balance .t-val {
+      font-weight: 600;
+      color: #c9a84c;
+      font-size: 1rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid rgba(184,151,42,0.3);
+      padding-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+    }
+
+    .thank-you p {
+      font-size: 0.75rem;
+      line-height: 1.8;
+      color: #9e8c6e;
+      max-width: 340px;
+    }
+
+    .signature {
+      text-align: right;
+    }
+
+    .signature .sig-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #c9a84c;
+      letter-spacing: 0.05em;
+    }
+
+    .signature .sig-role {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7a6b4f;
+      margin-top: 2px;
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page {
+        border: none;
+        max-width: 100%;
+        padding: 32px 40px;
+        background: #fff;
+        color: #111;
+      }
+      .page::before, .page::after { display: none; }
+      body, .brand h1, .invoice-title, .totals-row.balance .t-label,
+      .totals-row.balance .t-val { color: #111 !important; }
+      thead tr { background: #c9a84c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-wrap">
+        <img src="assets/logo.png" alt="Cozy Comet Cabin Logo" />
+      </div>
+      <div class="brand">
+        <h1>Cozy Comet Cabin</h1>
+        <address>
+          Ring Road Neighborhood, Opposite Kyanja Community Police<br />
+          Kampala, Uganda<br />
+          mungokenx@gmail.com
+        </address>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Invoice title & meta -->
+    <div class="invoice-title">Invoice</div>
+
+    <div class="meta-grid">
+      <div>
+        <div class="label">Invoice To</div>
+        <div class="value">Clif</div>
+      </div>
+      <div>
+        <div class="label">Invoice Date</div>
+        <div class="value">29 June 2026</div>
+      </div>
+      <div>
+        <div class="label">Check-In</div>
+        <div class="value">Saturday, 27 June 2026</div>
+      </div>
+      <div>
+        <div class="label">Check-Out</div>
+        <div class="value">Thursday, 2 July 2026</div>
+      </div>
+      <div>
+        <div class="label">Stay Duration</div>
+        <div class="value">5 Nights</div>
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Qty</th>
+          <th>Rate</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Accommodation</td>
+          <td>5 Nights</td>
+          <td>USD $35.00</td>
+          <td>USD $175.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals">
+      <div class="totals-row subtotal">
+        <span class="t-label">Subtotal</span>
+        <span class="t-val">USD $175.00</span>
+      </div>
+      <div class="totals-row payment">
+        <span class="t-label">Payment Received (Upon Arrival)</span>
+        <span class="t-val">− USD $30.00</span>
+      </div>
+      <div class="totals-row balance">
+        <span class="t-label">Balance Due</span>
+        <span class="t-val">USD $145.00</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="thank-you">
+        <p>
+          Thank you for choosing Cozy Comet Cabin.<br />
+          We appreciate your stay and look forward to hosting you again.
+        </p>
+      </div>
+      <div class="signature">
+        <div class="sig-name">Kyle</div>
+        <div class="sig-role">Host, Cozy Comet Cabin</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
