@@ -1,108 +1,119 @@
 ---
 name: obsidian
-description: "Read, write, search, and manage Obsidian vault notes. Use when: (1) Reading/writing markdown notes, (2) Searching vault content, (3) Managing daily/periodic notes, (4) Tracking tasks or oncall incidents. Supports filesystem access and Local REST API."
+description: "Work with Obsidian vaults using the official obsidian CLI: read/search/create/edit notes, tasks, links, properties, plugins."
+homepage: https://obsidian.md/cli
+metadata: { "openclaw": { "emoji": "💎", "requires": { "bins": ["obsidian"] } } }
 ---
 
-# Obsidian Vault Integration
+# Obsidian
 
-## Configuration
+Use the official `obsidian` CLI for Obsidian vault work. Vault files are plain Markdown, so direct file edits are still fine when safer/faster.
 
-```bash
-export OBSIDIAN_VAULT_PATH="/path/to/your/vault"
-export OBSIDIAN_API_KEY="your-api-key-here"           # From: Obsidian Settings → Local REST API
-export OBSIDIAN_DAILY_FORMAT="Journal/Daily/%Y-%m-%d.md"  # Optional
-export OBSIDIAN_TODO_FILE="Inbox/Tasks.md"            # Optional
-```
+## Requirements
 
-## CLI Tools
+- Obsidian 1.12.7+ installed.
+- Settings -> General -> Command line interface enabled.
+- `obsidian` registered on PATH.
+- Obsidian app running; the CLI connects to the running app.
 
-### Filesystem (obsidian.sh)
+Check:
 
 ```bash
-./scripts/obsidian.sh fs-read <path>            # Read note
-./scripts/obsidian.sh fs-write <path> <content> # Write note
-./scripts/obsidian.sh fs-list [dir]             # List .md files
-./scripts/obsidian.sh fs-search <query>         # Grep search
-./scripts/obsidian.sh fs-daily-append <content> # Append to daily note
+obsidian version
+obsidian help
 ```
 
-### Thought (Daily Notes)
+macOS registration creates `/usr/local/bin/obsidian` pointing at the app-bundled CLI. Linux registration copies the binary to `~/.local/bin/obsidian`.
+
+## Vault model
+
+- Notes: `*.md`.
+- Config: `.obsidian/`; avoid editing unless asked.
+- Canvases: `*.canvas` JSON.
+- Attachments: vault-configured folder.
+- Multiple vaults are common; pass `vault="<name>"` when ambiguous.
+
+Obsidian desktop tracks vaults here:
+
+- `~/Library/Application Support/obsidian/obsidian.json`
+
+## Command pattern
 
 ```bash
-thought "Great idea for the app"
-thought "Meeting went well" meeting work
+obsidian <command> [name=value] [flag]
+obsidian vault="Notes" search query="meeting notes" format=json
 ```
 
-### Todo Tracking
+Parameter values with spaces need quotes. Add `--copy` to copy output where useful.
+
+## Common commands
+
+Open/read:
 
 ```bash
-todo add "Review PR" work --due tomorrow --priority high
-todo done 1                    # Complete by number
-todo done "PR"                 # Complete by search
-todo delete 2                  # Remove task
-todo list                      # Show pending
-todo list work                 # Filter by tag
+obsidian open file=Recipe
+obsidian open path="Inbox/Idea.md" newtab
+obsidian read
+obsidian read file=Recipe
 ```
 
-See: [references/todo.md](references/todo.md)
-
-### Oncall Tracking
+Search:
 
 ```bash
-oncall start                   # Start shift
-oncall log "Alert fired" incident database
-oncall resolve "Fixed it" database
-oncall summary                 # View current shift
-oncall end                     # End and archive
+obsidian search query="TODO" matches
+obsidian search query="status::active" format=json
+obsidian search:open query="project notes"
 ```
 
-See: [references/oncall.md](references/oncall.md)
-
-### REST API (obsidian.sh)
+Create/modify:
 
 ```bash
-./scripts/obsidian.sh status              # Check connection
-./scripts/obsidian.sh read <path>         # Read via API
-./scripts/obsidian.sh write <path> <content>
-./scripts/obsidian.sh daily               # Get daily note
-./scripts/obsidian.sh daily-append <content>
-./scripts/obsidian.sh search <query>      # Simple search
+obsidian create name="New Note"
+obsidian create path="Inbox/Idea.md" content="# Idea"
+obsidian append file=Note content="New line"
+obsidian prepend file=Note content="After frontmatter"
 ```
 
-See: [references/api-reference.md](references/api-reference.md)
-
-## Quick Filesystem Access
+Move/delete:
 
 ```bash
-# Read
-cat "$OBSIDIAN_VAULT_PATH/folder/note.md"
-
-# Write
-cat > "$OBSIDIAN_VAULT_PATH/folder/note.md" << 'EOF'
-# My Note
-Content here
-EOF
-
-# Search
-grep -r "term" "$OBSIDIAN_VAULT_PATH" --include="*.md"
+obsidian move file=Note to=Archive/
+obsidian move path="Inbox/Old.md" to="Projects/New.md"
+obsidian delete file=Note
 ```
 
-## Decision Guide
+Daily/tasks:
 
-| Need                  | Method        |
-| --------------------- | ------------- |
-| Fast read/write       | Filesystem    |
-| Quick thoughts/notes  | `thought` CLI |
-| Task management       | `todo` CLI    |
-| Oncall/incidents      | `oncall` CLI  |
-| Search by frontmatter | REST API      |
-| Dataview queries      | REST API      |
-| Execute commands      | REST API      |
-| No Obsidian running   | Filesystem    |
+```bash
+obsidian daily
+obsidian daily:read
+obsidian daily:append content="- [ ] Review inbox"
+obsidian tasks all todo
+obsidian task file=Note line=8 done
+```
 
-## Reference Docs
+Properties/links:
 
-- [API Reference](references/api-reference.md) - REST API endpoints and curl examples
-- [Thought Reference](references/thought.md) - Quick notes to daily journal
-- [Todo Reference](references/todo.md) - Task management with Obsidian Tasks format
-- [Oncall Reference](references/oncall.md) - Incident tracking and shift management
+```bash
+obsidian tags all counts
+obsidian property:read file=Note name=status
+obsidian property:set file=Note name=status value=done
+obsidian backlinks file=Note
+obsidian unresolved verbose counts
+```
+
+Developer/debug:
+
+```bash
+obsidian plugin:reload my-plugin
+obsidian dev:errors
+obsidian dev:screenshot file=shot.png
+obsidian eval "app.vault.getFiles().length"
+```
+
+## Notes
+
+- `file=<name>` uses Obsidian-style file resolution; `path=<vault-relative.md>` is exact.
+- Prefer CLI move/delete/property commands for Obsidian-aware updates.
+- Prefer direct Markdown edits for bulk text changes after locating the vault path.
+- Do not rely on third-party `obsidian-cli` unless user explicitly asks for it.

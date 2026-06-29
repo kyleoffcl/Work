@@ -1,487 +1,182 @@
 ---
 name: seo-audit
-description: Diagnose and audit SEO issues affecting crawlability, indexation, rankings, and organic performance.
-risk: unknown
-source: community
-date_added: '2026-02-27'
+description: "Full website SEO audit with parallel subagent delegation. Crawls up to 500 pages, detects business type, delegates to up to 15 specialists (8 always + 7 conditional), generates health score. Use when user says audit, full SEO check, analyze my site, or website health check."
+user-invocable: true
+argument-hint: "[url]"
+license: MIT
+metadata:
+  author: AgriciDaniel
+  version: "2.2.0"
+  category: seo
 ---
 
-# SEO Audit
+# Full Website SEO Audit
 
-You are an **SEO diagnostic specialist**.
-Your role is to **identify, explain, and prioritize SEO issues** that affect organic visibility—**not to implement fixes unless explicitly requested**.
+## Process
 
-Your output must be **evidence-based, scoped, and actionable**.
+1. **Render homepage**: use `python3 scripts/render_page.py <url> --mode auto --json` to capture raw HTML, rendered HTML, extracted text, SPA status, and accessibility data when needed
+2. **Detect business type**: analyze homepage signals per seo orchestrator
+3. **Crawl site**: follow internal links up to 500 pages, respect robots.txt
+4. **Delegate to subagents** (if available, otherwise run inline sequentially):
+   - `seo-technical` -- robots.txt, sitemaps, canonicals, Core Web Vitals, security headers
+   - `seo-content` -- E-E-A-T, readability, thin content, AI citation readiness
+   - `seo-schema` -- detection, validation, generation recommendations
+   - `seo-sitemap` -- structure analysis, quality gates, missing pages
+   - `seo-performance` -- LCP, INP, CLS measurements
+   - `seo-visual` -- screenshots, mobile testing, above-fold analysis
+   - `seo-geo` -- AI crawler access, llms.txt, citability, brand mention signals
+   - `seo-local` -- GBP signals, NAP consistency, reviews, local schema, industry-specific local factors (spawn when Local Service industry detected: brick-and-mortar, SAB, or hybrid business type)
+   - `seo-maps` -- Geo-grid rank tracking, GBP audit, review intelligence, competitor radius mapping (spawn when Local Service detected AND DataForSEO MCP available)
+   - `seo-google` -- CWV field data (CrUX), URL indexation (GSC), organic traffic (GA4) (spawn when Google API credentials detected via `python3 scripts/google_auth.py --check`)
+   - `seo-backlinks` -- Backlink profile data: DA/PA, referring domains, anchor text, toxic links (spawn when Moz or Bing API credentials detected via `python3 scripts/backlinks_auth.py --check`, or always include Common Crawl domain-level metrics)
+   - `seo-cluster` -- Semantic clustering analysis (spawn when content strategy signals detected: blog, pillar pages, topic clusters)
+   - `seo-sxo` -- Search experience analysis: page-type mismatch, user stories, persona scoring (always include in full audits)
+   - `seo-drift` -- Drift analysis: compare against stored baseline (spawn when drift baseline exists for the URL via `python3 scripts/drift_history.py <url>`)
+   - `seo-ecommerce` -- Product schema, marketplace intelligence (spawn when E-commerce industry detected)
+5. **Score** -- aggregate into SEO Health Score (0-100)
+6. **Persist audit artifacts** -- write all outputs under `{domain}-audit/`
+7. **Report** -- generate prioritized action plan and optional PDF/HTML report
 
----
+## Crawl Configuration
 
-## Scope Gate (Ask First if Missing)
+```
+Max pages: 500
+Respect robots.txt: Yes
+Follow redirects: Yes (max 3 hops)
+Timeout per page: 30 seconds
+Concurrent requests: 5
+Delay between requests: 1 second
+```
 
-Before performing a full audit, clarify:
+## Output Files
 
-1. **Business Context**
+- `{domain}-audit/FULL-AUDIT-REPORT.md`: Comprehensive findings
+- `{domain}-audit/ACTION-PLAN.md`: Prioritized recommendations (Critical > High > Medium > Low)
+- `{domain}-audit/audit-data.json`: Structured audit envelope for report generation
+- `{domain}-audit/findings/*.md`: Per-category specialist findings (`technical.md`, `content.md`, `schema.md`, `performance.md`, `visual.md`, etc.)
+- `{domain}-audit/screenshots/`: Desktop + mobile captures (if Playwright available)
+- **PDF Report** (recommended): Generate a professional A4 PDF using `scripts/google_report.py --type full --data {domain}-audit/audit-data.json --domain <domain> --output-dir {domain}-audit/`. This produces a white-cover enterprise report with TOC, executive summary, charts (Lighthouse gauges, query bars, index donut), metric cards, threshold tables, prioritized recommendations with effort estimates, and implementation roadmap. Always offer PDF generation after completing an audit.
 
-   * Site type (SaaS, e-commerce, blog, local, marketplace, etc.)
-   * Primary SEO goal (traffic, conversions, leads, brand visibility)
-   * Target markets and languages
+## Structured Audit Data Envelope
 
-2. **SEO Focus**
+Write `{domain}-audit/audit-data.json` with this shape so `python3 scripts/google_report.py --type full --data {domain}-audit/audit-data.json --domain <domain> --output-dir {domain}-audit/` can generate a report even when Google API data is unavailable:
 
-   * Full site audit or specific sections/pages?
-   * Technical SEO, on-page, content, or all?
-   * Desktop, mobile, or both?
+```json
+{
+  "summary": {
+    "health_score": 0,
+    "business_type": "detected type",
+    "top_findings": [],
+    "quick_wins": []
+  },
+  "categories": [
+    {
+      "name": "Technical SEO",
+      "score": 0,
+      "what_works": [],
+      "findings": [
+        {
+          "title": "Finding title",
+          "severity": "Critical|High|Medium|Low|Info",
+          "description": "Evidence-backed detail",
+          "recommendation": "Specific fix"
+        }
+      ]
+    }
+  ],
+  "action_plan": {
+    "phases": [
+      {"name": "Phase 1: Critical Fixes", "timeframe": "Week 1", "items": []},
+      {"name": "Phase 2: High-Impact Improvements", "timeframe": "Weeks 2-3", "items": []},
+      {"name": "Phase 3: Content & Authority", "timeframe": "Month 2", "items": []},
+      {"name": "Phase 4: Monitoring & Iteration", "timeframe": "Ongoing", "items": []}
+    ]
+  },
+  "artifacts": {
+    "findings_dir": "findings/",
+    "screenshots_dir": "screenshots/"
+  }
+}
+```
 
-3. **Data Access**
+## Scoring Weights
 
-   * Google Search Console access?
-   * Analytics access?
-   * Known issues, penalties, or recent changes (migration, redesign, CMS change)?
+| Category | Weight |
+|----------|--------|
+| Technical SEO | 22% |
+| Content Quality | 23% |
+| On-Page SEO | 20% |
+| Schema / Structured Data | 10% |
+| Performance (CWV) | 10% |
+| AI Search Readiness | 10% |
+| Images | 5% |
 
-If critical context is missing, **state assumptions explicitly** before proceeding.
+## Report Structure
 
----
+### Executive Summary
+- Overall SEO Health Score (0-100)
+- Business type detected
+- Top 5 critical issues
+- Top 5 quick wins
 
-## Audit Framework (Priority Order)
+### Technical SEO
+- Crawlability issues
+- Indexability problems
+- Security concerns
+- Core Web Vitals status
 
-1. **Crawlability & Indexation** – Can search engines access and index the site?
-2. **Technical Foundations** – Is the site fast, stable, and accessible?
-3. **On-Page Optimization** – Is each page clearly optimized for its intent?
-4. **Content Quality & E-E-A-T** – Does the content deserve to rank?
-5. **Authority & Signals** – Does the site demonstrate trust and relevance?
+### Content Quality
+- E-E-A-T assessment
+- Thin content pages
+- Duplicate content issues
+- Readability scores
 
----
+### On-Page SEO
+- Title tag issues
+- Meta description problems
+- Heading structure
+- Internal linking gaps
 
-## Technical SEO Audit
+### Schema & Structured Data
+- Current implementation
+- Validation errors
+- Missing opportunities
 
-### Crawlability
-
-**Robots.txt**
-
-* Accidental blocking of important paths
-* Sitemap reference present
-* Environment-specific rules (prod vs staging)
-
-**XML Sitemaps**
-
-* Accessible and valid
-* Contains only canonical, indexable URLs
-* Reasonable size and segmentation
-* Submitted and processed successfully
-
-**Site Architecture**
-
-* Key pages within ~3 clicks
-* Logical hierarchy
-* Internal linking coverage
-* No orphaned URLs
-
-**Crawl Efficiency (Large Sites)**
-
-* Parameter handling
-* Faceted navigation controls
-* Infinite scroll with crawlable pagination
-* Session IDs avoided
-
----
-
-### Indexation
-
-**Coverage Analysis**
-
-* Indexed vs expected pages
-* Excluded URLs (intentional vs accidental)
-
-**Common Indexation Issues**
-
-* Incorrect `noindex`
-* Canonical conflicts
-* Redirect chains or loops
-* Soft 404s
-* Duplicate content without consolidation
-
-**Canonicalization Consistency**
-
-* Self-referencing canonicals
-* HTTPS consistency
-* Hostname consistency (www / non-www)
-* Trailing slash rules
-
----
-
-### Performance & Core Web Vitals
-
-**Key Metrics**
-
-* LCP < 2.5s
-* INP < 200ms
-* CLS < 0.1
-
-**Contributing Factors**
-
-* Server response time
-* Image handling
-* JavaScript execution cost
-* CSS delivery
-* Caching strategy
-* CDN usage
-* Font loading behavior
-
----
-
-### Mobile-Friendliness
-
-* Responsive layout
-* Proper viewport configuration
-* Tap target sizing
-* No horizontal scrolling
-* Content parity with desktop
-* Mobile-first indexing readiness
-
----
-
-### Security & Accessibility Signals
-
-* HTTPS everywhere
-* Valid certificates
-* No mixed content
-* HTTP → HTTPS redirects
-* Accessibility issues that impact UX or crawling
-
----
-
-## On-Page SEO Audit
-
-### Title Tags
-
-* Unique per page
-* Keyword-aligned
-* Appropriate length
-* Clear intent and differentiation
-
-### Meta Descriptions
-
-* Unique and descriptive
-* Supports click-through
-* Not auto-generated noise
-
-### Heading Structure
-
-* One clear H1
-* Logical hierarchy
-* Headings reflect content structure
-
-### Content Optimization
-
-* Satisfies search intent
-* Sufficient topical depth
-* Natural keyword usage
-* Not competing with other internal pages
+### Performance
+- LCP, INP, CLS scores
+- Resource optimization needs
+- Third-party script impact
 
 ### Images
+- Missing alt text
+- Oversized images
+- Format recommendations
 
-* Descriptive filenames
-* Accurate alt text
-* Proper compression and formats
-* Responsive handling and lazy loading
+### AI Search Readiness
+- Citability score
+- Structural improvements
+- Authority signals
 
-### Internal Linking
+## Priority Definitions
 
-* Important pages reinforced
-* Descriptive anchor text
-* No broken links
-* Balanced link distribution
+- **Critical**: Blocks indexing or causes penalties (fix immediately)
+- **High**: Significantly impacts rankings (fix within 1 week)
+- **Medium**: Optimization opportunity (fix within 1 month)
+- **Low**: Nice to have (backlog)
 
----
+## DataForSEO Integration (Optional)
 
-## Content Quality & E-E-A-T
+If DataForSEO MCP tools are available, spawn the `seo-dataforseo` agent alongside existing subagents to enrich the audit with live data: real SERP positions, backlink profiles with spam scores, on-page analysis (Lighthouse), business listings, and AI visibility checks (ChatGPT scraper, LLM mentions).
 
-### Experience & Expertise
+## Google API Integration (Optional)
 
-* First-hand knowledge
-* Original insights or data
-* Clear author attribution
+If Google API credentials are configured (`python3 scripts/google_auth.py --check`), spawn the `seo-google` agent to enrich the audit with real Google field data: CrUX Core Web Vitals (replaces lab-only estimates), GSC URL indexation status, search performance (clicks, impressions, CTR), and GA4 organic traffic trends. The Performance (CWV) category score benefits most from field data.
 
-### Authoritativeness
+## Error Handling
 
-* Citations or recognition
-* Consistent topical focus
-
-### Trustworthiness
-
-* Accurate, updated content
-* Transparent business information
-* Policies (privacy, terms)
-* Secure site
-
----
-## 🔢 SEO Health Index & Scoring Layer (Additive)
-
-### Purpose
-
-The **SEO Health Index** provides a **normalized, explainable score** that summarizes overall SEO health **without replacing detailed findings**.
-
-It is designed to:
-
-* Communicate severity at a glance
-* Support prioritization
-* Track improvement over time
-* Avoid misleading “one-number SEO” claims
-
----
-
-## Scoring Model Overview
-
-### Total Score: **0–100**
-
-The score is a **weighted composite**, not an average.
-
-| Category                  | Weight  |
-| ------------------------- | ------- |
-| Crawlability & Indexation | 30      |
-| Technical Foundations     | 25      |
-| On-Page Optimization      | 20      |
-| Content Quality & E-E-A-T | 15      |
-| Authority & Trust Signals | 10      |
-| **Total**                 | **100** |
-
-> If a category is **out of scope**, redistribute its weight proportionally and state this explicitly.
-
----
-
-## Category Scoring Rules
-
-Each category is scored **independently**, then weighted.
-
-### Per-Category Score: 0–100
-
-Start each category at **100** and subtract points based on issues found.
-
-#### Severity Deductions
-
-| Issue Severity                              | Deduction  |
-| ------------------------------------------- | ---------- |
-| Critical (blocks crawling/indexing/ranking) | −15 to −30 |
-| High impact                                 | −10        |
-| Medium impact                               | −5         |
-| Low impact / cosmetic                       | −1 to −3   |
-
-#### Confidence Modifier
-
-If confidence is **Medium**, apply **50%** of the deduction
-If confidence is **Low**, apply **25%** of the deduction
-
----
-
-## Example (Category)
-
-> Crawlability & Indexation (Weight: 30)
-
-* Noindex on key category pages → Critical (−25, High confidence)
-* XML sitemap includes redirected URLs → Medium (−5, Medium confidence → −2.5)
-* Missing sitemap reference in robots.txt → Low (−2)
-
-**Raw score:** 100 − 29.5 = **70.5**
-**Weighted contribution:** 70.5 × 0.30 = **21.15**
-
----
-
-## Overall SEO Health Index
-
-### Calculation
-
-```
-SEO Health Index =
-Σ (Category Score × Category Weight)
-```
-
-Rounded to nearest whole number.
-
----
-
-## Health Bands (Required)
-
-Always classify the final score into a band:
-
-| Score Range | Health Status | Interpretation                                  |
-| ----------- | ------------- | ----------------------------------------------- |
-| 90–100      | Excellent     | Strong SEO foundation, minor optimizations only |
-| 75–89       | Good          | Solid performance with clear improvement areas  |
-| 60–74       | Fair          | Meaningful issues limiting growth               |
-| 40–59       | Poor          | Serious SEO constraints                         |
-| <40         | Critical      | SEO is fundamentally broken                     |
-
----
-
-## Output Requirements (Scoring Section)
-
-Include this **after the Executive Summary**:
-
-### SEO Health Index
-
-* **Overall Score:** XX / 100
-* **Health Status:** [Excellent / Good / Fair / Poor / Critical]
-
-#### Category Breakdown
-
-| Category                  | Score | Weight | Weighted Contribution |
-| ------------------------- | ----- | ------ | --------------------- |
-| Crawlability & Indexation | XX    | 30     | XX                    |
-| Technical Foundations     | XX    | 25     | XX                    |
-| On-Page Optimization      | XX    | 20     | XX                    |
-| Content Quality & E-E-A-T | XX    | 15     | XX                    |
-| Authority & Trust         | XX    | 10     | XX                    |
-
----
-
-## Interpretation Rules (Mandatory)
-
-* The score **does not replace findings**
-* Improvements must be traceable to **specific issues**
-* A high score with unresolved **Critical issues is invalid** → flag inconsistency
-* Always explain **what limits the score from being higher**
-
----
-
-## Change Tracking (Optional but Recommended)
-
-If a previous audit exists:
-
-* Include **score delta** (+/−)
-* Attribute change to specific fixes
-* Avoid celebrating score increases without validating outcomes
-
----
-
-## Explicit Limitations (Always State)
-
-* Score reflects **SEO readiness**, not guaranteed rankings
-* External factors (competition, algorithm updates) are not scored
-* Authority score is directional, not exhaustive
-
-### Findings Classification (Required · Scoring-Aligned)
-
-For **every identified issue**, provide the following fields.
-These fields are **mandatory** and directly inform the SEO Health Index.
-
-* **Issue**
-  A concise description of what is wrong (one sentence, no solution).
-
-* **Category**
-  One of:
-
-  * Crawlability & Indexation
-  * Technical Foundations
-  * On-Page Optimization
-  * Content Quality & E-E-A-T
-  * Authority & Trust Signals
-
-* **Evidence**
-  Objective proof of the issue (e.g. URLs, reports, headers, crawl data, screenshots, metrics).
-  *Do not rely on intuition or best-practice claims.*
-
-* **Severity**
-  One of:
-
-  * Critical (blocks crawling, indexation, or ranking)
-  * High
-  * Medium
-  * Low
-
-* **Confidence**
-  One of:
-
-  * High (directly observed, repeatable)
-  * Medium (strong indicators, partial confirmation)
-  * Low (indirect or sample-based)
-
-* **Why It Matters**
-  A short explanation of the SEO impact in plain language.
-
-* **Score Impact**
-  The point deduction applied to the relevant category **before weighting**, including confidence modifier.
-
-* **Recommendation**
-  What should be done to resolve the issue.
-  **Do not include implementation steps unless explicitly requested.**
-
----
-
-### Prioritized Action Plan (Derived from Findings)
-
-The action plan must be **derived directly from findings and scores**, not subjective judgment.
-
-Group actions as follows:
-
-1. **Critical Blockers**
-
-   * Issues with *Critical severity*
-   * Issues that invalidate the SEO Health Index if unresolved
-   * Highest negative score impact
-
-2. **High-Impact Improvements**
-
-   * High or Medium severity issues with large cumulative score deductions
-   * Issues affecting multiple pages or templates
-
-3. **Quick Wins**
-
-   * Low or Medium severity issues
-   * Easy to fix with measurable score improvement
-
-4. **Longer-Term Opportunities**
-
-   * Structural or content improvements
-   * Items that improve resilience, depth, or authority over time
-
-For each action group:
-
-* Reference the **related findings**
-* Explain **expected score recovery range**
-* Avoid timelines unless explicitly requested
-
----
-
-### Tools (Evidence Sources Only)
-
-Tools may be referenced **only to support evidence**, never as authority by themselves.
-
-Acceptable uses:
-
-* Demonstrating an issue exists
-* Quantifying impact
-* Providing reproducible data
-
-Examples:
-
-* Search Console (coverage, CWV, indexing)
-* PageSpeed Insights (field vs lab metrics)
-* Crawlers (URL discovery, metadata validation)
-* Log analysis (crawl behavior, frequency)
-
-Rules:
-
-* Do not rely on a single tool for conclusions
-* Do not report tool “scores” without interpretation
-* Always explain *what the data shows* and *why it matters*
-
----
-
-### Related Skills (Non-Overlapping)
-
-Use these skills **only after the audit is complete** and findings are accepted.
-
-* **programmatic-seo**
-  Use when the action plan requires **scaling page creation** across many URLs.
-
-* **schema-markup**
-  Use when structured data implementation is approved as a remediation.
-
-* **page-cro**
-  Use when the goal shifts from ranking to **conversion optimization**.
-
-* **analytics-tracking**
-  Use when measurement gaps prevent confident auditing or score validation.
-
-
-## When to Use
-This skill is applicable to execute the workflow or actions described in the overview.
+| Scenario | Action |
+|----------|--------|
+| URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess site content. Suggest the user verify the URL and try again. |
+| robots.txt blocks crawling | Report which paths are blocked. Analyze only accessible pages and note the limitation in the report. |
+| Rate limiting (429 responses) | Back off and reduce concurrent requests. Report partial results with a note on which sections could not be completed. |
+| Timeout on large sites (500+ pages) | Cap the crawl at the timeout limit. Report findings for pages crawled and estimate total site scope. |
