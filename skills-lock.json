@@ -14,6 +14,12 @@
       "skillPath": "skills/canvas-design/SKILL.md",
       "computedHash": "3fa7ea60170023ad8268bf9fd734ea75dd404279a2ef8ddf5abaa1102ad8e5f4"
     },
+    "context-engineering-collection": {
+      "source": "muratcankoylan/agent-skills-for-context-engineering",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "fd22a73308db7e95bb4596603b833ce83a0ac86345c403eee9d63b9e58a4abbc"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "ref": "main",
