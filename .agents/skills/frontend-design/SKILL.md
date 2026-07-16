@@ -1,156 +1,55 @@
 ---
-name: Frontend Design
-description: Design and build production-ready frontend interfaces with design systems, responsive layouts, accessible components, and dark mode support.
-license: MIT
-metadata:
-  author: AI Agent Skills Community
-  version: 1.0.0
+name: frontend-design
+description: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+license: Complete terms in LICENSE.txt
 ---
 
 # Frontend Design
 
-This skill enables the agent to design and implement frontend interfaces that are visually polished, responsive, accessible, and maintainable. The agent works with design systems — component libraries, spacing scales, color tokens, and typography scales — to produce consistent UI code. It outputs production-ready HTML, CSS (including Tailwind CSS), and framework components (React, Vue, Svelte) with WCAG-compliant accessibility and dark mode support built in.
+Approach this as the design lead at a small studio known for giving every client a visual identity that could not be mistaken for anyone else's. This client has already rejected proposals that felt templated, and is paying for a distinctive point of view: make deliberate, opinionated choices about palette, typography, and layout that are specific to this brief, and take one real aesthetic risk you can justify.
 
-## Workflow
+## Ground it in the subject
 
-1. **Analyze Requirements and Constraints**: Identify the target platforms (desktop, tablet, mobile), the framework in use (React, Vue, plain HTML), the styling approach (Tailwind, CSS Modules, styled-components), and any existing design tokens or brand guidelines. Determine the key pages or components needed and their priority order.
+If the brief does not pin down what the product or subject is, pin it yourself before designing: name one concrete subject, its audience, and the page's single job, and state your choice. If there's any information in your memory about the human's preferences, context about what they're building, or designs you've made before – use that as a hint. The subject's own world, its materials, instruments, artifacts, and vernacular, is where distinctive choices come from. Build with the brief's real content and subject matter throughout.
 
-2. **Establish the Design System Foundation**: Define the core tokens before writing any component code. This includes a spacing scale (4px base: 4, 8, 12, 16, 24, 32, 48, 64), a type scale (xs through 4xl with corresponding line-heights), a color palette with semantic tokens (primary, secondary, success, warning, error, neutral) in both light and dark variants, and border-radius and shadow tokens. These tokens ensure every component is visually consistent.
+## Design principles
 
-3. **Build Components with Variants**: Implement each component with clearly defined variants (size, color, state). Use props or CSS classes to control variants rather than duplicating markup. Include all interactive states: default, hover, focus-visible, active, disabled. Ensure every interactive element has a visible focus ring for keyboard navigation.
+For web designs, the hero is a thesis. Open with the most characteristic thing in the subject's world, in whatever form makes sense for it: a headline, an image, an animation, a live demo, an interactive moment. Be deliberate with your choice: a big number with a small label, supporting stats, and a gradient accent is the template answer, only use if that's truly the best option.
 
-4. **Implement Responsive Layouts**: Use CSS Grid for two-dimensional page layouts and Flexbox for one-dimensional component alignment. Define breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px) and design mobile-first, layering complexity at larger breakpoints. Test that no horizontal scrolling occurs and that tap targets meet the 44x44px minimum on touch devices.
+Typography carries the personality of the page. Pair the display and body faces deliberately, not the same families you would reach for on any other project, and set a clear type scale with intentional weights, widths, and spacing. Make the type treatment itself a memorable part of the design, not a neutral delivery vehicle for the content.
 
-5. **Integrate Accessibility from the Start**: Apply semantic HTML elements (nav, main, article, section, aside) before adding ARIA attributes. Ensure color contrast meets WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text). Add `aria-label`, `aria-describedby`, and `role` attributes only where semantic HTML is insufficient. Test keyboard navigation order with Tab and Shift+Tab.
+Structure is information. Structural devices, numbering, eyebrows, dividers, labels, should encode something true about the content, not decorate it. Many generic designs use numbered markers (01 / 02 / 03), but that's only appropriate if the content actually is a sequence - like a real process or a typed timeline where order carries information the reader needs. Question if choices like numbered markers actually make sense before incorporating them.
 
-6. **Add Dark Mode Support**: Implement dark mode using a CSS custom property strategy or Tailwind's `dark:` variant. Swap background, text, and border tokens while preserving sufficient contrast ratios. Avoid pure black (`#000`) backgrounds — use a dark gray (`#0f172a` or `#1e293b`) for reduced eye strain. Ensure images, shadows, and elevation levels adapt appropriately.
+Leverage motion deliberately. Think about where and if animation can serve the subject: a page-load sequence, a scroll-triggered reveal, hover micro-interactions, ambient atmosphere. An orchestrated moment usually lands harder than scattered effects; choose what the direction calls for. However, sometimes less is more, and extra animation contributes to the feeling that the design is AI-generated.
 
-## Usage
+Match complexity to the vision. Maximalist directions need elaborate execution; minimal directions need precision in spacing, type, and detail. Elegance is executing the chosen vision well.
 
-Provide the agent with a description of the interface you need, including the framework, styling approach, and any existing design tokens. The agent will produce component code with responsive behavior, accessibility attributes, and dark mode support included.
+Consider written content carefully. Often a design brief may not contain real content, and it's up to you to come up with copy. Copy can make a design feel as templated as the design itself. See the below section on writing for more guidance.
 
-## Examples
+## Process: brainstorm, explore, plan, critique, build, critique again
 
-### Example 1: React Card Component with Tailwind CSS Variants
+For calibration: AI-generated design right now clusters around three looks: (1) a warm cream background (near #F4F1EA) with a high-contrast serif display and a terracotta accent; (2) a near-black background with a single bright acid-green or vermilion accent; (3) a broadsheet-style layout with hairline rules, zero border-radius, and dense newspaper-like columns. All three are legitimate for some briefs, but they are defaults rather than choices, and they appear regardless of subject. Where the brief pins down a visual direction, follow it exactly — the brief's own words always win, including when it asks for one of these looks. Where it leaves an axis free, don't spend that freedom on one of these defaults. Just like a human designer who's hired, there's often a careful balance between doing what you're good at and taking each project as a chance to experiment and learn.
 
-**User Request**: "Create a reusable Card component in React with Tailwind CSS. I need default, elevated, and outlined variants, plus support for dark mode."
+Work in two passes. First, brainstorm a short design plan based on the human's design brief: create a compact token system with color, type, layout, and signature. Color: describe the palette as 4–6 named hex values. Type: the typefaces for 2+ roles (a characterful display face that's used with restraint, a complementary body face, and a utility face for captions or data if needed). Layout: a layout concept, using one-sentence prose descriptions and ASCII wireframes to ideate and compare. Signature: the single unique element this page will be remembered by that embodies the brief in an appropriate way.
 
-**Agent Response**:
+Then review that plan against the brief before building: if any part of it reads like the generic default you would produce for any similar page (work through a similar prompt to see if you arrive somewhere similar) rather than a choice made for this specific brief — revise that part, say what you changed and why. Only after you've confirmed the relative uniqueness of your design plan should you start to write the code, following the revised plan exactly and deriving every color and type decision from it.
 
-```jsx
-function Card({ variant = 'default', children, className = '' }) {
-  const base = 'rounded-lg p-6 transition-colors duration-200';
+When writing the code, be careful of structuring your CSS selector specificities. It's easy to generate CSS classes that cancel each other out (especially with a type-based selector like .section and a element-based selector like .cta). This can happen often with paddings/margins between sections.
 
-  const variants = {
-    default:
-      'bg-white text-gray-900 dark:bg-slate-800 dark:text-gray-100',
-    elevated:
-      'bg-white text-gray-900 shadow-lg hover:shadow-xl dark:bg-slate-800 dark:text-gray-100 dark:shadow-slate-900/30',
-    outlined:
-      'bg-transparent text-gray-900 border border-gray-200 dark:text-gray-100 dark:border-slate-700',
-  };
+Try to do a lot of this planning and iteration in your thinking, and only show ideas to the user when you have higher confidence it'll delight them.
 
-  return (
-    <div className={`${base} ${variants[variant]} ${className}`}>
-      {children}
-    </div>
-  );
-}
+## Restraint and self-critique
 
-function CardHeader({ title, subtitle }) {
-  return (
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold leading-tight">{title}</h3>
-      {subtitle && (
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {subtitle}
-        </p>
-      )}
-    </div>
-  );
-}
+Spend your boldness in one place. Let the signature element be the one memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Not taking a risk can be a risk itself! Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected. Critique your own work as you build, taking screenshots if your environment supports it – a picture is worth 1000 tokens. Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creators have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
 
-function CardFooter({ children }) {
-  return (
-    <div className="mt-6 flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-slate-700">
-      {children}
-    </div>
-  );
-}
-```
+## More on writing in design
 
-**Usage of the component**:
-```jsx
-<Card variant="elevated">
-  <CardHeader title="Monthly Revenue" subtitle="Jan 2026" />
-  <p className="text-3xl font-bold">$48,250</p>
-  <CardFooter>
-    <span className="text-sm text-green-600 dark:text-green-400">+12.5% from last month</span>
-  </CardFooter>
-</Card>
-```
+Words appear in a design for one reason: to make it easier to understand, and therefore easier to use. They are design material, not decoration. Bring the same intentionality to copy that you would bring to spacing and color. Before writing anything, ask what the design needs to say, and how it can best be said to help the person navigate the experience.
 
-### Example 2: Responsive Dashboard Layout with CSS Grid
+Write from the end user's side of the screen. Name things by what people control and recognize, never by how the system is built. A person manages notifications, not webhook config. Describe what something does in plain terms rather than selling it. Being specific is always better than being clever.
 
-**User Request**: "Build a responsive dashboard layout with a sidebar, top nav, and main content area. Sidebar should collapse on mobile."
+Use active voice as default. A control should say exactly what happens when it's used: "Save changes," not "Submit." An action keeps the same name through the whole flow, so the button that says "Publish" produces a toast that says "Published." The vocabulary of an interface is the signposting for someone navigating the product. Cohesion and consistency are how people learn their way around.
 
-**Agent Response**:
+Treat failure and emptiness as moments for direction, not mood. Explain what went wrong and how to fix it, in the interface's voice rather than a person's. Errors don't apologize, and they are never vague about what happened. An empty screen is an invitation to act.
 
-```html
-<div class="dashboard">
-  <nav class="dashboard__topbar" role="navigation" aria-label="Primary">
-    <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">☰</button>
-    <h1 class="topbar-title">Dashboard</h1>
-    <div class="topbar-actions"><!-- user avatar, notifications --></div>
-  </nav>
-  <aside class="dashboard__sidebar" role="navigation" aria-label="Sidebar">
-    <ul role="list">
-      <li><a href="/overview" aria-current="page">Overview</a></li>
-      <li><a href="/analytics">Analytics</a></li>
-      <li><a href="/settings">Settings</a></li>
-    </ul>
-  </aside>
-  <main class="dashboard__content" id="main-content" role="main">
-    <!-- page content -->
-  </main>
-</div>
-```
-
-```css
-.dashboard {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 56px 1fr;
-  min-height: 100vh;
-}
-.dashboard__topbar { grid-column: 1 / -1; }
-.dashboard__sidebar { display: none; }
-
-@media (min-width: 768px) {
-  .dashboard {
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: 56px 1fr;
-  }
-  .dashboard__sidebar { display: flex; flex-direction: column; }
-  .sidebar-toggle { display: none; }
-}
-```
-
-On screens below 768px the sidebar is hidden and a hamburger toggle button appears in the top bar. On tablet and desktop the sidebar is persistently visible at 240px wide, and the main content fills the remaining space.
-
-## Best Practices
-
-- **Start with semantic HTML before styling**: A `<button>` is always better than a styled `<div onClick>`. Semantic elements provide keyboard handling, screen reader announcements, and form submission behavior for free.
-- **Use design tokens, not hard-coded values**: Every color, spacing value, font-size, and shadow should reference a token. This makes theme changes and dark mode a matter of swapping token sets rather than hunting through component files.
-- **Design mobile-first, then enhance**: Write base styles for the smallest viewport. Add complexity at larger breakpoints with `min-width` media queries. This prevents desktop assumptions from breaking mobile layouts.
-- **Test with a keyboard before shipping**: Navigate every interactive flow using only Tab, Enter, Space, Escape, and arrow keys. If you cannot complete a task without a mouse, the component has an accessibility gap.
-- **Keep component APIs minimal**: A component with 15 props is hard to use correctly. Favor composition (children, slots) over configuration (flags, mode strings). Split large components into smaller composable pieces.
-- **Measure performance on real devices**: Test on a mid-range Android phone over a throttled connection. Large DOM trees, unoptimized images, and excessive JavaScript bundles cause visible jank on constrained hardware.
-
-## Edge Cases
-
-- **User provides no design tokens or brand guidelines**: Default to a neutral system: Inter or system-ui font stack, a slate gray neutral palette, and a blue primary accent. These are professional and inoffensive while remaining easy to customize later.
-- **Content length varies wildly between instances**: Use `min-height` instead of fixed `height`, `text-overflow: ellipsis` with `-webkit-line-clamp` for card descriptions, and test with both a single word and a full paragraph to verify layout stability.
-- **Dark mode images look washed out or too bright**: Apply a subtle `brightness(0.9)` filter to photographic images in dark mode. For decorative SVGs, swap fill colors using `currentColor` or CSS custom properties.
-- **Right-to-left (RTL) language support required**: Use logical CSS properties (`margin-inline-start` instead of `margin-left`, `padding-inline-end` instead of `padding-right`). Set `dir="rtl"` on the root element and verify layout mirrors correctly.
-- **Target framework is unknown or the user wants plain HTML**: Default to semantic HTML with vanilla CSS custom properties. The output can be adopted into any framework without refactoring.
+Keep the register conversational and tuned: plain verbs, sentence case, no filler, with tone matched to the brand and the audience. Let each element do exactly one job. A label labels, an example demonstrates, and nothing quietly does double duty.

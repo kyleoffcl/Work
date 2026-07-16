@@ -1,517 +1,202 @@
 ---
 name: seo-technical
-description: Implement technical SEO infrastructure for Next.js apps. Use this skill when setting up sitemaps, robots.txt, meta tags, OpenGraph, structured data (JSON-LD), canonical URLs, and other technical SEO elements. Covers Next.js 15/16 App Router patterns and 2026 best practices.
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, WebSearch
+description: >
+  Technical SEO audit across 9 categories: crawlability, indexability, security,
+  URL structure, mobile, Core Web Vitals, structured data, JavaScript rendering,
+  and IndexNow protocol. Use when user says "technical SEO", "crawl issues",
+  "robots.txt", "Core Web Vitals", "site speed", or "security headers".
+user-invocable: true
+argument-hint: "[url]"
+license: MIT
+metadata:
+  author: AgriciDaniel
+  version: "2.2.0"
+  category: seo
 ---
 
-# Technical SEO Implementation (Next.js 2026)
+# Technical SEO Audit
 
-## Skill Files
+## Categories
 
-This skill includes multiple reference files:
+### 1. Crawlability
+- robots.txt: exists, valid, not blocking important resources
+- XML sitemap: exists, referenced in robots.txt, valid format
+- Noindex tags: intentional vs accidental
+- Crawl depth: important pages within 3 clicks of homepage
+- JavaScript rendering: check if critical content requires JS execution
+- Crawl budget: for large sites (>10k pages), efficiency matters
 
-- **SKILL.md** (this file): Core technical SEO implementation guide
-- **nextjs-implementation.md**: Next.js-specific code templates and patterns
-- **checklist.md**: Pre-launch technical SEO checklist
-- **structured-data.md**: JSON-LD schema markup templates
+#### AI Crawler Management
 
-## What This Skill Covers
+As of 2025-2026, AI companies actively crawl the web to train models and power AI search. Managing these crawlers via robots.txt is a critical technical SEO consideration.
 
-1. **Sitemaps** → `app/sitemap.ts` for dynamic sitemap generation
-2. **Robots.txt** → `app/robots.ts` for crawler directives
-3. **Meta Tags** → OpenGraph, Twitter Cards, keywords, descriptions
-4. **Structured Data** → JSON-LD for rich snippets
-5. **Canonical URLs** → Prevent duplicate content issues
-6. **Performance SEO** → Core Web Vitals considerations
+**Known AI crawlers:**
 
----
+| Crawler | Company | robots.txt token | Purpose |
+|---------|---------|-----------------|---------|
+| GPTBot | OpenAI | `GPTBot` | Model training |
+| ChatGPT-User | OpenAI | `ChatGPT-User` | Real-time browsing |
+| ClaudeBot | Anthropic | `ClaudeBot` | Model training |
+| PerplexityBot | Perplexity | `PerplexityBot` | Search index + training |
+| Bytespider | ByteDance | `Bytespider` | Model training |
+| Google-Extended | Google | `Google-Extended` | Gemini training (NOT search) |
+| CCBot | Common Crawl | `CCBot` | Open dataset |
 
-# Part 1: Sitemap Implementation
+**Key distinctions:**
+- Blocking `Google-Extended` prevents Gemini training use but does NOT affect Google Search indexing or AI Overviews (those use `Googlebot`)
+- Blocking `GPTBot` prevents OpenAI training but does NOT prevent ChatGPT from citing your content via browsing (`ChatGPT-User`)
+- ~3-5% of websites now use AI-specific robots.txt rules
 
-## Next.js App Router Sitemap (app/sitemap.ts)
+**Example, selective AI crawler blocking:**
+```
+# Allow search indexing, block AI training crawlers
+User-agent: GPTBot
+Disallow: /
 
-Next.js automatically serves `/sitemap.xml` when you create `app/sitemap.ts`:
+User-agent: Google-Extended
+Disallow: /
 
-```typescript
-import type { MetadataRoute } from "next";
+User-agent: Bytespider
+Disallow: /
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  const currentDate = new Date().toISOString();
-
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: BASE_URL,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${BASE_URL}/pricing`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/about`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/privacy`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${BASE_URL}/terms`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-  ];
-
-  return staticPages;
-}
+# Allow all other crawlers (including Googlebot for search)
+User-agent: *
+Allow: /
 ```
 
-### Dynamic Sitemap with Database Content
-
-```typescript
-import type { MetadataRoute } from "next";
-import { db } from "@/lib/db";
-import { blogPosts, products } from "@/lib/db/schema";
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch dynamic content
-  const posts = await db
-    .select()
-    .from(blogPosts)
-    .where(eq(blogPosts.published, true));
-  const allProducts = await db.select().from(products);
-
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: BASE_URL,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-  ];
-
-  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: post.updatedAt || post.createdAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }));
-
-  const productPages: MetadataRoute.Sitemap = allProducts.map((product) => ({
-    url: `${BASE_URL}/products/${product.slug}`,
-    lastModified: product.updatedAt,
-    changeFrequency: "daily" as const,
-    priority: 0.8,
-  }));
-
-  return [...staticPages, ...blogPages, ...productPages];
-}
-```
-
-### Large Sitemaps (50,000+ URLs)
-
-Use `generateSitemaps()` for sitemap index:
-
-```typescript
-import type { MetadataRoute } from "next";
-
-const URLS_PER_SITEMAP = 50000;
-
-export async function generateSitemaps() {
-  const totalProducts = await getProductCount();
-  const sitemapCount = Math.ceil(totalProducts / URLS_PER_SITEMAP);
-
-  return Array.from({ length: sitemapCount }, (_, i) => ({ id: i }));
-}
-
-export default async function sitemap({
-  id,
-}: {
-  id: number;
-}): Promise<MetadataRoute.Sitemap> {
-  const start = id * URLS_PER_SITEMAP;
-  const products = await getProducts({ start, limit: URLS_PER_SITEMAP });
-
-  return products.map((product) => ({
-    url: `${BASE_URL}/products/${product.slug}`,
-    lastModified: product.updatedAt,
-  }));
-}
-```
-
-### Sitemap Best Practices
-
-| Practice                                                  | Why                                       |
-| --------------------------------------------------------- | ----------------------------------------- |
-| Keep `lastModified` accurate                              | Google uses it when consistently accurate |
-| Only include canonical URLs                               | Duplicates waste crawl budget             |
-| Priority: 1.0 homepage, 0.8-0.9 key pages, 0.6-0.7 others | Guides crawler importance                 |
-| `changeFrequency` is ignored by Google                    | Include for other search engines          |
-| Max 50,000 URLs per sitemap                               | Use sitemap index for more                |
-
----
-
-# Part 2: Robots.txt Implementation
-
-## Next.js App Router Robots (app/robots.ts)
-
-```typescript
-import type { MetadataRoute } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-
-export default function robots(): MetadataRoute.Robots {
-  const isProduction = process.env.NODE_ENV === "production";
-
-  // Block everything in non-production
-  if (!isProduction) {
-    return {
-      rules: { userAgent: "*", disallow: "/" },
-    };
-  }
-
-  return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: [
-          "/api/",
-          "/dashboard/",
-          "/admin/",
-          "/private/",
-          "/_next/",
-          "/sign-in/",
-          "/sign-up/",
-        ],
-      },
-      // Block AI training bots (optional)
-      { userAgent: "GPTBot", disallow: "/" },
-      { userAgent: "ChatGPT-User", disallow: "/" },
-      { userAgent: "CCBot", disallow: "/" },
-      { userAgent: "anthropic-ai", disallow: "/" },
-      { userAgent: "Google-Extended", disallow: "/" },
-    ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-  };
-}
-```
-
-### Robots.txt Rules
-
-| Directive             | Usage                                        |
-| --------------------- | -------------------------------------------- |
-| `User-agent: *`       | Applies to all crawlers                      |
-| `Allow: /`            | Allow crawling of path                       |
-| `Disallow: /private/` | Block crawling of path                       |
-| `Sitemap:`            | Advertise sitemap location                   |
-| `Crawl-delay:`        | Slow down crawling (not respected by Google) |
-
-### Common AI Bots to Block/Allow
-
-```typescript
-// Block AI training (keeps content out of training data)
-{ userAgent: "GPTBot", disallow: "/" },           // OpenAI
-{ userAgent: "ChatGPT-User", disallow: "/" },     // ChatGPT browsing
-{ userAgent: "CCBot", disallow: "/" },            // Common Crawl
-{ userAgent: "anthropic-ai", disallow: "/" },     // Anthropic
-{ userAgent: "Google-Extended", disallow: "/" },  // Google AI training
-{ userAgent: "Bytespider", disallow: "/" },       // ByteDance
-
-// Allow AI search (keeps content in AI search results)
-// Comment out the above to allow AI indexing
-```
-
-### What NOT to Block
-
-- Don't block `/sitemap.xml`
-- Don't block CSS/JS files (`/_next/static/`)
-- Don't block images you want indexed
-- Don't block your homepage
-
----
-
-# Part 3: Metadata Implementation
-
-## Root Layout Metadata (app/layout.tsx)
-
-```typescript
-import type { Metadata, Viewport } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#6366f1",
-};
-
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-
-  // Title template for child pages
-  title: {
-    default: "Brand Name — Tagline",
-    template: "%s | Brand Name",
-  },
-
-  // Description (150-160 chars ideal)
-  description:
-    "Your compelling meta description that includes primary keywords and encourages clicks.",
-
-  // Keywords (less important now, but include)
-  keywords: ["primary keyword", "secondary keyword", "brand name"],
-
-  // Author info
-  authors: [{ name: "Brand Name" }],
-  creator: "Brand Name",
-  publisher: "Brand Name",
-
-  // Robots directives
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-
-  // OpenGraph (Facebook, LinkedIn, etc.)
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: BASE_URL,
-    siteName: "Brand Name",
-    title: "Brand Name — Tagline",
-    description: "Your compelling description for social sharing.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Brand Name - Description",
-      },
-    ],
-  },
-
-  // Twitter Card
-  twitter: {
-    card: "summary_large_image",
-    title: "Brand Name — Tagline",
-    description: "Your compelling description for Twitter.",
-    images: ["/og-image.png"],
-    creator: "@twitterhandle",
-    site: "@twitterhandle",
-  },
-
-  // Canonical URL
-  alternates: {
-    canonical: BASE_URL,
-  },
-
-  // App categorization
-  category: "Technology",
-
-  // Verification codes
-  verification: {
-    google: "google-site-verification-code",
-    // yandex: "yandex-verification-code",
-    // bing: "bing-verification-code",
-  },
-};
-```
-
-## Page-Level Metadata
-
-```typescript
-// app/pricing/page.tsx
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Pricing", // Becomes "Pricing | Brand Name" via template
-  description:
-    "Simple, transparent pricing. Start free, upgrade when you need more.",
-  openGraph: {
-    title: "Pricing | Brand Name",
-    description:
-      "Simple, transparent pricing. Start free, upgrade when you need more.",
-  },
-};
-
-export default function PricingPage() {
-  // ...
-}
-```
-
-## Dynamic Metadata (generateMetadata)
-
-```typescript
-// app/blog/[slug]/page.tsx
-import type { Metadata } from "next";
-
-type Props = {
-  params: Promise<{ slug: string }>;
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
-
-  if (!post) {
-    return { title: "Post Not Found" };
-  }
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      type: "article",
-      publishedTime: post.publishedAt,
-      modifiedTime: post.updatedAt,
-      authors: [post.author.name],
-      images: [
-        {
-          url: post.coverImage,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: post.title,
-      description: post.excerpt,
-      images: [post.coverImage],
-    },
-    alternates: {
-      canonical: `${BASE_URL}/blog/${slug}`,
-    },
-  };
-}
-```
-
----
-
-# Part 4: Authentication Middleware Integration
-
-When using auth (Clerk, NextAuth, etc.), add SEO routes to public matchers:
-
-## Clerk (proxy.ts or middleware.ts)
-
-```typescript
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/pricing",
-  "/about",
-  "/blog(.*)",
-  "/terms",
-  "/privacy",
-  // SEO files - IMPORTANT!
-  "/robots.txt",
-  "/sitemap.xml",
-  "/sitemap(.*).xml",
-  // Icons
-  "/icon(.*)",
-  "/apple-icon(.*)",
-  "/favicon.ico",
-]);
-
-export const proxy = clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect();
-  }
-});
-
-export const config = {
-  matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
-  ],
-};
-```
-
-## NextAuth
-
-```typescript
-export { auth as middleware } from "@/auth";
-
-export const config = {
-  matcher: [
-    // Exclude SEO files from auth
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|sitemap.*\\.xml).*)",
-  ],
-};
-```
-
----
-
-# Part 5: Environment Variables
-
-Required environment variables for SEO:
+**Recommendation:** Consider your AI visibility strategy before blocking. Being cited by AI systems drives brand awareness and referral traffic. Cross-reference the `seo-geo` skill for full AI visibility optimization.
+
+### 2. Indexability
+- Canonical tags: self-referencing, no conflicts with noindex
+- Duplicate content: near-duplicates, parameter URLs, www vs non-www
+- Thin content: pages below minimum word counts per type
+- Pagination: rel=next/prev or load-more pattern
+- Hreflang: correct for multi-language/multi-region sites
+- Index bloat: unnecessary pages consuming crawl budget
+
+### 3. Security
+- HTTPS: enforced, valid SSL certificate, no mixed content
+- Security headers:
+  - Content-Security-Policy (CSP)
+  - Strict-Transport-Security (HSTS)
+  - X-Frame-Options
+  - X-Content-Type-Options
+  - Referrer-Policy
+- HSTS preload: check preload list inclusion for high-security sites
+
+### 4. URL Structure
+- Clean URLs: descriptive, hyphenated, no query parameters for content
+- Hierarchy: logical folder structure reflecting site architecture
+- Redirects: no chains (max 1 hop), 301 for permanent moves
+- URL length: flag >100 characters
+- Trailing slashes: consistent usage
+
+### 5. Mobile Optimization
+- Responsive design: viewport meta tag, responsive CSS
+- Touch targets: minimum 48x48px with 8px spacing
+- Font size: minimum 16px base
+- No horizontal scroll
+- Mobile-first indexing: Google indexes mobile version. **Mobile-first indexing is 100% complete as of July 5, 2024.** Google now crawls and indexes ALL websites exclusively with the mobile Googlebot user-agent.
+
+### 6. Core Web Vitals
+- **LCP** (Largest Contentful Paint): target <2.5s
+- **INP** (Interaction to Next Paint): target <200ms
+  - INP replaced FID on March 12, 2024. FID was fully removed from all Chrome tools (CrUX API, PageSpeed Insights, Lighthouse) on September 9, 2024. Do NOT reference FID anywhere.
+- **CLS** (Cumulative Layout Shift): target <0.1
+- Evaluation uses 75th percentile of real user data
+- Use PageSpeed Insights API or CrUX data if MCP available
+
+### 7. Structured Data
+- Detection: JSON-LD (preferred), Microdata, RDFa
+- Validation against Google's supported types
+- See seo-schema skill for full analysis
+
+### 8. JavaScript Rendering
+- Check if content visible in initial HTML vs requires JS
+- Identify client-side rendered (CSR) vs server-side rendered (SSR)
+- Flag SPA frameworks (React, Vue, Angular) that may cause indexing issues
+- Verify dynamic rendering setup if applicable
+
+#### JavaScript SEO: Canonical & Indexing Guidance (December 2025)
+
+Google updated its JavaScript SEO documentation in December 2025 with critical clarifications:
+
+1. **Canonical conflicts:** If a canonical tag in raw HTML differs from one injected by JavaScript, Google may use EITHER one. Ensure canonical tags are identical between server-rendered HTML and JS-rendered output.
+2. **noindex with JavaScript:** If raw HTML contains `<meta name="robots" content="noindex">` but JavaScript removes it, Google MAY still honor the noindex from raw HTML. Serve correct robots directives in the initial HTML response.
+3. **Non-200 status codes:** Google does NOT render JavaScript on pages returning non-200 HTTP status codes. Any content or meta tags injected via JS on error pages will be invisible to Googlebot.
+4. **Structured data in JavaScript:** Product, Article, and other structured data injected via JS may face delayed processing. For time-sensitive structured data (especially e-commerce Product markup), include it in the initial server-rendered HTML.
+
+**Best practice:** Serve critical SEO elements (canonical, meta robots, structured data, title, meta description) in the initial server-rendered HTML rather than relying on JavaScript injection.
+
+### 9. IndexNow Protocol
+- Check if site supports IndexNow for Bing, Yandex, Naver
+- Supported by search engines other than Google
+- Recommend implementation for faster indexing on non-Google engines
+
+## Agent-Friendly Pages (forward-looking)
+
+AI agents (not just AI summarizers) increasingly read sites through three
+channels: vision models on screenshots, raw HTML/DOM, and the **accessibility
+tree** (the cleanest signal). Audit criteria — semantic HTML (real `<button>`
+and `<a>`, not `<div onclick>`), label associations, interactive target sizing,
+layout stability across templates, `cursor: pointer` correctness — live in
+`references/agent-friendly-pages.md`.
+
+### Audit command
 
 ```bash
-# .env.local (development)
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-
-# .env.production (production)
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+# Render with Playwright + capture accessibility tree, then score
+python3 scripts/agent_ux_check.py https://example.com --json
 ```
 
----
+The scanner outputs an Agent-UX score (0-100) plus itemized issues:
+- HTML findings: real buttons / anchors, `<div onclick>` widgets, semantic
+  landmarks, inputs without `<label for>`, inputs without ARIA labels
+- Accessibility tree findings: total nodes, interactive nodes, unnamed
+  interactive elements, `role="generic"` ratio
 
-# Quick Reference: File Locations
+The accessibility-tree snapshot uses Playwright's
+`page.accessibility.snapshot(interesting_only=False)`. To capture the tree
+without scoring, use `python3 scripts/render_page.py <url> --a11y-tree --json`.
 
-| File          | Location                                        | Purpose                         |
-| ------------- | ----------------------------------------------- | ------------------------------- |
-| Sitemap       | `app/sitemap.ts`                                | Generates `/sitemap.xml`        |
-| Robots        | `app/robots.ts`                                 | Generates `/robots.txt`         |
-| Root Metadata | `app/layout.tsx`                                | Default meta tags               |
-| Page Metadata | `app/[route]/page.tsx`                          | Page-specific meta              |
-| OG Image      | `public/og-image.png`                           | Social sharing image (1200x630) |
-| Favicon       | `app/icon.tsx` or `public/favicon.ico`          | Browser tab icon                |
-| Apple Icon    | `app/apple-icon.tsx` or `public/apple-icon.png` | iOS icon                        |
+Surface findings as **opportunities**, not failures. The standards (WebMCP,
+agent UX heuristics) are early — don't gate audits on a sub-100 score.
 
----
+## Output
 
-# Implementation Checklist
+### Technical Score: XX/100
 
-Before implementing, verify:
+### Category Breakdown
+| Category | Status | Score |
+|----------|--------|-------|
+| Crawlability | pass/warn/fail | XX/100 |
+| Indexability | pass/warn/fail | XX/100 |
+| Security | pass/warn/fail | XX/100 |
+| URL Structure | pass/warn/fail | XX/100 |
+| Mobile | pass/warn/fail | XX/100 |
+| Core Web Vitals | pass/warn/fail | XX/100 |
+| Structured Data | pass/warn/fail | XX/100 |
+| JS Rendering | pass/warn/fail | XX/100 |
+| IndexNow | pass/warn/fail | XX/100 |
 
-1. [ ] `NEXT_PUBLIC_SITE_URL` environment variable is set
-2. [ ] Auth middleware allows `/robots.txt` and `/sitemap.xml`
-3. [ ] OG image exists at `public/og-image.png` (1200x630px)
-4. [ ] All public pages have unique titles and descriptions
-5. [ ] Canonical URLs point to preferred versions
+### Critical Issues (fix immediately)
+### High Priority (fix within 1 week)
+### Medium Priority (fix within 1 month)
+### Low Priority (backlog)
 
-After implementing, verify:
+## DataForSEO Integration (Optional)
 
-1. [ ] Visit `/robots.txt` - should show rules
-2. [ ] Visit `/sitemap.xml` - should show URLs
-3. [ ] Test with [Google Rich Results Test](https://search.google.com/test/rich-results)
-4. [ ] Test with [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)
-5. [ ] Submit sitemap to Google Search Console
+If DataForSEO MCP tools are available, use `on_page_instant_pages` for real page analysis (status codes, page timing, broken links, on-page checks), `on_page_lighthouse` for Lighthouse audits (performance, accessibility, SEO scores), and `domain_analytics_technologies_domain_technologies` for technology stack detection.
+
+## Google API Integration (Optional)
+
+If Google API credentials are configured, use `python3 scripts/pagespeed_check.py <url> --json` for real PSI + CrUX field data (replaces lab-only CWV estimates), `python3 scripts/crux_history.py <url> --json` for 25-week CWV trends, and `python3 scripts/gsc_inspect.py <url> --json` for real indexation status per URL.
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| URL unreachable | Report connection error with status code. Suggest verifying URL, checking DNS resolution, and confirming the site is publicly accessible. |
+| robots.txt not found | Note that no robots.txt was detected at the root domain. Recommend creating one with appropriate directives. Continue audit on remaining categories. |
+| HTTPS not configured | Flag as a critical issue. Report whether HTTP is served without redirect, mixed content exists, or SSL certificate is missing/expired. |
+| Core Web Vitals data unavailable | Note that CrUX data is not available (common for low-traffic sites). Suggest using Lighthouse lab data as a proxy and recommend increasing traffic before re-testing. |

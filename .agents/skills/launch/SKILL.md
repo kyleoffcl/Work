@@ -1,345 +1,353 @@
 ---
 name: launch
-description: Self-contained SaaS pipeline — invoke directly, do not decompose.
-  Generates a Vibes app, adds auth + billing, and deploys live. Uses Agent Teams
-  to parallelize for maximum speed.
-license: MIT
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion, Task, Teammate, SendMessage, TaskCreate, TaskUpdate, TaskList, TaskGet
-compatibility: Requires Claude Code with Agent Teams support
+description: "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' 'product update,' 'how do I launch this,' 'launch checklist,' 'GTM plan,' or 'we're about to ship.' Use this whenever someone is preparing to release something publicly. For ongoing marketing after launch, see marketing-ideas. For the offer being launched (bonuses, guarantees, scarcity, naming), see offers."
 metadata:
-  author: "Marcus Estes"
+  version: 2.0.1
 ---
 
-> **Plan mode**: If you are planning work, this entire skill is ONE plan step: "Invoke /vibes:launch". Do not decompose the steps below into separate plan tasks.
+# Launch Strategy
 
-**Display this ASCII art immediately when starting:**
+You are an expert in SaaS product launches and feature announcements. Your goal is to help users plan launches that build momentum, capture attention, and convert interest into users.
 
-```
-░▒▓█▓▒░      ░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒ ░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░     ░▒▓████████▓▒░
-░▒▓█▓▒░      ░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░
-░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░▒▓█▓▒░░▒▓█▓▒░
-```
+## Before Starting
 
-## Notation
-
-**Ask [Header]**: "question" means call AskUserQuestion with that header and question. Options listed as bullets. User can always type custom via "Other". When collecting a key/secret, put one option like "Paste key" — the user types the actual value via Other.
-
-For architecture context, see `LAUNCH-REFERENCE.md` in this directory.
+**Check for product marketing context first:**
+If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 ---
 
-## FIRST: Terminal or Editor UI?
+## Core Philosophy
 
-**This is the very first question — ask before anything else.**
-**DO NOT check .env, credentials, or project state before asking this question.**
-**DO NOT invoke /vibes:connect or any other skill before asking this question.**
-**If Editor is chosen, skip ALL pre-flight checks — the editor handles everything.**
+The best companies don't just launch once—they launch again and again. Every new feature, improvement, and update is an opportunity to capture attention and engage your audience.
 
-Ask the user:
-> "How do you want to build? **Editor** (opens a browser UI with live preview, chat, and deploy button) or **Terminal** (I'll generate and deploy from here)?"
-
-Present Editor as the first/recommended option.
-
-- **If Editor**: Start the editor server. Resolve the plugin root first, then launch:
-  ```bash
-  PLUGIN_ROOT=$(find ~/.claude/plugins/cache/vibes-cli -name "preview-server.js" -path "*/scripts/*" 2>/dev/null | head -1 | xargs dirname)
-  node "${PLUGIN_ROOT}/preview-server.js" --mode=editor --prompt "USER_PROMPT_HERE"
-  ```
-  If no prompt was given, omit `--prompt`:
-  ```bash
-  PLUGIN_ROOT=$(find ~/.claude/plugins/cache/vibes-cli -name "preview-server.js" -path "*/scripts/*" 2>/dev/null | head -1 | xargs dirname)
-  node "${PLUGIN_ROOT}/preview-server.js" --mode=editor
-  ```
-  Tell the user: "Open http://localhost:3333 — the editor handles everything from here: describe your app, preview it live, switch themes, and deploy with one click."
-  **Then stop.** The editor UI takes over the entire workflow (setup, generation, preview, deploy). Do not continue with the phases below.
-
-- **If Terminal**: Continue with the pre-flight checks and normal workflow below.
+A strong launch isn't about a single moment. It's about:
+- Getting your product into users' hands early
+- Learning from real feedback
+- Making a splash at every stage
+- Building momentum that compounds over time
 
 ---
 
-## Pre-Flight Decision Tree
+## The ORB Framework
 
-Run all five checks before collecting any input:
+Structure your launch marketing across three channel types. Everything should ultimately lead back to owned channels.
 
-| # | Check | Command | If True |
-|---|-------|---------|---------|
-| 1 | .env has Clerk keys + Connect URLs | `grep -qE '^VITE_CLERK_PUBLISHABLE_KEY=pk_' .env && grep -qE '^VITE_API_URL=' .env && grep -qE '^VITE_CLOUD_URL=' .env` | Set `CONNECT_READY`. Read .env for clerkPk. Skip T2, T3, infra spawn. |
-| 2 | .env has admin user ID | `grep CLERK_ADMIN_USER_ID .env` | Store value. Skip Phase 3. |
-| 3 | app.jsx exists | `test -f app.jsx` | **Ask [Reuse]**: "app.jsx exists. Reuse it or regenerate?" If reuse: skip T1. |
-| 4 | Wrangler authenticated | `npx wrangler whoami 2>&1` | If NOT authenticated: tell user to run `npx wrangler login` and wait. |
-| 5 | SSH key exists | `ls ~/.ssh/id_ed25519 ~/.ssh/id_rsa ~/.ssh/id_ecdsa 2>/dev/null` | If missing AND not CONNECT_READY: warn about Connect deploy. |
+### Owned Channels
+You own the channel (though not the audience). Direct access without algorithms or platform rules.
 
-## Phase 0: Collect Inputs
+**Examples:**
+- Email list
+- Blog
+- Podcast
+- Branded community (Slack, Discord)
+- Website/product
 
-### 0.1 App Prompt
+**Why they matter:**
+- Get more effective over time
+- No algorithm changes or pay-to-play
+- Direct relationship with audience
+- Compound value from content
 
-**Ask [App prompt]**: "What do you want to build? Describe the app you have in mind."
-- "Todo list" — A simple task manager with categories and due dates
-- "Photo gallery" — A shareable photo gallery with albums and captions
-- "Team dashboard" — A metrics and status dashboard for small teams
+**Start with 1-2 based on audience:**
+- Industry lacks quality content → Start a blog
+- People want direct updates → Focus on email
+- Engagement matters → Build a community
 
-Store as `appPrompt`.
+**Example - Superhuman:**
+Built demand through an invite-only waitlist and one-on-one onboarding sessions. Every new user got a 30-minute live demo. This created exclusivity, FOMO, and word-of-mouth—all through owned relationships. Years later, their original onboarding materials still drive engagement.
 
-### 0.2 App Name + Domain
+### Rented Channels
+Platforms that provide visibility but you don't control. Algorithms shift, rules change, pay-to-play increases.
 
-**Ask [App name]**: "What's the app name? (used for subdomain + database)" AND **[Domain]**: "Where will this be deployed?"
-- App name: "Derive from prompt" or "Let me specify"
-- Domain: "Cloudflare Workers (Recommended)" or "Custom domain"
+**Examples:**
+- Social media (Twitter/X, LinkedIn, Instagram)
+- App stores and marketplaces
+- YouTube
+- Reddit
 
-If "Derive from prompt": generate URL-safe slug (lowercase, hyphens, max 30 chars). If "Custom domain": ask for domain name. Store as `appName`.
+**How to use correctly:**
+- Pick 1-2 platforms where your audience is active
+- Use them to drive traffic to owned channels
+- Don't rely on them as your only strategy
 
-Resolve Workers URL (if Cloudflare):
-```bash
-node "{pluginRoot}/scripts/lib/resolve-workers-url.js" --name "{appName}"
-```
-Store output as `domain`. If script fails, ask for their Cloudflare subdomain and construct `{appName}.{subdomain}.workers.dev`.
+**Example - Notion:**
+Hacked virality through Twitter, YouTube, and Reddit where productivity enthusiasts were active. Encouraged community to share templates and workflows. But they funneled all visibility into owned assets—every viral post led to signups, then targeted email onboarding.
 
-### 0.3 AI Features (conditional)
+**Platform-specific tactics:**
+- Twitter/X: Threads that spark conversation → link to newsletter
+- LinkedIn: High-value posts → lead to gated content or email signup
+- Marketplaces (Shopify, Slack): Optimize listing → drive to site for more
 
-Scan `appPrompt` for AI keywords: "chatbot", "chat with AI", "summarize", "generate", "analyze", "AI-powered", "intelligent".
+Rented channels give speed, not stability. Capture momentum by bringing users into your owned ecosystem.
 
-If detected: **Ask [AI features]**: "Does this app need AI features?"
-- "Yes — I have an OpenRouter key" — I'll paste my API key
-- "Yes — I need to get one" — I'll sign up at openrouter.ai
-- "No AI needed" — Skip AI capabilities
+### Borrowed Channels
+Tap into someone else's audience to shortcut the hardest part—getting noticed.
 
-If yes: check `grep OPENROUTER_API_KEY ~/.vibes/.env`. If found, offer reuse (mask key). Otherwise collect via Ask and offer to cache to `~/.vibes/.env`. Store as `openRouterKey` (or null if no AI).
+**Examples:**
+- Guest content (blog posts, podcast interviews, newsletter features)
+- Collaborations (webinars, co-marketing, social takeovers)
+- Speaking engagements (conferences, panels, virtual summits)
+- Influencer partnerships
 
-### 0.4 Theme Selection
+**Be proactive, not passive:**
+1. List industry leaders your audience follows
+2. Pitch win-win collaborations
+3. Use tools like SparkToro or Listen Notes to find audience overlap
+4. Set up affiliate/referral incentives (for channel partner launches, use [Introw](../../tools/integrations/introw.md) to manage deal registration and commissions)
 
-Theme switching is handled by the live preview wrapper, not inside the app. The builder generates a single-theme layout. Set `themeCount = 1`.
+**Example - TRMNL:**
+Sent a free e-ink display to YouTuber Snazzy Labs—not a paid sponsorship, just hoping he'd like it. He created an in-depth review that racked up 500K+ views and drove $500K+ in sales. They also set up an affiliate program for ongoing promotion.
 
----
-
-## Phase 1: Spawn Team & Parallel Work
-
-### 1.1 Setup
-
-1. Resolve plugin root: `printenv CLAUDE_PLUGIN_ROOT` → store as `pluginRoot`
-2. Create team: `TeamCreate("launch-{appName}", "Full SaaS pipeline for {appName}")`
-3. Create all tasks per the table in LAUNCH-REFERENCE.md. If `CONNECT_READY`: mark T2+T3 completed immediately.
-
-### 1.2 Spawn Builder (T1)
-
-1. Read `{pluginRoot}/skills/launch/prompts/builder.md`
-2. Substitute: `{appPrompt}`, `{appName}`, `{pluginRoot}`
-3. Set `{aiInstructions}`: if `openRouterKey` is set, add rule about `useAI` hook (see vibes SKILL.md "AI Features"). If null, leave empty.
-4. Spawn: Task tool, `team_name="launch-{appName}"`, `name="builder"`, `subagent_type="general-purpose"`
-
-### 1.3 Clerk Credentials (T2) — simultaneous with builder
-
-**Skip entirely if CONNECT_READY.**
-
-**Ask [Clerk app]**: "Do you have a Clerk app configured?"
-- "I have one ready" — Already has passkeys and email auth
-- "I need to create one" — Walk me through setup
-
-If creating new: guide through clerk.com/dashboard — create app, enable Email + Passkey, configure email settings (require OFF, verify ON, link ON, code ON). Then set up JWT template and webhook:
-
-**Ask [Clerk config]**: "Complete these two setup steps in Clerk Dashboard:\n\n1. **JWT Template**: JWT Templates → New Template → name it `with-email`, paste this JSON as the custom claims (the `|| ''` fallbacks are required — Fireproof Studio rejects null names):\n```json\n{\n  \"params\": {\n    \"email\": \"{{user.primary_email_address}}\",\n    \"email_verified\": \"{{user.email_verified}}\",\n    \"external_id\": \"{{user.external_id}}\",\n    \"first\": \"{{user.first_name || ''}}\",\n    \"last\": \"{{user.last_name || ''}}\",\n    \"name\": \"{{user.full_name || ''}}\",\n    \"image_url\": \"{{user.image_url}}\",\n    \"public_meta\": \"{{user.public_metadata}}\"\n  },\n  \"role\": \"authenticated\",\n  \"userId\": \"{{user.id}}\"\n}\n```\n2. **Webhook**: Webhooks → Add Endpoint → URL `https://{domain}/webhook` → subscribe to `subscription.deleted`\n\nHave you completed both?"
-- "Yes, both done" — JWT template 'with-email' with email/name claims + webhook endpoint created
-- "I need help" — Walk me through it step by step
-
-Collect four credentials via Ask (user types actual values via Other):
-
-**Ask [Clerk PK]**: "Paste your Clerk Publishable Key (starts with pk_test_ or pk_live_)"
-- "Paste key" — From Clerk dashboard > API Keys. Validate prefix.
-
-Repeat pattern for:
-- **[Clerk SK]**: Secret Key — starts with `sk_test_` or `sk_live_`
-- **[PEM Key]**: JWKS PEM Public Key — from API Keys > Advanced > Public Key. Starts with `-----BEGIN PUBLIC KEY-----`
-- **[Webhook Secret]**: From Webhooks > endpoint > Signing Secret. Starts with `whsec_`
-
-Save PEM to file:
-```bash
-cat > clerk-jwks-key.pem << 'PEMEOF'
-{pemKey}
-PEMEOF
-```
-
-Mark T2 completed.
-
-### 1.4 Spawn Infra (T3) — after T2 completes
-
-**Skip if CONNECT_READY.**
-
-1. Read `{pluginRoot}/skills/launch/prompts/infra.md`
-2. Substitute: `{appName}`, `{pluginRoot}`, `{clerkPk}`, `{clerkSk}`
-3. Spawn: Task tool, `team_name="launch-{appName}"`, `name="infra"`, `subagent_type="general-purpose"`
-
-### 1.5 Sell Config (T4) — while infra deploys
-
-**Sell config is collected here but applied later by invoking `/vibes:sell` (or its assembly script) as an atomic step.** Do NOT hand-implement SaaS logic — the sell skill handles tenant routing, auth gating, billing, and admin setup.
-
-Choose billing mode based on monetization intent:
-- **"off" (free)** — all authenticated users get full access. Good for MVPs and internal tools.
-- **"required" (subscription)** — users must subscribe. Requires Clerk Billing (Dev instances auto-connect to Stripe sandbox).
-
-**Always ask the user** — do not assume a default.
-
-**Ask [Billing]**: "What billing mode for your SaaS?" AND **[Title]**: "App display title?"
-- Billing: "Free (no billing)" or "Subscription required"
-- Title: "Derive from app name" or "Let me specify"
-
-**If billing is "Subscription required"**: Note that Clerk Billing must be configured in the Clerk Dashboard after deploy (plans, Stripe connection). Dev instances auto-connect to Stripe sandbox for testing.
-
-**Ask [Tagline]**: "Describe your app's tagline (short punchy phrase)"
-- "Generate one" — Create from app description
-- "Let me write it" — I'll provide it
-
-**When billing is "required"**: These fields appear on a pricing section visible to potential customers before signup. Optimize for marketing copy quality — benefit-driven language, not technical descriptions. Tagline = sales headline. Subtitle = value proposition ("why should I pay?"). Features = compelling benefit statements (3-5 items).
-
-Repeat pattern for subtitle and features list (3-5 bullet points).
-
-Store: `billingMode` ("off"/"required"), `appTitle`, `tagline`, `subtitle`, `features` (JSON array). Mark T4 completed.
+Borrowed channels give instant credibility, but only work if you convert borrowed attention into owned relationships.
 
 ---
 
-## Phase 2: Assembly & Deploy
+## Five-Phase Launch Approach
 
-**Blocked by T1 + T3 + T4.** Check TaskList until all complete.
+Launching isn't a one-day event. It's a phased process that builds momentum.
 
-### 2.1 Verify Inputs
+### Phase 1: Internal Launch
+Gather initial feedback and iron out major issues before going public.
 
-Confirm: `app.jsx` exists with valid JSX. `.env` has `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_API_URL`, `VITE_CLOUD_URL`. All sell config values collected.
+**Actions:**
+- Recruit early users one-on-one to test for free
+- Collect feedback on usability gaps and missing features
+- Ensure prototype is functional enough to demo (doesn't need to be production-ready)
 
-Scan app.jsx for builder mistakes (see LAUNCH-REFERENCE.md "Common Builder Mistakes"). Fix any found before proceeding.
+**Goal:** Validate core functionality with friendly users.
 
-### 2.1.5 Preview Before Deploy
+### Phase 2: Alpha Launch
+Put the product in front of external users in a controlled way.
 
-**Ask [Preview]**: "Want to preview the app before deploying?"
-- "Yes — open live preview" — Start the preview server and iterate on the design
-- "No — deploy now" — Skip preview, go straight to deploy
+**Actions:**
+- Create landing page with early access signup form
+- Announce the product exists
+- Invite users individually to start testing
+- MVP should be working in production (even if still evolving)
 
-If yes: run `node "${CLAUDE_PLUGIN_ROOT}/scripts/preview-server.js"` and tell the user to open `http://localhost:3333`. They can chat to iterate on the design and switch themes. When satisfied, stop the server and continue to 2.2.
+**Goal:** First external validation and initial waitlist building.
 
-### 2.2 Deploy Cycle
+### Phase 3: Beta Launch
+Scale up early access while generating external buzz.
 
-This sequence runs twice: first here (with `--admin-ids '[]'`), then in Phase 3 (with real admin ID). Steps:
+**Actions:**
+- Work through early access list (some free, some paid)
+- Start marketing with teasers about problems you solve
+- Recruit friends, investors, and influencers to test and share
 
-**Step A — Assemble:**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/assemble-sell.js" app.jsx index.html \
-  --clerk-key "{clerkPk}" \
-  --app-name "{appName}" \
-  --app-title "{appTitle}" \
-  --domain "{domain}" \
-  --billing-mode "{billingMode}" \
-  --tagline "{tagline}" \
-  --subtitle "{subtitle}" \
-  --features '{featuresJSON}' \
-  --admin-ids '{adminIds}'
-```
+**Consider adding:**
+- Coming soon landing page or waitlist
+- "Beta" sticker in dashboard navigation
+- Email invites to early access list
+- Early access toggle in settings for experimental features
 
-**Step B — Validate:** `grep -c '__VITE_\|__CLERK_\|__APP_' index.html` — must be 0.
+**Goal:** Build buzz and refine product with broader feedback.
 
-**Step C — Deploy:**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/deploy-cloudflare.js" \
-  --name "{appName}" \
-  --file index.html \
-  --clerk-key "{clerkPk}" \
-  --billing-mode "{billingMode}" \
-  --webhook-secret "{webhookSecret}" \
-  {aiKeyFlag}
-```
-Where `{aiKeyFlag}` = `--ai-key "{openRouterKey}"` if set, omitted if null. The `--billing-mode` flag controls whether the client enforces JWT-based plan checks. The `--webhook-secret` flag sets the Clerk webhook signing secret as a Wrangler secret.
+### Phase 4: Early Access Launch
+Shift from small-scale testing to controlled expansion.
 
-Run the cycle now with `{adminIds}` = `'[]'` (or `'["{existingAdminId}"]'` if found in pre-flight). Mark T5, T6 completed.
+**Actions:**
+- Leak product details: screenshots, feature GIFs, demos
+- Gather quantitative usage data and qualitative feedback
+- Run user research with engaged users (incentivize with credits)
+- Optionally run product/market fit survey to refine messaging
 
----
+**Expansion options:**
+- Option A: Throttle invites in batches (5-10% at a time)
+- Option B: Invite all users at once under "early access" framing
 
-## Phase 3: Admin Setup
+**Goal:** Validate at scale and prepare for full launch.
 
-**Skip if `CLERK_ADMIN_USER_ID` was found in pre-flight.**
+### Phase 5: Full Launch
+Open the floodgates.
 
-### 3.1 Guide Signup
+**Actions:**
+- Open self-serve signups
+- Start charging (if not already)
+- Announce general availability across all channels
 
-Tell the user:
-> Your app is live! Create your admin account:
-> 1. Open: `https://{domain}?subdomain=test`
-> 2. Sign up with your email
-> 3. Complete email verification
-> 4. Create a passkey when prompted
+**Launch touchpoints:**
+- Customer emails
+- In-app popups and product tours
+- Website banner linking to launch assets
+- "New" sticker in dashboard navigation
+- Blog post announcement
+- Social posts across platforms
+- Product Hunt, BetaList, Hacker News, etc.
 
-**Ask [Signup]**: "Have you completed signup on the app?"
-- "Yes, signed up" — Completed verification + passkey
-- "Skip admin setup" — I'll do this later
-
-If skip: proceed to Phase 4.
-
-### 3.2 Collect Admin ID
-
-Tell user: Go to clerk.com/dashboard > your app > Users > click your user > copy User ID (starts with `user_`).
-
-**Ask [User ID]**: "Paste your Clerk User ID (starts with user_)"
-- "I need help finding it" — Clerk Dashboard > Users > click name > ID at top
-
-Validate starts with `user_`. Save to `.env`:
-```bash
-echo "CLERK_ADMIN_USER_ID={userId}" >> .env
-```
-
-### 3.3 Re-run Deploy Cycle
-
-Re-run Phase 2.2 steps A-D with `{adminIds}` = `'["{userId}"]'`.
-
-Tell user: Admin dashboard now works at `https://{domain}?subdomain=admin`
+**Goal:** Maximum visibility and conversion to paying users.
 
 ---
 
-## Phase 4: Verify & Cleanup
+## Product Hunt Launch Strategy
 
-### 4.1 Verify
+Product Hunt can be powerful for reaching early adopters, but it's not magic—it requires preparation.
 
-**Ask [Verify]**: "Your app is live! Open each URL and verify:\n\n- Landing: https://{domain}\n- Tenant: https://{domain}?subdomain=test\n- Admin: https://{domain}?subdomain=admin\n\nDoes everything look right?"
-- "All working" — Everything loads correctly
-- "Something's broken" — Need to troubleshoot
+### Pros
+- Exposure to tech-savvy early adopter audience
+- Credibility bump (especially if Product of the Day)
+- Potential PR coverage and backlinks
 
-**If `billingMode === "required"`**: Also ask the user to verify billing:
-> "Check billing flow: Sign in at `https://{domain}?subdomain=test` — you should see a paywall with pricing. Use test card `4242 4242 4242 4242` (any future expiry, any CVC) to complete a test subscription. After subscribing, the tenant app should load."
+### Cons
+- Very competitive to rank well
+- Short-lived traffic spikes
+- Requires significant pre-launch planning
 
-Mark T7 completed. If broken, ask what's wrong and troubleshoot.
+### How to Launch Successfully
 
-### 4.2 Shutdown
+**Before launch day:**
+1. Build relationships with influential supporters, content hubs, and communities
+2. Optimize your listing: compelling tagline, polished visuals, short demo video
+3. Study successful launches to identify what worked
+4. Engage in relevant communities—provide value before pitching
+5. Prepare your team for all-day engagement
 
-Send `shutdown_request` to "builder" and "infra" (if spawned). Wait for responses. Clean up team.
+**On launch day:**
+1. Treat it as an all-day event
+2. Respond to every comment in real-time
+3. Answer questions and spark discussions
+4. Encourage your existing audience to engage
+5. Direct traffic back to your site to capture signups
 
-### 4.3 Summary
+**After launch day:**
+1. Follow up with everyone who engaged
+2. Convert Product Hunt traffic into owned relationships (email signups)
+3. Continue momentum with post-launch content
 
-```
-## Launch Complete
+### Case Studies
 
-**App**: {appTitle}
-**URL**: https://{domain}
-**Clerk**: {clerkPk}
-**Connect**: {studioUrl}
-**Billing**: {billingMode}
+**SavvyCal** (Scheduling tool):
+- Optimized landing page and onboarding before launch
+- Built relationships with productivity/SaaS influencers in advance
+- Responded to every comment on launch day
+- Result: #2 Product of the Month
 
-### What's deployed:
-- Cloudflare Worker with KV registry
-- Fireproof Connect studio for real-time sync
-- Clerk authentication with passkeys
-- Subdomain-based multi-tenancy
-
-### Next steps:
-- Configure a custom domain (see CLAUDE.md DNS section)
-- Set up Clerk billing plans if using subscription mode
-```
+**Reform** (Form builder):
+- Studied successful launches and applied insights
+- Crafted clear tagline, polished visuals, demo video
+- Engaged in communities before launch (provided value first)
+- Treated launch as all-day engagement event
+- Directed traffic to capture signups
+- Result: #1 Product of the Day
 
 ---
 
-## Error Handling
+## Post-Launch Product Marketing
 
-| Failure | Recovery |
-|---------|----------|
-| Builder generates invalid JSX | Read app.jsx, fix TS syntax / wrong hooks, re-save |
-| Connect deploy fails | Infra reports via SendMessage. Present error + fix steps |
-| Assembly has placeholders | Check .env for missing values, re-run assembly |
-| Cloudflare deploy fails | Check `npx wrangler whoami`. Guide `npx wrangler login` if needed |
-| Wrangler secret put fails | Retry. If persistent, have user run manually |
-| Teammate silent 3+ min | SendMessage status check. If no response, take over task |
-| Builder hardcodes DB name | Edit app.jsx: replace with `useTenant()` pattern before assembly |
+Your launch isn't over when the announcement goes live. Now comes adoption and retention work.
+
+### Immediate Post-Launch Actions
+
+**Educate new users:**
+Set up automated onboarding email sequence introducing key features and use cases.
+
+**Reinforce the launch:**
+Include announcement in your weekly/biweekly/monthly roundup email to catch people who missed it.
+
+**Differentiate against competitors:**
+Publish comparison pages highlighting why you're the obvious choice.
+
+**Update web pages:**
+Add dedicated sections about the new feature/product across your site.
+
+**Offer hands-on preview:**
+Create no-code interactive demo (using tools like Navattic) so visitors can explore before signing up.
+
+### Keep Momentum Going
+It's easier to build on existing momentum than start from scratch. Every touchpoint reinforces the launch.
+
+---
+
+## Ongoing Launch Strategy
+
+Don't rely on a single launch event. Regular updates and feature rollouts sustain engagement.
+
+### How to Prioritize What to Announce
+
+Use this matrix to decide how much marketing each update deserves:
+
+**Major updates** (new features, product overhauls):
+- Full campaign across multiple channels
+- Blog post, email campaign, in-app messages, social media
+- Maximize exposure
+
+**Medium updates** (new integrations, UI enhancements):
+- Targeted announcement
+- Email to relevant segments, in-app banner
+- Don't need full fanfare
+
+**Minor updates** (bug fixes, small tweaks):
+- Changelog and release notes
+- Signal that product is improving
+- Don't dominate marketing
+
+### Announcement Tactics
+
+**Space out releases:**
+Instead of shipping everything at once, stagger announcements to maintain momentum.
+
+**Reuse high-performing tactics:**
+If a previous announcement resonated, apply those insights to future updates.
+
+**Keep engaging:**
+Continue using email, social, and in-app messaging to highlight improvements.
+
+**Signal active development:**
+Even small changelog updates remind customers your product is evolving. This builds retention and word-of-mouth—customers feel confident you'll be around.
+
+---
+
+## Launch Checklist
+
+### Pre-Launch
+- [ ] Landing page with clear value proposition
+- [ ] Email capture / waitlist signup
+- [ ] Early access list built
+- [ ] Owned channels established (email, blog, community)
+- [ ] Rented channel presence (social profiles optimized)
+- [ ] Borrowed channel opportunities identified (podcasts, influencers)
+- [ ] Product Hunt listing prepared (if using)
+- [ ] Launch assets created (screenshots, demo video, GIFs)
+- [ ] Onboarding flow ready
+- [ ] Analytics/tracking in place
+
+### Launch Day
+- [ ] Announcement email to list
+- [ ] Blog post published
+- [ ] Social posts scheduled and posted
+- [ ] Product Hunt listing live (if using)
+- [ ] In-app announcement for existing users
+- [ ] Website banner/notification active
+- [ ] Team ready to engage and respond
+- [ ] Monitor for issues and feedback
+
+### Post-Launch
+- [ ] Onboarding email sequence active
+- [ ] Follow-up with engaged prospects
+- [ ] Roundup email includes announcement
+- [ ] Comparison pages published
+- [ ] Interactive demo created
+- [ ] Gather and act on feedback
+- [ ] Plan next launch moment
+
+---
+
+## Task-Specific Questions
+
+1. What are you launching? (New product, major feature, minor update)
+2. What's your current audience size and engagement?
+3. What owned channels do you have? (Email list size, blog traffic, community)
+4. What's your timeline for launch?
+5. Have you launched before? What worked/didn't work?
+6. Are you considering Product Hunt? What's your preparation status?
+
+---
+
+## Related Skills
+
+- **marketing-ideas**: For additional launch tactics (#22 Product Hunt, #23 Early Access Referrals)
+- **emails**: For launch and onboarding email sequences
+- **cro**: For optimizing launch landing pages
+- **marketing-psychology**: For psychology behind waitlists and exclusivity
+- **programmatic-seo**: For comparison pages mentioned in post-launch
+- **sales-enablement**: For launch sales collateral and enablement materials
