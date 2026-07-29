@@ -17,7 +17,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f2d50f'/%3E%3Ctext x='32' y='44' font-family='Arial' font-size='34' fill='%231a1a1a' text-anchor='middle' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -49,138 +49,129 @@
   </header>
   <div class="nav-backdrop" id="navBackdrop"></div>
 
-  <!-- ===== Hero ===== -->
+  <!-- ===== Hero (dark-to-gray gradient, like original) ===== -->
   <section class="hero" id="home">
-    <div class="hero-bg" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div class="container hero-inner">
-      <div class="hero-copy">
-        <span class="eyebrow reveal">Africa's Finest • Kampala, Uganda</span>
-        <h1 class="hero-title reveal">Buy Certified <em>99.9% Pure Gold</em> Direct From the Source</h1>
-        <p class="hero-sub reveal">
-          Jubilee International Mining Company Limited supplies investment-grade gold bars,
-          nuggets and bulk gold to dealers, institutions and private buyers worldwide —
-          responsibly sourced with pure techniques that don't harm the region.
-        </p>
-        <div class="hero-actions reveal">
-          <a href="#contact" class="btn btn-gold">Request Gold Pricing</a>
-          <a href="#gold" class="btn btn-outline">View Gold Offering</a>
-        </div>
-        <ul class="hero-points reveal">
-          <li>Government-designated &amp; licensed supplier</li>
-          <li>Official supplier to the Bank of Uganda</li>
-          <li>Every bar assayed, certified &amp; sealed</li>
-        </ul>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container">
+      <h1 class="hero-title reveal">
+        Jubilee International Mining Company&nbsp;Limited<br />
+        <span class="hero-accent">Africa's Finest Gold, For&nbsp;Sale</span>
+      </h1>
+      <p class="hero-sub reveal">
+        We sell certified 99.9% pure gold — bars, nuggets and bulk supply — sourced with pure
+        techniques that don't harm the region, delivered to buyers worldwide.
+      </p>
+      <div class="hero-actions reveal">
+        <a href="#contact" class="btn btn-gold">Request Gold Pricing</a>
+        <a href="#gold" class="btn btn-ghost">View Gold Offering</a>
       </div>
-      <div class="hero-visual reveal" aria-hidden="true">
-        <div class="gold-bar">
-          <div class="gold-bar-face">
-            <span class="gb-brand">JUBILEE INTL MINING CO</span>
-            <span class="gb-weight">1 Kilo</span>
-            <span class="gb-purity">.999.9</span>
-            <span class="gb-origin">FINE GOLD · MADE IN UGANDA</span>
+
+      <!-- Feature rows inside hero, like original -->
+      <div class="hero-features">
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Government Relations</h3>
+            <p>Jubilee International Mining Company Limited is a government-designated and licensed gold supplier. We serve as an official supplier to the Bank of Uganda and partner closely with the Ministry of Energy to support Uganda's formal gold supply chain.</p>
           </div>
-        </div>
-        <div class="hero-chip chip-1">99.9% Assay Certified</div>
-        <div class="hero-chip chip-2">Sealed &amp; Serial-Numbered</div>
+        </article>
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Sustainability</h3>
+            <p>Jubilee International Mining Company Limited focuses on eco-friendly practices, ensuring responsible sourcing while minimizing environmental impact. Our commitment to sustainability drives innovation in every step of the process.</p>
+          </div>
+        </article>
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Traceable Sourcing</h3>
+            <p>Every ounce we sell is traceable to responsible mining partners across Uganda. We uphold international standards in sourcing and traceability, ensuring transparency across the value chain.</p>
+          </div>
+        </article>
       </div>
     </div>
   </section>
 
-  <!-- ===== Welcome marquee ===== -->
+  <!-- ===== Welcome marquee (gold bar) ===== -->
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
-      <span>Welcome To Jubilee International Mining Company Limited — Buy Certified 99.9% Pure Gold Direct From the Source</span>
-      <span>Welcome To Jubilee International Mining Company Limited — Buy Certified 99.9% Pure Gold Direct From the Source</span>
+      <span>Welcome To Jubilee International Mining Company Limited&nbsp;&nbsp;·&nbsp;&nbsp;Certified 99.9% Pure Gold, Direct From the Source&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span>Welcome To Jubilee International Mining Company Limited&nbsp;&nbsp;·&nbsp;&nbsp;Certified 99.9% Pure Gold, Direct From the Source&nbsp;&nbsp;·&nbsp;&nbsp;</span>
     </div>
   </div>
 
-  <!-- ===== Trust strip ===== -->
+  <!-- ===== Trusted by ===== -->
   <section class="trust">
     <div class="container">
-      <p class="trust-title reveal">Trusted by <strong>31,048</strong> global dealers, mine sites and organizations of every scale</p>
+      <h2 class="trust-title reveal">Trusted by 31,048 global dealers, mine<br class="bp" /> sites and organizations of every scale</h2>
+      <span class="ybar center reveal" aria-hidden="true"></span>
       <div class="trust-logos reveal">
-        <div class="trust-logo">Bank of Uganda</div>
-        <div class="trust-logo">Ministry of Energy &amp; Mineral Development</div>
-        <div class="trust-logo">ISO 9001:2015 Certified</div>
+        <div class="trust-logo"><span class="tl-crest">🏛</span> Bank of Uganda</div>
+        <div class="trust-logo"><span class="tl-crest">◉</span> Ministry of Energy and Mineral Development</div>
+        <div class="trust-logo"><span class="tl-crest">✓</span> ISO 9001:2015 Certified Company</div>
       </div>
     </div>
   </section>
 
-  <!-- ===== Pillars ===== -->
-  <section class="pillars" id="about">
-    <div class="container pillar-grid">
-      <article class="pillar reveal">
-        <h3><span class="pill-arr">➤</span> Government Relations</h3>
-        <p>Jubilee International Mining Company Limited is a government-designated and licensed gold supplier. We serve as an official supplier to the Bank of Uganda and partner closely with the Ministry of Energy to support Uganda's formal gold supply chain.</p>
-      </article>
-      <article class="pillar reveal">
-        <h3><span class="pill-arr">➤</span> Sustainability</h3>
-        <p>We focus on eco-friendly practices, ensuring responsible sourcing while minimizing environmental impact. Our commitment to sustainability drives innovation in every step — from mine to market.</p>
-      </article>
-      <article class="pillar reveal">
-        <h3><span class="pill-arr">➤</span> Traceable Sourcing</h3>
-        <p>Every ounce we sell is traceable to responsible mining partners across Uganda. We uphold international standards in sourcing and traceability, ensuring transparency across the value chain.</p>
-      </article>
-    </div>
-  </section>
-
-  <!-- ===== Who we are ===== -->
-  <section class="who">
-    <div class="container who-inner">
-      <div class="who-copy">
-        <span class="eyebrow reveal">Who We Are</span>
-        <h2 class="section-title reveal">Africa's premier direct seller of 99.9% pure gold</h2>
-        <p class="reveal">
+  <!-- ===== Who We Are (hatched panel) ===== -->
+  <section class="who" id="about">
+    <div class="container">
+      <div class="who-panel hatch reveal">
+        <span class="kicker">Who We Are</span>
+        <h2 class="section-title">Delivering top-quality and sustainable 99.9% pure gold, for&nbsp;sale.</h2>
+        <p class="lead">
           Jubilee International Mining Company Limited specializes in the direct sale of high-purity
           99.9% gold, providing reliable and efficient supply to buyers worldwide. Our commitment to
           excellence ensures precision, transparency and sustainability in every transaction.
         </p>
-        <div class="badge-card reveal">
-          <span class="badge-icon">①</span>
+        <div class="badge-card">
+          <span class="badge-icon" aria-hidden="true">🏅</span>
           <span>We're the No.1 direct gold supplier in the region</span>
         </div>
-        <ul class="check-list reveal">
+        <ul class="check-list">
           <li>Certified 99.9% pure gold, sealed and documented</li>
           <li>Sustainable, responsible sourcing practices</li>
           <li>Enhancing global access to high-purity gold</li>
         </ul>
-        <a href="#contact" class="btn btn-gold reveal">Talk to Our Sales Team</a>
-      </div>
-      <div class="who-stats reveal">
-        <div class="stat"><span class="stat-num" data-target="15" data-suffix="+">0</span><span class="stat-label">Years of Experience</span></div>
-        <div class="stat"><span class="stat-num" data-target="3">0</span><span class="stat-label">Offices Worldwide</span></div>
-        <div class="stat"><span class="stat-num" data-target="31048" data-suffix="+">0</span><span class="stat-label">Trusted Global Dealers</span></div>
+        <a href="#gold" class="btn btn-gold">Read More</a>
       </div>
     </div>
   </section>
 
-  <!-- ===== Gold offering ===== -->
+  <!-- ===== Buy Gold ===== -->
   <section class="gold-offer" id="gold">
     <div class="container">
-      <span class="eyebrow center reveal">Our Gold</span>
-      <h2 class="section-title center reveal">Investment-grade gold, ready for the world market</h2>
+      <h2 class="section-title center reveal">Our Gold, Ready for the World Market</h2>
+      <span class="ybar center reveal" aria-hidden="true"></span>
       <p class="section-sub center reveal">Every product is assayed, certified 99.9% pure, sealed and serial-numbered before it leaves our vault in Kampala.</p>
       <div class="offer-grid">
-        <article class="offer-card reveal">
-          <div class="offer-visual"><div class="mini-bar"><span>1kg</span></div></div>
-          <h3>Cast Gold Bars</h3>
-          <p>99.9% fine gold bars from 100g to 12.5kg, stamped, serial-numbered and delivered with full assay certification.</p>
-          <a href="#contact" class="offer-link">Request pricing →</a>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Request pricing for cast gold bars">➜</a>
+          <div class="card-notch-body">
+            <div class="offer-visual"><div class="mini-bar"><span>1kg</span></div></div>
+            <h3>Cast Gold Bars</h3>
+            <p>99.9% fine gold bars from 100g to 12.5kg, stamped, serial-numbered and delivered with full assay certification.</p>
+          </div>
         </article>
-        <article class="offer-card reveal">
-          <div class="offer-visual"><div class="nugget n1"></div><div class="nugget n2"></div><div class="nugget n3"></div></div>
-          <h3>Gold Nuggets &amp; Raw Gold</h3>
-          <p>Responsibly sourced raw gold and nuggets from our partner mine sites across Uganda — graded, weighed and documented.</p>
-          <a href="#contact" class="offer-link">Request pricing →</a>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-sage" href="#contact" aria-label="Request pricing for gold nuggets and raw gold">➜</a>
+          <div class="card-notch-body">
+            <div class="offer-visual"><div class="nugget n1"></div><div class="nugget n2"></div><div class="nugget n3"></div></div>
+            <h3>Gold Nuggets &amp; Raw Gold</h3>
+            <p>Responsibly sourced raw gold and nuggets from our partner mine sites across Uganda — graded, weighed and documented.</p>
+          </div>
         </article>
-        <article class="offer-card reveal">
-          <div class="offer-visual"><div class="mini-bar sm"><span></span></div><div class="mini-bar sm b2"><span></span></div><div class="mini-bar sm b3"><span></span></div></div>
-          <h3>Bulk &amp; Institutional Supply</h3>
-          <p>Recurring bulk gold supply for dealers, jewellers, banks and trading houses, with secure logistics and flexible contract terms.</p>
-          <a href="#contact" class="offer-link">Request pricing →</a>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Request pricing for bulk gold supply">➜</a>
+          <div class="card-notch-body">
+            <div class="offer-visual"><div class="mini-bar sm"><span></span></div><div class="mini-bar sm b2"><span></span></div><div class="mini-bar sm b3"><span></span></div></div>
+            <h3>Bulk &amp; Institutional Supply</h3>
+            <p>Recurring bulk gold supply for dealers, jewellers, banks and trading houses, with secure logistics and flexible terms.</p>
+          </div>
         </article>
       </div>
-      <div class="offer-steps reveal">
+      <div class="offer-steps hatch reveal">
         <h3 class="steps-title">How buying works</h3>
         <ol class="steps">
           <li><strong>Enquire.</strong> Tell us the quantity and form of gold you need.</li>
@@ -192,111 +183,180 @@
     </div>
   </section>
 
-  <!-- ===== Vision / Mission ===== -->
-  <section class="vision">
-    <div class="container">
-      <span class="eyebrow reveal">Preserve And Conserve</span>
-      <h2 class="section-title reveal">A vital mineral resource for a better future</h2>
-      <p class="vision-sub reveal">
-        Jubilee International Mining Company Limited promotes responsible mining and sourcing practices,
-        ensuring sustainable use of precious minerals. Our processes are designed to protect the
-        environment while delivering high-quality results.
-      </p>
-      <div class="gvm-grid">
-        <article class="gvm reveal"><h3><span class="pill-arr">➤</span> Goal</h3><p>To strive to deliver on our commitments to our clients, business partners, &amp; investors.</p></article>
-        <article class="gvm reveal"><h3><span class="pill-arr">➤</span> Vision</h3><p>To be the largest direct supplier of precious minerals such as gold &amp; diamond to the world market.</p></article>
-        <article class="gvm reveal"><h3><span class="pill-arr">➤</span> Mission</h3><p>To offer the highest calibre of gold and diamond products and services to myriad clients from across industries and geographical locations.</p></article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Services ===== -->
-  <section class="services" id="services">
-    <div class="container">
-      <span class="eyebrow center reveal">What We Do</span>
-      <h2 class="section-title center reveal">Services built around selling gold</h2>
-      <p class="section-sub center reveal">Everything we offer exists to make buying gold from the source simple, safe and certain.</p>
-      <div class="svc-grid">
-        <article class="svc featured reveal">
-          <div class="svc-icon">◆</div>
-          <h3>Gold Sales &amp; Supply</h3>
-          <p>Direct sale of certified 99.9% gold bars, nuggets and bulk gold to buyers worldwide.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">⚖</div>
-          <h3>Assaying Services</h3>
-          <p>Accurate measurement and purity verification of every product before sale.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">🔒</div>
-          <h3>Private Mineral Testing</h3>
-          <p>Confidential testing services for mineral content.</p>
-        </article>
-        <article class="svc featured reveal">
-          <div class="svc-icon">📈</div>
-          <h3>Gold Enhancement</h3>
-          <p>Strategies to enhance the value of gold assets.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">🤝</div>
-          <h3>Transaction Handling</h3>
-          <p>Secure facilitation of gold and mineral trade transactions between all parties.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">💎</div>
-          <h3>Testing of Gemstones</h3>
-          <p>Expert analysis and certification of diamonds and precious stones.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">🌍</div>
-          <h3>Advocacy for Minerals</h3>
-          <p>Promoting best practices and policies in the mineral sector.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">🧭</div>
-          <h3>Consultancy in Minerals</h3>
-          <p>Expert advice on mining, sourcing and mineral trading.</p>
-        </article>
-        <article class="svc reveal">
-          <div class="svc-icon">✈</div>
-          <h3>Export &amp; Secure Delivery</h3>
-          <p>Fully documented export and insured delivery of purchased gold, worldwide.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Partnerships ===== -->
+  <!-- ===== Government & Institutional Partnerships ===== -->
   <section class="partnerships" id="partnerships">
     <div class="container">
-      <span class="eyebrow center reveal">Government &amp; Institutional Partnerships</span>
-      <h2 class="section-title center reveal">Backed by Uganda's formal gold ecosystem</h2>
+      <h2 class="section-title center reveal">Government &amp; Institutional Partnerships</h2>
+      <span class="ybar center reveal" aria-hidden="true"></span>
       <p class="section-sub center reveal">
-        We work closely with key government institutions in Uganda to support the formalization and
-        development of the gold sector. Through strategic collaboration with regulatory bodies, we
+        Jubilee International Mining Company Limited works closely with key government institutions in
+        Uganda to support the formalization and development of the gold sector. Our role within the
+        national mineral ecosystem reflects our commitment to compliance, accountability, and
+        contribution to economic growth. Through strategic collaboration with regulatory bodies, we
         uphold international standards in sourcing and traceability, ensuring transparency across the
         value chain.
       </p>
-      <div class="partner-grid">
-        <article class="partner-card reveal">
-          <h3>Central Bank of Uganda</h3>
-          <p>Designated mineral supplier for the <strong>Central Bank of Uganda &amp; Ministry of Energy</strong>.</p>
+      <div class="center reveal"><a href="#contact" class="btn btn-gold">View Our Partnerships</a></div>
+      <div class="pship-panel hatch reveal">
+        <div class="pship">
+          <p>Designated Mineral Supplier for <strong>Central Bank of Uganda &amp; Ministry of Energy</strong></p>
+        </div>
+        <div class="pship">
+          <p>Strategic Partner to the <strong>Ministry of Energy and Mineral Development</strong></p>
+        </div>
+        <div class="pship pship-wide">
+          <p><strong>International Partnerships</strong> with leading global trading institutions across Africa and the Middle East</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Excellence Across Borders ===== -->
+  <section class="excellence">
+    <div class="container">
+      <h2 class="section-title center reveal">Excellence Across Borders</h2>
+      <p class="section-sub center reveal">
+        Jubilee International Mining Company Limited delivers excellence across borders, ensuring pure
+        gold supply worldwide. Our trusted processes meet global standards, promoting sustainable
+        practices everywhere.
+      </p>
+      <p class="section-sub center reveal">
+        Our global network includes partnerships with internationally recognized trading groups across
+        Africa and the Middle East.
+      </p>
+      <span class="ybar center reveal" aria-hidden="true"></span>
+      <div class="stat-row reveal">
+        <div class="stat hatch"><span class="stat-num" data-target="15" data-suffix="+">0</span><span class="stat-label">Years of Experience</span></div>
+        <div class="stat hatch"><span class="stat-num" data-target="3">0</span><span class="stat-label">Offices Worldwide</span></div>
+        <div class="stat hatch"><span class="stat-num" data-target="31048" data-suffix="+">0</span><span class="stat-label">Trusted Global Dealers</span></div>
+      </div>
+      <h3 class="partners-title center reveal">Partners</h3>
+      <div class="pn-row reveal">
+        <div class="pn hatch">Palm Refinery Dubai</div>
+        <div class="pn hatch">Light Moon Group</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Preserve And Conserve (dark) ===== -->
+  <section class="vision">
+    <div class="container">
+      <span class="kicker light reveal">Preserve And Conserve</span>
+      <h2 class="section-title reveal">A Vital Mineral Resource<br />for a Better Future</h2>
+      <p class="vision-sub reveal">
+        Jubilee International Mining Company Limited promotes responsible mining and sourcing
+        practices, ensuring sustainable use of precious minerals. Our processes are designed to
+        protect the environment while delivering high-quality results.
+      </p>
+      <a href="#services" class="btn btn-gold reveal">Services</a>
+      <div class="gvm-list">
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Goal</h3>
+            <p>To strive to deliver on our commitments to our clients, business partners, &amp; investors.</p>
+          </div>
         </article>
-        <article class="partner-card reveal">
-          <h3>Ministry of Energy</h3>
-          <p>Strategic partner to the <strong>Ministry of Energy and Mineral Development</strong>.</p>
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Vision</h3>
+            <p>To be the largest direct supplier of precious minerals such as gold &amp; diamond to the world market.</p>
+          </div>
         </article>
-        <article class="partner-card reveal">
-          <h3>Global Trading Network</h3>
-          <p><strong>International partnerships</strong> with leading global trading institutions across Africa and the Middle East.</p>
+        <article class="hfeat reveal">
+          <span class="chev" aria-hidden="true">❯</span>
+          <div>
+            <h3>Mission</h3>
+            <p>To offer the highest calibre of gold and diamond products and services to myriad clients from across industries and geographical locations.</p>
+          </div>
         </article>
       </div>
-      <div class="partner-names reveal">
-        <span class="eyebrow">Partners</span>
-        <div class="pn-row">
-          <div class="pn">Palm Refinery Dubai</div>
-          <div class="pn">Light Moon Group</div>
-        </div>
+    </div>
+  </section>
+
+  <!-- ===== Services (notched cards, like original) ===== -->
+  <section class="services" id="services">
+    <div class="container">
+      <h2 class="section-title reveal">Pure gold for a<br />brighter tomorrow</h2>
+      <p class="section-sub reveal">
+        Sustainable sourcing ensures purity and efficiency. Jubilee International Mining Company
+        Limited delivers exceptional gold products, meeting global standards with innovation and care
+        — everything we do exists to make buying gold from the source simple, safe and certain.
+      </p>
+      <div class="svc-grid">
+        <article class="card-notch svc-sage reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about gold sales and supply">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon solid" aria-hidden="true">◆</div>
+            <h3>Gold Sales &amp; Supply</h3>
+            <p>Direct sale of certified 99.9% gold bars, nuggets and bulk gold to buyers worldwide.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about assaying services">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">📊</div>
+            <h3>Assaying Services</h3>
+            <p>Accurate measurement and purity verification of every product before sale.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about private mineral testing">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">🏷</div>
+            <h3>Private Mineral Testing</h3>
+            <p>Confidential testing services for mineral content.</p>
+          </div>
+        </article>
+        <article class="card-notch svc-sage reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about gold enhancement">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon solid" aria-hidden="true">🏗</div>
+            <h3>Gold Enhancement</h3>
+            <p>Strategies to enhance the value of gold assets.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-sage" href="#contact" aria-label="Enquire about transaction handling">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">👛</div>
+            <h3>Transaction Handling</h3>
+            <p>Secure facilitation of gold and mineral trade transactions.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about testing of gemstones">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">💎</div>
+            <h3>Testing of Gemstones</h3>
+            <p>Expert analysis and certification of diamonds and precious stones.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about advocacy for minerals">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">📍</div>
+            <h3>Advocacy for Minerals</h3>
+            <p>Promoting best practices and policies in the mineral sector.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-sage" href="#contact" aria-label="Enquire about consultancy in minerals">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">🗄</div>
+            <h3>Consultancy in Minerals</h3>
+            <p>Expert advice on mining, sourcing and mineral trading.</p>
+          </div>
+        </article>
+        <article class="card-notch reveal">
+          <a class="notch-arrow arrow-gold" href="#contact" aria-label="Enquire about export and secure delivery">➜</a>
+          <div class="card-notch-body">
+            <div class="svc-icon" aria-hidden="true">✈</div>
+            <h3>Export &amp; Secure Delivery</h3>
+            <p>Fully documented export and insured delivery of purchased gold, worldwide.</p>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -304,32 +364,31 @@
   <!-- ===== Community ===== -->
   <section class="community">
     <div class="container">
-      <span class="eyebrow reveal">Small Scale Mining Partnerships</span>
-      <h2 class="section-title reveal">Community &amp; mining partnerships</h2>
-      <p class="reveal community-sub">
+      <span class="kicker reveal">Small Scale Mining Partnerships</span>
+      <h2 class="section-title reveal">Community &amp; Mining<br />Partnerships</h2>
+      <p class="community-sub reveal">
         We actively collaborate with artisanal and small-scale mining communities across Uganda,
         supporting responsible sourcing and sustainable livelihoods.
       </p>
+      <span class="ybar reveal" aria-hidden="true"></span>
       <blockquote class="quote reveal">
         <h4>Mubende (MUMA)</h4>
-        <p>“Jubilee International Mining Company Limited provided outstanding service, sourcing and purchasing our gold with precision and care in partnership with MUMA artisanal miners in Mubende.”</p>
+        <p>Jubilee International Mining Company Limited provided outstanding service, sourcing and purchasing our gold with precision and care in partnership with MUMA artisanal miners in Mubende.</p>
       </blockquote>
     </div>
   </section>
 
-  <!-- ===== Why us / meters ===== -->
+  <!-- ===== Let's Be Great Together (dark, meters) ===== -->
   <section class="why">
-    <div class="container why-inner">
-      <div class="why-copy">
-        <span class="eyebrow reveal">Let's Be Great Together</span>
-        <h2 class="section-title reveal">Powerful solutions for gold trading excellence</h2>
-        <p class="reveal">
-          Jubilee International Mining Company Limited leads the way in delivering high-quality,
-          sustainably sourced gold to the world market. Our expertise ensures a brighter, more
-          efficient future for every buyer we serve.
-        </p>
-        <a href="#contact" class="btn btn-gold reveal">Start Buying Gold</a>
-      </div>
+    <div class="container">
+      <span class="kicker light reveal">Let's Be Great Together</span>
+      <h2 class="section-title reveal">Powerful solutions for<br />gold trading excellence</h2>
+      <p class="why-sub reveal">
+        Jubilee International Mining Company Limited leads the way in delivering high-quality,
+        sustainably sourced gold to the world market. Our expertise ensures a brighter, more
+        efficient future.
+      </p>
+      <a href="#contact" class="btn btn-gold reveal">Start Buying Gold</a>
       <div class="meters">
         <div class="meter reveal" data-percent="85">
           <div class="ring"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-val">0%</span></div>
@@ -354,12 +413,28 @@
   <!-- ===== Projects ===== -->
   <section class="projects">
     <div class="container">
-      <span class="eyebrow center reveal">Our Track Record</span>
-      <h2 class="section-title center reveal">We take on all gold supply projects</h2>
-      <p class="section-sub center reveal">
-        From single-bar purchases to institutional supply contracts, Jubilee International Mining
-        Company Limited ensures the best standards and practices for each deal we undertake.
-      </p>
+      <div class="proj-intro">
+        <div class="proj-bar-wrap reveal">
+          <div class="gold-bar" aria-hidden="true">
+            <div class="gold-bar-face">
+              <span class="gb-brand">JUBILEE INTL MINING CO</span>
+              <span class="gb-weight">1 Kilo</span>
+              <span class="gb-purity">.999.9</span>
+              <span class="gb-origin">FINE GOLD · MADE IN UGANDA</span>
+            </div>
+          </div>
+        </div>
+        <div class="proj-copy">
+          <span class="kicker reveal">Our Awesome Projects</span>
+          <h2 class="section-title reveal">We Take on All Gold Supply Projects</h2>
+          <p class="reveal">
+            Jubilee International Mining Company Limited specializes in high-quality gold supply,
+            ensuring the best standards and practices for each project we undertake — from single-bar
+            purchases to institutional contracts.
+          </p>
+          <a href="#contact" class="btn btn-dark-outline reveal">All Projects</a>
+        </div>
+      </div>
       <div class="proj-grid">
         <article class="proj reveal">
           <div class="proj-art art-1" aria-hidden="true"></div>
@@ -382,78 +457,80 @@
 
   <!-- ===== FAQ ===== -->
   <section class="faq" id="faq">
-    <div class="container faq-inner">
-      <div class="faq-head">
-        <span class="eyebrow reveal">FAQ</span>
-        <h2 class="section-title reveal">Questions frequently asked by clients all over the globe</h2>
-        <p class="reveal">Jubilee International Mining Company Limited sells certified, high-purity gold — here's what buyers ask us most.</p>
-      </div>
-      <div class="faq-list reveal">
-        <details open>
-          <summary>What does Jubilee International Mining Company Limited sell?</summary>
-          <p>We sell certified 99.9% pure gold bars, gold nuggets and raw gold, plus bulk gold supply for dealers and institutions. We also offer gemstone testing, transaction handling and mineral consultancy.</p>
-        </details>
-        <details>
-          <summary>How do I buy gold from you?</summary>
-          <p>Contact our sales team with the quantity and form of gold you need. We'll provide assay documentation and a formal offer, arrange secure payment and transaction handling, then deliver worldwide or arrange collection.</p>
-        </details>
-        <details>
-          <summary>What is the minimum amount of gold I can purchase?</summary>
-          <p>We serve buyers of every scale — from single bars to multi-kilo institutional orders. Contact us and we'll structure an order that fits your needs.</p>
-        </details>
-        <details>
-          <summary>Is Jubilee International Mining Company Limited licensed?</summary>
-          <p>Yes. We are a government-designated and licensed gold supplier, serving as an official supplier to the Bank of Uganda and partnering with the Ministry of Energy and Mineral Development.</p>
-        </details>
-        <details>
-          <summary>How is purity guaranteed?</summary>
-          <p>Every product is independently assayed and certified 99.9% pure, then sealed and serial-numbered. Full documentation accompanies every sale.</p>
-        </details>
-        <details>
-          <summary>Do you sell gold internationally?</summary>
-          <p>Yes — we serve clients globally and handle both local and international transactions, with insured export and delivery worldwide.</p>
-        </details>
-        <details>
-          <summary>What are your payment terms?</summary>
-          <p>We support secure, verifiable payment methods with transaction handling that protects both parties. Terms are agreed per contract before any deal proceeds.</p>
-        </details>
-        <details>
-          <summary>Is your gold responsibly sourced?</summary>
-          <p>Yes. We source through licensed and artisanal partnerships across Uganda — including MUMA miners in Mubende — with eco-friendly practices and full traceability from mine to market.</p>
-        </details>
+    <div class="container">
+      <h2 class="faq-mega center reveal">FAQ</h2>
+      <p class="faq-tag center reveal">Questions Frequently Asked by<br />Clients All Over the Globe</p>
+      <div class="faq-inner">
+        <div class="faq-head">
+          <h3 class="faq-help reveal">What can we help?</h3>
+          <p class="reveal">Jubilee International Mining Company Limited sells certified, high-purity gold — ensuring the highest quality and purity for all your gold needs.</p>
+        </div>
+        <div class="faq-list reveal">
+          <details open>
+            <summary>What does Jubilee International Mining Company Limited sell?</summary>
+            <p>We sell certified 99.9% pure gold bars, gold nuggets and raw gold, plus bulk gold supply for dealers and institutions. We also offer gemstone testing, transaction handling and mineral consultancy.</p>
+          </details>
+          <details>
+            <summary>How do I buy gold from Jubilee International Mining Company Limited?</summary>
+            <p>Contact our sales team with the quantity and form of gold you need. We'll provide assay documentation and a formal offer, arrange secure payment and transaction handling, then deliver worldwide or arrange collection.</p>
+          </details>
+          <details>
+            <summary>What is the minimum amount of gold I can purchase?</summary>
+            <p>We serve buyers of every scale — from single bars to multi-kilo institutional orders. Contact us and we'll structure an order that fits your needs.</p>
+          </details>
+          <details>
+            <summary>Is Jubilee International Mining Company Limited licensed?</summary>
+            <p>Yes. We are a government-designated and licensed gold supplier, serving as an official supplier to the Bank of Uganda and partnering with the Ministry of Energy and Mineral Development.</p>
+          </details>
+          <details>
+            <summary>How is purity guaranteed?</summary>
+            <p>Every product is independently assayed and certified 99.9% pure, then sealed and serial-numbered. Full documentation accompanies every sale.</p>
+          </details>
+          <details>
+            <summary>Do you sell gold internationally?</summary>
+            <p>Yes, we serve clients globally and handle both local and international transactions, with insured export and delivery worldwide.</p>
+          </details>
+          <details>
+            <summary>What are your payment terms?</summary>
+            <p>We support secure, verifiable payment methods with transaction handling that protects both parties. Terms are agreed per contract before any deal proceeds.</p>
+          </details>
+          <details>
+            <summary>Is Jubilee International Mining Company Limited environmentally responsible?</summary>
+            <p>Yes. We source through licensed and artisanal partnerships across Uganda — including MUMA miners in Mubende — with eco-friendly practices and full traceability from mine to market.</p>
+          </details>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== Contact ===== -->
+  <!-- ===== Get in Touch ===== -->
   <section class="contact" id="contact">
     <div class="container">
-      <span class="eyebrow center reveal">Get in Touch</span>
-      <h2 class="section-title center reveal">Ready to buy gold? Let's talk.</h2>
-      <p class="section-sub center reveal">
+      <h2 class="section-title reveal">Get in Touch</h2>
+      <p class="section-sub reveal">
         Reach out to Jubilee International Mining Company Limited for pricing, availability and
         personalized service. We're ready to assist with all your gold purchase inquiries.
       </p>
       <div class="contact-grid">
         <div class="contact-cards reveal">
           <a class="ccard" href="tel:+256731885425">
-            <span class="ccard-icon">📍</span>
-            <span><strong>Uganda Offices — Headquarters</strong><br />+256 731 885 425 · Kampala, Uganda</span>
+            <span class="ccard-icon" aria-hidden="true">📍</span>
+            <span><strong>Uganda Offices</strong><u>+256 731 885 425</u> · Kampala, Uganda (Headquarters)</span>
           </a>
           <a class="ccard" href="tel:+971522086317">
-            <span class="ccard-icon">📍</span>
-            <span><strong>Dubai Office</strong><br />+971 52 208 6317 · Dubai, UAE</span>
+            <span class="ccard-icon" aria-hidden="true">📍</span>
+            <span><strong>Dubai Office</strong><u>+971 52 208 6317</u> · Dubai</span>
           </a>
           <a class="ccard" href="tel:+256785009578">
-            <span class="ccard-icon">📍</span>
-            <span><strong>Kenya Office</strong><br />+256 785 009 578 · Kenya</span>
+            <span class="ccard-icon" aria-hidden="true">📍</span>
+            <span><strong>Kenya Office</strong><u>+256 785 009 578</u> · Kenya</span>
           </a>
           <a class="ccard" href="mailto:info@jubileeintlminingco.com">
-            <span class="ccard-icon">✉️</span>
-            <span><strong>Email Us</strong><br />info@jubileeintlminingco.com</span>
+            <span class="ccard-icon" aria-hidden="true">✉️</span>
+            <span><strong>Email Us</strong><u>info@jubileeintlminingco.com</u></span>
           </a>
         </div>
-        <form class="contact-form reveal" id="contactForm" novalidate>
+        <form class="contact-form hatch reveal" id="contactForm" novalidate>
           <div class="row">
             <input type="text" name="name" placeholder="Your name" required />
             <input type="email" name="email" placeholder="Email address" required />
@@ -479,9 +556,11 @@
 
   <!-- ===== Footer ===== -->
   <footer class="footer">
-    <div class="container footer-hero reveal">
-      <h2>Jubilee International Mining Company Limited</h2>
-      <p><em>We facilitate seamless transactions, ensuring smooth communication and trust between all parties in the mineral market.</em></p>
+    <div class="footer-band">
+      <div class="container reveal">
+        <h2>Jubilee International Mining Company Limited</h2>
+        <p><em>We facilitate seamless transactions, ensuring smooth communication and trust between all parties in the mineral market.</em></p>
+      </div>
     </div>
     <div class="container footer-cols">
       <div class="footer-col footer-about">
@@ -505,14 +584,14 @@
       </div>
       <div class="footer-col">
         <h4>Contact Us</h4>
-        <a href="tel:+256731885425">📍 +256 731 885 425 · Kampala, Uganda (HQ)</a>
-        <a href="tel:+971522086317">📍 +971 52 208 6317 · Dubai</a>
-        <a href="tel:+256785009578">📍 +256 785 009 578 · Kenya</a>
-        <a href="mailto:info@jubileeintlminingco.com">✉️ info@jubileeintlminingco.com</a>
+        <a href="tel:+256731885425"><span class="f-ic">📍</span> <u>+256 731 885 425</u> · Kampala, Uganda (HQ)</a>
+        <a href="tel:+971522086317"><span class="f-ic">📍</span> <u>+971 52 208 6317</u> · Dubai</a>
+        <a href="tel:+256785009578"><span class="f-ic">📍</span> <u>+256 785 009 578</u> · Kenya</a>
+        <a href="mailto:info@jubileeintlminingco.com"><span class="f-ic">✉️</span> <u>info@jubileeintlminingco.com</u></a>
       </div>
     </div>
     <div class="container footer-bottom">
-      <span>Copyright © <span id="year">2026</span> Jubilee International Mining Company Limited. All rights reserved.</span>
+      <span>Copyright © <span id="year">2026</span> Jubilee International Mining Company Limited, All rights reserved.</span>
     </div>
   </footer>
 
